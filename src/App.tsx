@@ -1,11 +1,12 @@
+
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 
 // Components
 import SplashScreen from './components/ui/SplashScreen';
-import { ThemeProvider } from '@/components/ui/theme-provider';
-import { Toaster } from '@/components/ui/toaster';
+import { ThemeProvider } from './components/ui/theme-provider';
+import { Toaster } from './components/ui/toaster';
 
 // Pages
 import Index from './pages/Index';
@@ -32,12 +33,26 @@ import ResetPassword from './pages/auth/ResetPassword';
 
 function AppRoutes() {
   const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Mock authentication handlers
+  const handleLogin = (token: string) => {
+    console.log("User logged in with token:", token);
+    // In a real app, you would store this token somewhere
+    localStorage.setItem("auth-token", token);
+  };
+  
+  const handleLogout = () => {
+    console.log("User logged out");
+    localStorage.removeItem("auth-token");
+    navigate("/welcome");
+  };
   
   return (
     <Routes>
       <Route path="/" element={<Index />} />
       <Route path="/map" element={<MapView />} />
-      <Route path="/settings" element={<Settings />} />
+      <Route path="/settings" element={<Settings onLogout={handleLogout} />} />
       <Route path="/station/:id" element={<StationDetails />} />
       <Route path="/station/:id/fuel" element={<FuelSelection />} />
       <Route path="/station/:id/groceries" element={<GroceryList />} />
@@ -50,8 +65,8 @@ function AppRoutes() {
       
       {/* Auth routes */}
       <Route path="/welcome" element={<Welcome />} />
-      <Route path="/signin" element={<SignIn />} />
-      <Route path="/signup" element={<SignUp />} />
+      <Route path="/signin" element={<SignIn onLogin={handleLogin} />} />
+      <Route path="/signup" element={<SignUp onLogin={handleLogin} />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/verify-otp" element={<VerifyOtp />} />
       <Route path="/reset-password" element={<ResetPassword />} />
