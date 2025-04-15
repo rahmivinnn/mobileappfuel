@@ -2,9 +2,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Map from '@/components/ui/Map';
-import Header from '@/components/ui/Header';
-import BottomNav from '@/components/ui/BottomNav';
-import { stations } from '@/data/dummyData';
+import Header from '@/components/layout/Header';
+import BottomNav from '@/components/layout/BottomNav';
+import { allStations } from '@/data/dummyData';
 import { motion } from 'framer-motion';
 import { toast } from '@/hooks/use-toast';
 
@@ -13,18 +13,18 @@ const MapView: React.FC = () => {
   const [selectedStationId, setSelectedStationId] = useState<string | null>(null);
   
   // Convert stations to map markers
-  const markers = stations.map(station => ({
-    position: station.position, // Use position property directly
+  const markers = allStations.map(station => ({
+    position: station.position,
     title: station.name,
-    icon: station.imageUrl // Use imageUrl as icon
+    icon: station.imageUrl
   }));
 
   const handleMarkerClick = (index: number) => {
-    const stationId = stations[index].id;
+    const stationId = allStations[index].id;
     setSelectedStationId(stationId);
     toast({
       title: "Station Selected",
-      description: `${stations[index].name} has been selected`,
+      description: `${allStations[index].name} has been selected`,
     });
     navigate(`/station/${stationId}`);
   };
