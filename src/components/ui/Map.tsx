@@ -26,6 +26,8 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
     // Set mounted to true after component mounts
     useEffect(() => {
       setMounted(true);
+      
+      // Clean up function
       return () => setMounted(false);
     }, []);
 
@@ -75,8 +77,8 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
           // Calculate position based on coordinates
           // This is a simple placeholder calculation for demo
           // In a real app, you would use proper geo to pixel conversion
-          const left = (marker.position.lng + 90.05) * 70;
-          const top = (90.15 - marker.position.lat) * 70;
+          const left = (marker.position.lng + 140) / 360 * 100; // More robust calculation
+          const top = (90 - marker.position.lat) / 180 * 100;  // More robust calculation
           
           return (
             <div
@@ -85,33 +87,38 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
               style={{
                 left: `${left}%`,
                 top: `${top}%`,
-                transform: `translate(-50%, -50%)`
+                transform: `translate(-50%, -50%)`,
+                zIndex: isSelected ? 10 : 1
               }}
             >
               {/* Marker */}
               <div
-                className={`cursor-pointer transition-transform duration-200 ${isSelected || isHovered ? 'scale-110' : 'scale-100'}`}
+                className={`cursor-pointer transition-transform duration-200 ${isSelected || isHovered ? 'scale-125' : 'scale-100'}`}
                 onClick={() => handleMarkerClick(index)}
                 onMouseEnter={() => setMarkerHover(index)}
                 onMouseLeave={() => setMarkerHover(null)}
               >
                 {marker.icon ? (
-                  <img src={marker.icon} alt={marker.title || 'Marker'} className="w-6 h-6" />
+                  <img src={marker.icon} alt={marker.title || 'Marker'} className="w-8 h-8" />
                 ) : (
-                  <div className={`w-6 h-6 rounded-full bg-primary border-2 border-white ${isSelected ? 'ring-2 ring-primary/50' : ''}`} />
+                  <div className={`w-6 h-6 rounded-full bg-primary border-2 border-white ${isSelected ? 'ring-4 ring-primary/50' : ''}`} />
                 )}
               </div>
               
               {/* Info popup when marker is selected */}
-              {isSelected && marker.title && (
+              {(isSelected || isHovered) && marker.title && (
                 <div 
-                  className="absolute z-10 bg-card shadow-lg rounded-md p-2 min-w-[100px] text-center -mt-2 transform -translate-y-full"
+                  className="absolute z-20 bg-card shadow-lg rounded-md p-2 min-w-[120px] text-center -mt-2 transform -translate-y-full"
                   style={{
                     transform: "translateY(-100%)",
                     cursor: "default",
                     transition: "all 0.2s",
                     perspective: "1000px",
-                    transformStyle: "preserve-3d" as const
+                    transformStyle: "preserve-3d" as const,
+                    backgroundColor: "rgba(0, 0, 0, 0.75)",
+                    backdropFilter: "blur(4px)",
+                    color: "white",
+                    borderBottom: "2px solid #4ade80"
                   }}
                 >
                   <p className="text-sm font-medium">{marker.title}</p>
