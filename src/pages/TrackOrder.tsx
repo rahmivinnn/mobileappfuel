@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { MapPin, Phone, MessageSquare, ChevronLeft, Check, ArrowLeft, Truck } from 'lucide-react';
+import { MapPin, Phone, MessageSquare, ChevronLeft, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from "@/hooks/use-toast";
 import { orderHistory } from '@/data/dummyData';
@@ -8,11 +9,6 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import RatingModal from '@/components/ui/RatingModal';
 import OrderConfirmModal from '@/components/ui/OrderConfirmModal';
 import Map from '@/components/ui/Map';
-import AgentBottomNav from '@/components/layout/AgentBottomNav';
-
-interface TrackOrderProps {
-  agentView?: boolean;
-}
 
 const memphisLicensePlates = ["TN-56A782"];
 
@@ -37,37 +33,7 @@ const driverAvatar = (
   </div>
 );
 
-interface OrderDetails {
-  id: string;
-  status: string;
-  estimatedDelivery: string;
-  items: {
-    name: string;
-    quantity: string;
-    price: number;
-  }[];
-  total: number;
-  licensePlate: string;
-  driver: {
-    name: string;
-    location: string;
-    image: string;
-    rating: number;
-    phone: string;
-    vehicle: string;
-  };
-  progress: number;
-  statusDetails: string;
-  driverLocation: { lat: number; lng: number };
-}
-
-interface AgentOrderDetails extends OrderDetails {
-  customerName: string;
-  address: string;
-  eta: string;
-}
-
-const defaultOrder: OrderDetails = {
+const defaultOrder = {
   id: 'ORD-1234',
   status: 'processing',
   estimatedDelivery: deliveryTime,
@@ -83,13 +49,6 @@ const defaultOrder: OrderDetails = {
   driverLocation: { lat: 35.149, lng: -90.048 }
 };
 
-const defaultAgentOrder: AgentOrderDetails = {
-  ...defaultOrder,
-  customerName: 'John Smith',
-  address: '123 Main St, Memphis, TN',
-  eta: '5 mins'
-};
-
 const driverMessages = [
   "I'm on my way to your location!",
   "I'll be there in about 5 minutes.",
@@ -99,13 +58,13 @@ const driverMessages = [
   "Thank you for using our service!"
 ];
 
-const TrackOrder: React.FC<TrackOrderProps> = ({ agentView = false }) => {
+const TrackOrder: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const isMobile = useIsMobile();
   
-  const [order, setOrder] = useState<OrderDetails | AgentOrderDetails>(agentView ? defaultAgentOrder : defaultOrder);
+  const [order, setOrder] = useState<typeof defaultOrder>(defaultOrder);
   const [orderComplete, setOrderComplete] = useState(false);
   const [driverLocation, setDriverLocation] = useState({ lat: 35.149, lng: -90.048 });
   const [showDirections, setShowDirections] = useState(true);
@@ -127,6 +86,7 @@ const TrackOrder: React.FC<TrackOrderProps> = ({ agentView = false }) => {
     };
   }, []);
 
+  // Setup initial order details
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const orderId = params.get('orderId');
@@ -155,38 +115,26 @@ const TrackOrder: React.FC<TrackOrderProps> = ({ agentView = false }) => {
           }]);
           
           if (isMounted.current) {
-            if (agentView) {
-              setOrder({
-                ...defaultAgentOrder,
-                id: foundOrder.id || defaultAgentOrder.id,
-                status: foundOrder.status || defaultAgentOrder.status,
-                estimatedDelivery: deliveryTime,
-                items: foundOrder.items || defaultAgentOrder.items,
-                total: parseFloat(foundOrder.totalPrice) || defaultAgentOrder.total,
-                driverLocation: initialDriverLocation
-              });
-            } else {
-              setOrder({
-                ...defaultOrder,
-                id: foundOrder.id || defaultOrder.id,
-                status: foundOrder.status || defaultOrder.status,
-                estimatedDelivery: deliveryTime,
-                items: foundOrder.items || defaultOrder.items,
-                total: parseFloat(foundOrder.totalPrice) || defaultOrder.total,
-                driverLocation: initialDriverLocation
-              });
-            }
+            setOrder({
+              ...defaultOrder,
+              id: foundOrder.id || defaultOrder.id,
+              status: foundOrder.status || defaultOrder.status,
+              estimatedDelivery: deliveryTime,
+              items: foundOrder.items || defaultOrder.items,
+              total: parseFloat(foundOrder.totalPrice) || defaultOrder.total,
+              driverLocation: initialDriverLocation
+            });
           }
         } else {
           console.log(`Order ${orderId} not found, using default`);
           if (isMounted.current) {
-            setOrder(agentView ? defaultAgentOrder : defaultOrder);
+            setOrder({...defaultOrder});
           }
         }
       } catch (error) {
         console.error("Error processing order data:", error);
         if (isMounted.current) {
-          setOrder(agentView ? defaultAgentOrder : defaultOrder);
+          setOrder({...defaultOrder});
           toast({
             title: "Error",
             description: "Could not load order details",
@@ -197,7 +145,7 @@ const TrackOrder: React.FC<TrackOrderProps> = ({ agentView = false }) => {
       }
     } else {
       if (isMounted.current) {
-        setOrder(agentView ? defaultAgentOrder : defaultOrder);
+        setOrder({...defaultOrder});
       }
     }
     
@@ -299,8 +247,9 @@ const TrackOrder: React.FC<TrackOrderProps> = ({ agentView = false }) => {
       clearInterval(statusTimer);
       clearInterval(messageTimer);
     };
-  }, [location.search, toast, navigate, orderComplete, agentView]);
+  }, [location.search, toast, navigate, orderComplete]);
 
+  // Driver movement effect
   useEffect(() => {
     const movementInterval = setInterval(() => {
       if (!isMounted.current) {
@@ -308,9 +257,11 @@ const TrackOrder: React.FC<TrackOrderProps> = ({ agentView = false }) => {
         return;
       }
       
+      // Simulate driver moving toward destination
       const destination = { lat: 35.146, lng: -90.052 };
       const currentLocation = driverLocation;
       
+      // Calculate a point that's slightly closer to the destination
       const newDriverLocation = {
         lat: currentLocation.lat + (destination.lat - currentLocation.lat) * 0.05,
         lng: currentLocation.lng + (destination.lng - currentLocation.lng) * 0.05
@@ -484,170 +435,6 @@ const TrackOrder: React.FC<TrackOrderProps> = ({ agentView = false }) => {
     );
   }
 
-  if (agentView) {
-    const agentOrderDetails = order as AgentOrderDetails;
-    
-    return (
-      <div className="fixed inset-0 flex flex-col bg-black text-white">
-        <div className="relative px-4 py-3 flex items-center justify-center">
-          <button 
-            className="absolute left-4 h-10 w-10 flex items-center justify-center rounded-full bg-gray-800"
-            onClick={() => navigate('/agent/dashboard')}
-          >
-            <ArrowLeft className="h-6 w-6" />
-          </button>
-          <h1 className="text-xl font-semibold">Agent Tracking View</h1>
-        </div>
-        
-        <div className="px-4 py-2">
-          <div className="flex justify-between items-center mb-2">
-            <div className="flex items-center">
-              <div className={`w-3 h-3 rounded-full ${getStatusColor(status)} mr-2`}></div>
-              <span className="font-medium">{getStatusName(status)}</span>
-            </div>
-            <span className="text-sm text-gray-400">{orderId}</span>
-          </div>
-          
-          <div className="w-full bg-gray-700 rounded-full h-2 mb-2">
-            <motion.div 
-              className={`h-2 rounded-full ${getStatusColor(status)}`}
-              initial={{ width: 0 }}
-              animate={{ width: `${progress}%` }}
-              transition={{ duration: 0.5 }}
-            />
-          </div>
-          <p className="text-gray-400 text-sm">{statusDetails}</p>
-        </div>
-        
-        <div className={`${isMobile ? 'h-[350px]' : 'h-[300px]'} mb-4 mt-2 relative`}>
-          <Map
-            className="w-full h-full"
-            markers={[...driverMarkers, ...destinationMarker]}
-            directions={true}
-            showRoute={true}
-            interactive={true}
-            zoom={14}
-          />
-        </div>
-        
-        <div className="px-4 py-2 bg-black relative">
-          <div className="flex items-center mb-6">
-            <div className="mr-3">
-              <div className="h-14 w-14 rounded-full bg-blue-500 flex items-center justify-center border-2 border-white text-white overflow-hidden">
-                <img
-                  src={`https://api.dicebear.com/7.x/micah/svg?seed=${agentOrderDetails.customerName || "Customer"}`}
-                  alt="Customer"
-                  className="h-full w-full object-cover"
-                />
-              </div>
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-lg">{agentOrderDetails.customerName || "Customer"}</h3>
-              <p className="text-gray-400">{agentOrderDetails.address || "Customer location"}</p>
-              <div className="flex items-center space-x-2 mt-1">
-                <p className="text-gray-400 text-xs">Order #{orderId}</p>
-                <p className="text-gray-400 text-xs">ETA: {agentOrderDetails.eta || "Calculating..."}</p>
-              </div>
-            </div>
-            <div className="flex space-x-2">
-              <button 
-                onClick={handleMessage}
-                className="h-12 w-12 p-0 rounded-full bg-green-500 hover:bg-green-600"
-              >
-                <MessageSquare className="h-6 w-6 mx-auto text-black" />
-              </button>
-              <button 
-                onClick={handleCall}
-                className="h-12 w-12 p-0 rounded-full bg-green-500 hover:bg-green-600"
-              >
-                <Phone className="h-6 w-6 mx-auto text-black" />
-              </button>
-            </div>
-          </div>
-          
-          <div className="mb-6 bg-gray-800 rounded-lg p-4">
-            <h4 className="text-gray-300 mb-2 font-medium">Order Details</h4>
-            <div className="space-y-2">
-              {orderItems.map((item, index) => (
-                <div key={index} className="flex justify-between text-sm">
-                  <span>{item.name}</span>
-                  <span className="font-medium">${item.price.toFixed(2)}</span>
-                </div>
-              ))}
-              <div className="border-t border-gray-700 pt-2 mt-2 flex justify-between font-medium">
-                <span>Total Earnings</span>
-                <span className="text-green-400">${orderTotal.toFixed(2)}</span>
-              </div>
-            </div>
-          </div>
-          
-          <div className="mb-6">
-            <div className="flex items-center justify-between">
-              <div className="flex flex-col items-center">
-                <div className={`w-8 h-8 ${progress >= 20 ? 'bg-green-500' : 'bg-gray-700'} rounded-full flex items-center justify-center`}>
-                  <Truck className={`h-4 w-4 ${progress >= 20 ? 'text-black' : 'text-gray-400'}`} />
-                </div>
-                <p className="text-xs text-gray-400 mt-1">Assigned</p>
-              </div>
-              <div className="flex-1 mx-1 h-0.5">
-                <div className={`h-0.5 w-full border-t-2 border-dashed ${progress >= 40 ? 'border-green-500' : 'border-gray-700'}`}></div>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className={`w-8 h-8 ${progress >= 40 ? 'bg-green-500' : 'bg-gray-700'} rounded-full flex items-center justify-center`}>
-                  <MapPin className={`h-4 w-4 ${progress >= 40 ? 'text-black' : 'text-gray-400'}`} />
-                </div>
-                <p className="text-xs text-gray-400 mt-1">En Route</p>
-              </div>
-              <div className="flex-1 mx-1 h-0.5">
-                <div className={`h-0.5 w-full border-t-2 border-dashed ${progress >= 80 ? 'border-green-500' : 'border-gray-700'}`}></div>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className={`w-8 h-8 ${progress >= 80 ? 'bg-green-500' : 'bg-gray-700'} rounded-full flex items-center justify-center`}>
-                  <svg className={`h-4 w-4 ${progress >= 80 ? 'text-black' : 'text-gray-400'}`} viewBox="0 0 24 24">
-                    <path fill="currentColor" d="M18 10a1 1 0 0 1-1-1 1 1 0 0 1 1-1 1 1 0 0 1 1 1 1 1 0 0 1-1 1m-6 0H6V5h6m7.77 2.23l.01-.01-3.72-3.72L15 4.56l2.11 2.11C16.17 7 15.5 7.93 15.5 9a2.5 2.5 0 0 0 2.5 2.5c.36 0 .69-.08 1-.21v7.21a1 1 0 0 1-1 1 1 1 0 0 1-1-1V14a2 2 0 0 0-2-2h-1V5a2 2 0 0 0-2-2H6c-1.11 0-2 .89-2 2v16h10v-7.5h1.5v5a2.5 2.5 0 0 0 2.5 2.5 2.5 2.5 0 0 0 2.5-2.5V9c0-.69-.28-1.32-.73-1.77M12 10H6V9h6m0-2H6V7h6M6 19v-3h5v3H6m0-4.5V19h-1v-4.5"/>
-                  </svg>
-                </div>
-                <p className="text-xs text-gray-400 mt-1">Fueling</p>
-              </div>
-              <div className="flex-1 mx-1 h-0.5">
-                <div className={`h-0.5 w-full border-t-2 border-dashed ${progress >= 100 ? 'border-green-500' : 'border-gray-700'}`}></div>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className={`w-8 h-8 ${progress >= 100 ? 'bg-green-500' : 'bg-gray-700'} rounded-full flex items-center justify-center`}>
-                  <Check className={`h-4 w-4 ${progress >= 100 ? 'text-black' : 'text-gray-400'}`} />
-                </div>
-                <p className="text-xs text-gray-400 mt-1">Done</p>
-              </div>
-            </div>
-          </div>
-          
-          {progress < 100 && (
-            <button 
-              onClick={() => {
-                toast({
-                  title: "Status Updated",
-                  description: "You've advanced the order status",
-                });
-                setOrder({
-                  ...order,
-                  progress: Math.min(100, progress + 20),
-                  status: progress >= 80 ? 'delivered' : progress >= 40 ? 'in-transit' : 'processing',
-                });
-              }}
-              className="w-full py-3 bg-green-500 text-black rounded-lg font-medium mb-20"
-            >
-              {progress < 40 ? "Start Delivery" : 
-               progress < 80 ? "Arrived at Location" : 
-               progress < 100 ? "Complete Fueling" : "Complete Delivery"}
-            </button>
-          )}
-        </div>
-        
-        <AgentBottomNav />
-      </div>
-    );
-  }
-
   return (
     <div className="fixed inset-0 flex flex-col bg-black text-white">
       <div className="relative px-4 py-3 flex items-center justify-center">
@@ -738,7 +525,7 @@ const TrackOrder: React.FC<TrackOrderProps> = ({ agentView = false }) => {
             <div className="flex flex-col items-center">
               <div className={`w-8 h-8 ${progress >= 40 ? 'bg-green-500' : 'bg-gray-700'} rounded-full flex items-center justify-center`}>
                 <svg className={`h-4 w-4 ${progress >= 40 ? 'text-black' : 'text-gray-400'}`} viewBox="0 0 24 24">
-                  <path fill="currentColor" d="M18 10a1 1 0 0 1-1-1 1 1 0 0 1 1-1 1 1 0 0 1 1 1 1 1 0 0 1-1 1m-6 0H6V5h6m7.77 2.23l.01-.01-3.72-3.72L15 4.56l2.11 2.11C16.17 7 15.5 7.93 15.5 9a2.5 2.5 0 0 0 2.5 2.5c.36 0 .69-.08 1-.21v7.21a1 1 0 0 1-1 1 1 1 0 0 1-1-1V14a2 2 0 0 0-2-2h-1V5a2 2 0 0 0-2-2H6c-1.11 0-2 .89-2 2v16h10v-7.5h1.5v5a2.5 2.5 0 0 0 2.5 2.5 2.5 2.5 0 0 0 2.5-2.5V9c0-.69-.28-1.32-.73-1.77M12 10H6V9h6m0-2H6V7h6M6 19v-3h5v3H6m0-4.5V19h-1v-4.5"/>
+                  <path fill="currentColor" d="M18 18.5c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5-1.5.67-1.5 1.5.67 1.5 1.5 1.5M20 8l3 4v5h-2c0 1.66-1.34 3-3 3s-3-1.34-3-3H9c0 1.66-1.34 3-3 3s-3-1.34-3-3H1V6c0-1.11.89-2 2-2h14v4h3M3 6v9h.76c.55-.61 1.35-1 2.24-1 .89 0 1.69.39 2.24 1H15V6H3z"/>
                 </svg>
               </div>
               <p className="text-xs text-gray-400 mt-1">At Station</p>

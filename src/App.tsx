@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
@@ -31,15 +30,6 @@ import ForgotPassword from './pages/auth/ForgotPassword';
 import VerifyOtp from './pages/auth/VerifyOtp';
 import ResetPassword from './pages/auth/ResetPassword';
 
-// Agent Pages
-import AgentDashboard from './pages/agent/Dashboard';
-import AgentOrderDetail from './pages/agent/OrderDetail';
-import AgentDeliveryComplete from './pages/agent/DeliveryComplete';
-import AgentCustomers from './pages/agent/Customers';
-import AgentCustomerDetail from './pages/agent/CustomerDetail';
-import AgentEarnings from './pages/agent/Earnings';
-import AgentProfile from './pages/agent/Profile';
-
 function AppRoutes() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -56,9 +46,6 @@ function AppRoutes() {
     navigate("/signin");
   };
   
-  // Check if current path is an agent path
-  const isAgentPath = location.pathname.startsWith('/agent');
-  
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
@@ -71,7 +58,7 @@ function AppRoutes() {
         <Route path="/payment" element={<Payment />} />
         <Route path="/confirmation" element={<Confirmation />} />
         <Route path="/orders" element={<OrderHistory />} />
-        <Route path="/track" element={<TrackOrder agentView={isAgentPath} />} />
+        <Route path="/track" element={<TrackOrder />} />
         <Route path="/chat" element={<ChatScreen />} />
         <Route path="/call" element={<CallScreen />} />
         
@@ -82,15 +69,6 @@ function AppRoutes() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/verify-otp" element={<VerifyOtp />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        
-        {/* Agent routes */}
-        <Route path="/agent/dashboard" element={<AgentDashboard />} />
-        <Route path="/agent/order/:id" element={<AgentOrderDetail />} />
-        <Route path="/agent/delivery-complete" element={<AgentDeliveryComplete />} />
-        <Route path="/agent/customers" element={<AgentCustomers />} />
-        <Route path="/agent/customer/:id" element={<AgentCustomerDetail />} />
-        <Route path="/agent/earnings" element={<AgentEarnings />} />
-        <Route path="/agent/profile" element={<AgentProfile />} />
         
         {/* 404 */}
         <Route path="*" element={<NotFound />} />
