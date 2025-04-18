@@ -8,7 +8,27 @@ import BottomNav from '@/components/layout/BottomNav';
 import AgentBottomNav from '@/components/layout/AgentBottomNav';
 import { orderHistory } from '@/data/dummyData';
 
-const agentOrderHistory = [
+// Define customer order type based on orderHistory
+type CustomerOrder = typeof orderHistory[0];
+
+// Define agent order type
+interface AgentOrder {
+  id: string;
+  customerName: string;
+  status: string;
+  date: string;
+  location: string;
+  fuelType: string;
+  totalPrice: string;
+  customerRating: number | null;
+  items: {
+    name: string;
+    quantity: string;
+    price: number;
+  }[];
+}
+
+const agentOrderHistory: AgentOrder[] = [
   {
     id: 'ORD-9012',
     customerName: 'Michael Brown',
@@ -55,7 +75,7 @@ const OrderHistory: React.FC = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [isAgentView, setIsAgentView] = useState(false);
-  const [filteredOrders, setFilteredOrders] = useState<typeof orderHistory>([]);
+  const [filteredOrders, setFilteredOrders] = useState<CustomerOrder[] | AgentOrder[]>([]);
   
   // Determine if we're in agent mode based on the URL path
   useEffect(() => {
@@ -72,14 +92,25 @@ const OrderHistory: React.FC = () => {
     }
     
     const lowerSearchTerm = searchTerm.toLowerCase();
-    const filtered = orders.filter(order => 
-      order.id.toLowerCase().includes(lowerSearchTerm) || 
-      (isAgentView && order.customerName?.toLowerCase().includes(lowerSearchTerm)) ||
-      (!isAgentView && order.fuelType?.toLowerCase().includes(lowerSearchTerm)) ||
-      order.status.toLowerCase().includes(lowerSearchTerm)
-    );
     
-    setFilteredOrders(filtered);
+    if (isAgentView) {
+      // Agent view filtering
+      const filtered = agentOrderHistory.filter(order => 
+        order.id.toLowerCase().includes(lowerSearchTerm) || 
+        order.customerName?.toLowerCase().includes(lowerSearchTerm) ||
+        order.fuelType?.toLowerCase().includes(lowerSearchTerm) ||
+        order.status.toLowerCase().includes(lowerSearchTerm)
+      );
+      setFilteredOrders(filtered);
+    } else {
+      // Customer view filtering
+      const filtered = orderHistory.filter(order => 
+        order.id.toLowerCase().includes(lowerSearchTerm) || 
+        order.fuelType?.toLowerCase().includes(lowerSearchTerm) ||
+        order.status.toLowerCase().includes(lowerSearchTerm)
+      );
+      setFilteredOrders(filtered);
+    }
   }, [searchTerm, isAgentView]);
 
   const getStatusColor = (status: string) => {
@@ -138,6 +169,88 @@ const OrderHistory: React.FC = () => {
     </div>
   );
 
+  // Render agent order card
+  const renderAgentOrderCard = (order: AgentOrder, index: number) => (
+    <motion.div
+      key={order.id}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05 }}
+      className="bg-card rounded-lg border border-border p-4 shadow-sm"
+      onClick={() => handleOrderClick(order.id)}
+    >
+      <div className="flex justify-between items-center mb-2">
+        <span className="font-medium">{order.id}</span>
+        <div className="flex items-center">
+          <div className={`w-2 h-2 rounded-full ${getStatusColor(order.status)} mr-2`}></div>
+          <span className="text-xs text-muted-foreground capitalize">{order.status}</span>
+        </div>
+      </div>
+      
+      <div className="flex justify-between items-center mb-2">
+        <div>
+          <p className="font-semibold">{order.customerName}</p>
+          <p className="text-sm text-muted-foreground">{formatDate(order.date)}</p>
+        </div>
+        <div className="text-right">
+          <p className="font-semibold">${order.totalPrice}</p>
+          {order.customerRating && (
+            <div className="flex items-center text-xs text-yellow-500">
+              <svg className="h-3.5 w-3.5 fill-current mr-1" viewBox="0 0 20 20">
+                <path d="M10 13.18l-4.64 2.8 1.23-5.25-4.15-3.81 5.44-.48L10 1.21l2.12 5.23 5.44.48-4.15 3.81 1.23 5.25z"/>
+              </svg>
+              <span>{order.customerRating}</span>
+            </div>
+          )}
+        </div>
+      </div>
+      
+      <div className="flex justify-between items-center">
+        <p className="text-sm text-muted-foreground truncate max-w-[70%]">
+          {order.location}
+        </p>
+        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+      </div>
+    </motion.div>
+  );
+
+  // Render customer order card
+  const renderCustomerOrderCard = (order: CustomerOrder, index: number) => (
+    <motion.div
+      key={order.id}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05 }}
+      className="bg-card rounded-lg border border-border p-4 shadow-sm"
+      onClick={() => handleOrderClick(order.id)}
+    >
+      <div className="flex justify-between items-center mb-2">
+        <span className="font-medium">{order.id}</span>
+        <div className="flex items-center">
+          <div className={`w-2 h-2 rounded-full ${getStatusColor(order.status)} mr-2`}></div>
+          <span className="text-xs text-muted-foreground capitalize">{order.status}</span>
+        </div>
+      </div>
+      
+      <div className="flex justify-between items-center mb-2">
+        <div>
+          <p>{order.fuelType}</p>
+          <p className="text-sm text-muted-foreground">{formatDate(order.orderDate)}</p>
+        </div>
+        <div className="text-right">
+          <p className="font-semibold">${order.totalPrice}</p>
+        </div>
+      </div>
+      
+      <div className="flex justify-between items-center">
+        <p className="text-sm text-muted-foreground truncate max-w-[70%]">
+          {order.stationName}
+        </p>
+        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+      </div>
+    </motion.div>
+  );
+
   return (
     <div className="min-h-screen bg-background">
       <Header 
@@ -165,51 +278,9 @@ const OrderHistory: React.FC = () => {
         {filteredOrders.length > 0 ? (
           <div className="space-y-3 p-4">
             {filteredOrders.map((order, index) => (
-              <motion.div
-                key={order.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className="bg-card rounded-lg border border-border p-4 shadow-sm"
-                onClick={() => handleOrderClick(order.id)}
-              >
-                <div className="flex justify-between items-center mb-2">
-                  <span className="font-medium">{order.id}</span>
-                  <div className="flex items-center">
-                    <div className={`w-2 h-2 rounded-full ${getStatusColor(order.status)} mr-2`}></div>
-                    <span className="text-xs text-muted-foreground capitalize">{order.status}</span>
-                  </div>
-                </div>
-                
-                <div className="flex justify-between items-center mb-2">
-                  <div>
-                    {isAgentView ? (
-                      <p className="font-semibold">{order.customerName}</p>
-                    ) : (
-                      <p>{order.fuelType}</p>
-                    )}
-                    <p className="text-sm text-muted-foreground">{formatDate(order.date)}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold">${order.totalPrice}</p>
-                    {isAgentView && order.customerRating && (
-                      <div className="flex items-center text-xs text-yellow-500">
-                        <svg className="h-3.5 w-3.5 fill-current mr-1" viewBox="0 0 20 20">
-                          <path d="M10 13.18l-4.64 2.8 1.23-5.25-4.15-3.81 5.44-.48L10 1.21l2.12 5.23 5.44.48-4.15 3.81 1.23 5.25z"/>
-                        </svg>
-                        <span>{order.customerRating}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
-                <div className="flex justify-between items-center">
-                  <p className="text-sm text-muted-foreground truncate max-w-[70%]">
-                    {order.location}
-                  </p>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                </div>
-              </motion.div>
+              isAgentView ? 
+                renderAgentOrderCard(order as AgentOrder, index) : 
+                renderCustomerOrderCard(order as CustomerOrder, index)
             ))}
           </div>
         ) : (

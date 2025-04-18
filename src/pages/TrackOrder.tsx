@@ -37,7 +37,37 @@ const driverAvatar = (
   </div>
 );
 
-const defaultOrder = {
+interface OrderDetails {
+  id: string;
+  status: string;
+  estimatedDelivery: string;
+  items: {
+    name: string;
+    quantity: string;
+    price: number;
+  }[];
+  total: number;
+  licensePlate: string;
+  driver: {
+    name: string;
+    location: string;
+    image: string;
+    rating: number;
+    phone: string;
+    vehicle: string;
+  };
+  progress: number;
+  statusDetails: string;
+  driverLocation: { lat: number; lng: number };
+}
+
+interface AgentOrderDetails extends OrderDetails {
+  customerName: string;
+  address: string;
+  eta: string;
+}
+
+const defaultOrder: OrderDetails = {
   id: 'ORD-1234',
   status: 'processing',
   estimatedDelivery: deliveryTime,
@@ -51,6 +81,13 @@ const defaultOrder = {
   progress: 0,
   statusDetails: 'Order received',
   driverLocation: { lat: 35.149, lng: -90.048 }
+};
+
+const defaultAgentOrder: AgentOrderDetails = {
+  ...defaultOrder,
+  customerName: 'John Smith',
+  address: '123 Main St, Memphis, TN',
+  eta: '5 mins'
 };
 
 const driverMessages = [
@@ -68,7 +105,7 @@ const TrackOrder: React.FC<TrackOrderProps> = ({ agentView = false }) => {
   const { toast } = useToast();
   const isMobile = useIsMobile();
   
-  const [order, setOrder] = useState<typeof defaultOrder>(defaultOrder);
+  const [order, setOrder] = useState<OrderDetails | AgentOrderDetails>(agentView ? defaultAgentOrder : defaultOrder);
   const [orderComplete, setOrderComplete] = useState(false);
   const [driverLocation, setDriverLocation] = useState({ lat: 35.149, lng: -90.048 });
   const [showDirections, setShowDirections] = useState(true);
@@ -118,26 +155,38 @@ const TrackOrder: React.FC<TrackOrderProps> = ({ agentView = false }) => {
           }]);
           
           if (isMounted.current) {
-            setOrder({
-              ...defaultOrder,
-              id: foundOrder.id || defaultOrder.id,
-              status: foundOrder.status || defaultOrder.status,
-              estimatedDelivery: deliveryTime,
-              items: foundOrder.items || defaultOrder.items,
-              total: parseFloat(foundOrder.totalPrice) || defaultOrder.total,
-              driverLocation: initialDriverLocation
-            });
+            if (agentView) {
+              setOrder({
+                ...defaultAgentOrder,
+                id: foundOrder.id || defaultAgentOrder.id,
+                status: foundOrder.status || defaultAgentOrder.status,
+                estimatedDelivery: deliveryTime,
+                items: foundOrder.items || defaultAgentOrder.items,
+                total: parseFloat(foundOrder.totalPrice) || defaultAgentOrder.total,
+                driverLocation: initialDriverLocation
+              });
+            } else {
+              setOrder({
+                ...defaultOrder,
+                id: foundOrder.id || defaultOrder.id,
+                status: foundOrder.status || defaultOrder.status,
+                estimatedDelivery: deliveryTime,
+                items: foundOrder.items || defaultOrder.items,
+                total: parseFloat(foundOrder.totalPrice) || defaultOrder.total,
+                driverLocation: initialDriverLocation
+              });
+            }
           }
         } else {
           console.log(`Order ${orderId} not found, using default`);
           if (isMounted.current) {
-            setOrder({...defaultOrder});
+            setOrder(agentView ? defaultAgentOrder : defaultOrder);
           }
         }
       } catch (error) {
         console.error("Error processing order data:", error);
         if (isMounted.current) {
-          setOrder({...defaultOrder});
+          setOrder(agentView ? defaultAgentOrder : defaultOrder);
           toast({
             title: "Error",
             description: "Could not load order details",
@@ -148,7 +197,7 @@ const TrackOrder: React.FC<TrackOrderProps> = ({ agentView = false }) => {
       }
     } else {
       if (isMounted.current) {
-        setOrder({...defaultOrder});
+        setOrder(agentView ? defaultAgentOrder : defaultOrder);
       }
     }
     
@@ -250,7 +299,7 @@ const TrackOrder: React.FC<TrackOrderProps> = ({ agentView = false }) => {
       clearInterval(statusTimer);
       clearInterval(messageTimer);
     };
-  }, [location.search, toast, navigate, orderComplete]);
+  }, [location.search, toast, navigate, orderComplete, agentView]);
 
   useEffect(() => {
     const movementInterval = setInterval(() => {
@@ -436,6 +485,8 @@ const TrackOrder: React.FC<TrackOrderProps> = ({ agentView = false }) => {
   }
 
   if (agentView) {
+    const agentOrderDetails = order as AgentOrderDetails;
+    
     return (
       <div className="fixed inset-0 flex flex-col bg-black text-white">
         <div className="relative px-4 py-3 flex items-center justify-center">
@@ -484,18 +535,18 @@ const TrackOrder: React.FC<TrackOrderProps> = ({ agentView = false }) => {
             <div className="mr-3">
               <div className="h-14 w-14 rounded-full bg-blue-500 flex items-center justify-center border-2 border-white text-white overflow-hidden">
                 <img
-                  src={`https://api.dicebear.com/7.x/micah/svg?seed=${order?.customerName || "Customer"}`}
+                  src={`https://api.dicebear.com/7.x/micah/svg?seed=${agentOrderDetails.customerName || "Customer"}`}
                   alt="Customer"
                   className="h-full w-full object-cover"
                 />
               </div>
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold text-lg">{order?.customerName || "Customer"}</h3>
-              <p className="text-gray-400">{order?.address || "Customer location"}</p>
+              <h3 className="font-semibold text-lg">{agentOrderDetails.customerName || "Customer"}</h3>
+              <p className="text-gray-400">{agentOrderDetails.address || "Customer location"}</p>
               <div className="flex items-center space-x-2 mt-1">
                 <p className="text-gray-400 text-xs">Order #{orderId}</p>
-                <p className="text-gray-400 text-xs">ETA: {order?.eta || "Calculating..."}</p>
+                <p className="text-gray-400 text-xs">ETA: {agentOrderDetails.eta || "Calculating..."}</p>
               </div>
             </div>
             <div className="flex space-x-2">
