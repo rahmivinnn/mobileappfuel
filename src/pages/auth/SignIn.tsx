@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, AtSign, Lock, Eye, EyeOff } from 'lucide-react';
 
 interface SignInProps {
   onLogin: (token: string) => void;
@@ -15,6 +15,7 @@ const SignIn: React.FC<SignInProps> = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -31,30 +32,33 @@ const SignIn: React.FC<SignInProps> = ({ onLogin }) => {
     
     setIsLoading(true);
     
-    // Simulate API call
+    // Simulate API call with animated loading
     setTimeout(() => {
-      // Mock successful authentication
       const token = "mock-auth-token-" + Math.random();
       onLogin(token);
       setIsLoading(false);
-      navigate('/home');
-    }, 1500);
-  };
-  
-  const handleGoogleLogin = () => {
-    setIsLoading(true);
-    
-    // Simulate Google API call
-    setTimeout(() => {
-      const token = "google-auth-token-" + Math.random();
-      onLogin(token);
-      setIsLoading(false);
-      navigate('/home');
+      toast({
+        title: "Welcome back!",
+        description: "Successfully logged in",
+      });
+      navigate('/');
     }, 1500);
   };
 
   return (
     <div className="min-h-screen bg-black flex flex-col relative overflow-hidden">
+      {/* Background animation */}
+      <motion.div 
+        className="absolute inset-0 z-0"
+        initial={{ backgroundPosition: '0% 0%' }}
+        animate={{ backgroundPosition: '100% 100%' }}
+        transition={{ duration: 20, repeat: Infinity, repeatType: "reverse" }}
+        style={{
+          background: 'radial-gradient(circle at center, rgba(0,230,118,0.1) 0%, transparent 70%)',
+          filter: 'blur(40px)'
+        }}
+      />
+
       {/* Header */}
       <div className="pt-6 px-6 z-10">
         <Link to="/" className="inline-flex items-center text-green-500 hover:text-green-400">
@@ -65,105 +69,123 @@ const SignIn: React.FC<SignInProps> = ({ onLogin }) => {
       
       {/* Content */}
       <div className="flex-1 flex flex-col items-center justify-between z-10 px-6 py-8">
-        <div className="w-full pt-6">
-          {/* Logo and brand section */}
-          <motion.div 
-            className="flex flex-col items-center mb-10"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            {/* Logo circle */}
-            <motion.div 
-              className="w-24 h-24 rounded-full flex items-center justify-center mb-4"
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, duration: 0.5, type: "spring" }}
-            >
-              <img 
-                src="/lovable-uploads/9a88ef60-f4d0-4cc6-9714-c32a44453aea.png" 
-                alt="FuelFriendly Logo" 
-                className="w-20 h-20"
-              />
-            </motion.div>
-            
-            {/* Brand name */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.5 }}
-              className="mt-2"
-            >
-              <img 
-                src="/lovable-uploads/63b42fc8-62eb-4bdb-84c2-73e747d69d45.png" 
-                alt="FUELFRIENDLY" 
-                className="h-8"
-              />
-            </motion.div>
-          </motion.div>
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
+        <motion.div 
+          className="w-full max-w-md mx-auto pt-12"
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="w-full max-w-md mx-auto"
         >
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-white mb-2">Welcome back</h1>
-            <p className="text-gray-400">Please log in to your account</p>
+            <motion.h1 
+              className="text-3xl font-bold text-white mb-2"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+            >
+              Welcome back
+            </motion.h1>
+            <motion.p 
+              className="text-gray-400"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+            >
+              Please log in to your account
+            </motion.p>
           </div>
 
-          <form onSubmit={handleSignIn} className="space-y-6">
-            <div>
+          <motion.form 
+            onSubmit={handleSignIn}
+            className="space-y-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4, duration: 0.5 }}
+          >
+            <div className="relative">
+              <AtSign className="absolute left-3 top-3 h-5 w-5 text-gray-500" />
               <Input
                 type="email"
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="h-12 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 rounded-lg"
+                className="h-12 pl-10 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 rounded-lg focus:ring-green-500 focus:border-green-500"
                 required
               />
             </div>
-            <div>
+
+            <div className="relative">
+              <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-500" />
               <Input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="h-12 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 rounded-lg"
+                className="h-12 pl-10 pr-10 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 rounded-lg focus:ring-green-500 focus:border-green-500"
                 required
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-3 text-gray-500 hover:text-gray-300"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5" />
+                ) : (
+                  <Eye className="h-5 w-5" />
+                )}
+              </button>
             </div>
             
             <div className="text-right">
-              <Link to="/forgot-password" className="text-green-500 hover:text-green-400 text-sm">
+              <Link 
+                to="/forgot-password" 
+                className="text-green-500 hover:text-green-400 text-sm transition-colors"
+              >
                 Forgot password?
               </Link>
             </div>
             
             <Button 
               type="submit" 
-              className="w-full h-12 rounded-full bg-green-500 hover:bg-green-600 text-white font-medium text-base"
+              className="w-full h-12 rounded-full bg-green-500 hover:bg-green-600 text-white font-medium text-base transition-all transform active:scale-95"
               disabled={isLoading}
             >
-              {isLoading ? 'Signing in...' : 'Log In'}
+              {isLoading ? (
+                <motion.div
+                  className="flex items-center"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                >
+                  <div className="w-5 h-5 border-t-2 border-white rounded-full animate-spin mr-2" />
+                  Signing in...
+                </motion.div>
+              ) : (
+                'Log In'
+              )}
             </Button>
-            
+
             <div className="flex items-center my-4">
               <div className="flex-1 h-px bg-gray-800"></div>
-              <span className="px-4 text-sm text-gray-500">Or</span>
+              <span className="px-4 text-sm text-gray-500">Or continue with</span>
               <div className="flex-1 h-px bg-gray-800"></div>
             </div>
 
             <Button 
               type="button" 
               variant="outline" 
-              className="w-full h-12 rounded-full border-2 border-green-500 bg-transparent text-white hover:bg-green-500/10 font-medium text-base flex items-center justify-center gap-2"
-              onClick={handleGoogleLogin}
+              className="w-full h-12 rounded-full border-2 border-green-500 bg-transparent text-white hover:bg-green-500/10 font-medium text-base flex items-center justify-center gap-2 transition-all transform active:scale-95"
+              onClick={() => {
+                setIsLoading(true);
+                setTimeout(() => {
+                  const token = "google-auth-token-" + Math.random();
+                  onLogin(token);
+                  setIsLoading(false);
+                  navigate('/');
+                }, 1500);
+              }}
               disabled={isLoading}
             >
-              <svg viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+              <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <g transform="matrix(1, 0, 0, 1, 27.009001, -39.238998)">
                   <path fill="#4285F4" d="M -3.264 51.509 C -3.264 50.719 -3.334 49.969 -3.454 49.239 L -14.754 49.239 L -14.754 53.749 L -8.284 53.749 C -8.574 55.229 -9.424 56.479 -10.684 57.329 L -10.684 60.329 L -6.824 60.329 C -4.564 58.239 -3.264 55.159 -3.264 51.509 Z"/>
                   <path fill="#34A853" d="M -14.754 63.239 C -11.514 63.239 -8.804 62.159 -6.824 60.329 L -10.684 57.329 C -11.764 58.049 -13.134 58.489 -14.754 58.489 C -17.884 58.489 -20.534 56.379 -21.484 53.529 L -25.464 53.529 L -25.464 56.619 C -23.494 60.539 -19.444 63.239 -14.754 63.239 Z"/>
@@ -173,7 +195,7 @@ const SignIn: React.FC<SignInProps> = ({ onLogin }) => {
               </svg>
               Continue with Google
             </Button>
-          </form>
+          </motion.form>
         </motion.div>
       </div>
     </div>
