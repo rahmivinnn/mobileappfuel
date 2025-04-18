@@ -56,6 +56,9 @@ function AppRoutes() {
     navigate("/signin");
   };
   
+  // Check if current path is an agent path
+  const isAgentPath = location.pathname.startsWith('/agent');
+  
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
@@ -68,7 +71,7 @@ function AppRoutes() {
         <Route path="/payment" element={<Payment />} />
         <Route path="/confirmation" element={<Confirmation />} />
         <Route path="/orders" element={<OrderHistory />} />
-        <Route path="/track" element={<TrackOrder />} />
+        <Route path="/track" element={<TrackOrder agentView={isAgentPath} />} />
         <Route path="/chat" element={<ChatScreen />} />
         <Route path="/call" element={<CallScreen />} />
         
