@@ -1,61 +1,92 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, Home, MapPin, Settings, Calendar, Clock, ChevronRight, Filter } from 'lucide-react';
+import { ShoppingBag, Calendar, Clock, ChevronRight, Filter } from 'lucide-react';
 import { motion } from 'framer-motion';
 import BottomNav from '@/components/layout/BottomNav';
 
-const orders = [
+// Define consistent Order type used in the app:
+interface OrderItem {
+  name: string;
+  quantity: string;
+  price: number;
+}
+
+interface Order {
+  id: string;
+  stationId: string;
+  stationName: string;
+  status: 'processing' | 'in-transit' | 'delivered';
+  orderDate: string;
+  orderTime: string;
+  location?: string;
+  fuelType?: string;
+  totalPrice: number;
+  paymentMethod?: string;
+  items: OrderItem[];
+  // Additional fields as needed
+}
+
+const orders: Order[] = [
   {
     id: 'ORD-1234',
-    date: '2023-09-15',
-    time: '14:30',
+    stationId: 'station-shell',
     stationName: 'Shell Gas Station',
+    status: 'delivered',
+    orderDate: '2023-09-15',
+    orderTime: '14:30',
+    location: 'Memphis, TN',
+    fuelType: 'Regular Unleaded',
+    totalPrice: 22.45,
+    paymentMethod: 'Credit Card',
     items: [
       { name: 'Regular Unleaded', quantity: '5 Gallons', price: 18.95 },
       { name: 'Snickers', quantity: '2x', price: 3.50 }
     ],
-    total: 22.45,
-    status: 'delivered',
-    paymentMethod: 'Credit Card',
   },
   {
     id: 'ORD-1235',
-    date: '2023-09-12',
-    time: '10:15',
+    stationId: 'station-exxon',
     stationName: 'ExxonMobil',
+    status: 'delivered',
+    orderDate: '2023-09-12',
+    orderTime: '10:15',
+    location: 'Memphis, TN',
+    fuelType: 'Premium Unleaded',
+    totalPrice: 45.80,
+    paymentMethod: 'PayPal',
     items: [
       { name: 'Premium Unleaded', quantity: '10 Gallons', price: 45.80 }
     ],
-    total: 45.80,
-    status: 'delivered',
-    paymentMethod: 'PayPal',
   },
   {
     id: 'ORD-1236',
-    date: '2023-09-10',
-    time: '16:45',
+    stationId: 'station-chevron',
     stationName: 'Chevron',
+    status: 'delivered',
+    orderDate: '2023-09-10',
+    orderTime: '16:45',
+    location: 'Memphis, TN',
+    fuelType: 'Diesel',
+    totalPrice: 38.89,
+    paymentMethod: 'Credit Card',
     items: [
       { name: 'Diesel', quantity: '8 Gallons', price: 34.40 },
       { name: 'Coffee', quantity: '1x', price: 2.50 },
       { name: 'Chips', quantity: '1x', price: 1.99 }
     ],
-    total: 38.89,
-    status: 'delivered',
-    paymentMethod: 'Credit Card',
   }
 ];
 
 const OrderHistory: React.FC = () => {
-  const [filter, setFilter] = useState('all');
-  const [filteredOrders, setFilteredOrders] = useState(orders);
+  const [filter, setFilter] = useState<'all' | 'processing' | 'in-transit' | 'delivered'>('all');
+  const [filteredOrders, setFilteredOrders] = useState<Order[]>(orders);
 
   useEffect(() => {
     if (filter === 'all') {
       setFilteredOrders(orders);
     } else {
-      setFilteredOrders(orders.filter(order => order.status === filter));
+      setFilteredOrders(orders.filter((order) => order.status === filter));
     }
   }, [filter]);
 
@@ -73,37 +104,45 @@ const OrderHistory: React.FC = () => {
           <Filter className="h-5 w-5" />
         </button>
       </div>
-      
+
       {/* Filter Tabs */}
       <div className="px-4 mb-4">
         <div className="flex space-x-2 overflow-x-auto pb-2 scrollbar-none">
-          <button 
+          <button
             onClick={() => setFilter('all')}
-            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${filter === 'all' ? 'bg-green-500 text-black' : 'bg-gray-800 text-gray-400'}`}
+            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
+              filter === 'all' ? 'bg-green-500 text-black' : 'bg-gray-800 text-gray-400'
+            }`}
           >
             All Orders
           </button>
-          <button 
+          <button
             onClick={() => setFilter('processing')}
-            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${filter === 'processing' ? 'bg-green-500 text-black' : 'bg-gray-800 text-gray-400'}`}
+            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
+              filter === 'processing' ? 'bg-green-500 text-black' : 'bg-gray-800 text-gray-400'
+            }`}
           >
             Processing
           </button>
-          <button 
+          <button
             onClick={() => setFilter('in-transit')}
-            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${filter === 'in-transit' ? 'bg-green-500 text-black' : 'bg-gray-800 text-gray-400'}`}
+            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
+              filter === 'in-transit' ? 'bg-green-500 text-black' : 'bg-gray-800 text-gray-400'
+            }`}
           >
             In Transit
           </button>
-          <button 
+          <button
             onClick={() => setFilter('delivered')}
-            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${filter === 'delivered' ? 'bg-green-500 text-black' : 'bg-gray-800 text-gray-400'}`}
+            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
+              filter === 'delivered' ? 'bg-green-500 text-black' : 'bg-gray-800 text-gray-400'
+            }`}
           >
             Delivered
           </button>
         </div>
       </div>
-      
+
       {/* Orders List */}
       <div className="px-4 space-y-4">
         {filteredOrders.map((order, index) => (
@@ -119,18 +158,21 @@ const OrderHistory: React.FC = () => {
                 <h3 className="font-semibold text-lg">{order.id}</h3>
                 <div className="flex items-center text-sm text-gray-400 mt-1">
                   <Calendar className="h-4 w-4 mr-1" />
-                  <span>{new Date(order.date).toLocaleDateString()}</span>
+                  <span>{new Date(order.orderDate).toLocaleDateString()}</span>
                   <span className="mx-2">•</span>
                   <Clock className="h-4 w-4 mr-1" />
-                  <span>{order.time}</span>
+                  <span>{order.orderTime}</span>
                 </div>
               </div>
               <div className="bg-green-500/10 text-green-500 px-2 py-1 rounded-full text-xs font-medium">
-                {order.status === 'delivered' ? 'Delivered' : 
-                 order.status === 'in-transit' ? 'In Transit' : 'Processing'}
+                {order.status === 'delivered'
+                  ? 'Delivered'
+                  : order.status === 'in-transit'
+                  ? 'In Transit'
+                  : 'Processing'}
               </div>
             </div>
-            
+
             <div className="border-t border-gray-800 pt-3 pb-2">
               <p className="text-sm font-medium mb-2">{order.stationName}</p>
               {order.items.map((item, i) => (
@@ -140,14 +182,14 @@ const OrderHistory: React.FC = () => {
                 </div>
               ))}
             </div>
-            
+
             <div className="border-t border-gray-800 pt-2 flex justify-between items-center">
               <div>
                 <span className="text-sm text-gray-400">Total</span>
-                <p className="font-semibold">${order.total.toFixed(2)}</p>
+                <p className="font-semibold">${order.totalPrice.toFixed(2)}</p>
               </div>
-              <Link 
-                to={`/track?orderId=${order.id}`} 
+              <Link
+                to={`/track?orderId=${order.id}`}
                 className="flex items-center text-green-500 text-sm font-medium"
               >
                 View Details
@@ -156,21 +198,24 @@ const OrderHistory: React.FC = () => {
             </div>
           </motion.div>
         ))}
-        
+
         {filteredOrders.length === 0 && (
           <div className="text-center py-10">
             <div className="w-20 h-20 mx-auto bg-gray-800 rounded-full flex items-center justify-center mb-4">
               <ShoppingBag className="h-10 w-10 text-gray-600" />
             </div>
             <h3 className="text-xl font-semibold mb-2">No orders found</h3>
-            <p className="text-gray-400">You don't have any {filter !== 'all' ? filter : ''} orders yet.</p>
+            <p className="text-gray-400">
+              You don't have any {filter !== 'all' ? `${filter} ` : ''}orders yet.
+            </p>
           </div>
         )}
       </div>
-      
+
       <BottomNav />
     </div>
   );
 };
 
 export default OrderHistory;
+
