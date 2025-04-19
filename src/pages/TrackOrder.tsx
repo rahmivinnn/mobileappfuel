@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { MapPin, Phone, MessageSquare, ChevronLeft, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -9,7 +8,6 @@ import RatingModal from '@/components/ui/RatingModal';
 import OrderConfirmModal from '@/components/ui/OrderConfirmModal';
 import Map from '@/components/ui/Map';
 
-// Define consistent order and driver types as in OrderHistory.tsx
 interface OrderItem {
   name: string;
   quantity: string;
@@ -63,7 +61,8 @@ const TrackOrder: React.FC = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [showFinishScreen, setShowFinishScreen] = useState(false);
-  const isMounted = React.useRef(true);
+
+  const isMounted = useRef(true);
 
   useEffect(() => {
     isMounted.current = true;
@@ -73,13 +72,12 @@ const TrackOrder: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Parse orderId from query params
+    console.log("[TrackOrder] Parsing orderId from URL...");
     const params = new URLSearchParams(location.search);
     const orderId = params.get('orderId');
 
-    // In a real app, fetch order details by orderId here.
-    // For now, generate a mock order data consistent with Order type
     if (orderId) {
+      console.log(`[TrackOrder] Found orderId: ${orderId}`);
       const mockOrder: Order = {
         id: orderId,
         status: 'processing',
@@ -97,23 +95,26 @@ const TrackOrder: React.FC = () => {
       };
       setOrder(mockOrder);
 
-      // Setup markers for driver and destination
+      // Setup markers for driver and destination only once per orderId
       setDriverMarkers([{
         position: driverLocation,
         title: dedicatedDriver.name,
-        icon: dedicatedDriver.image
+        icon: dedicatedDriver.image,
       }]);
+
       setDestinationMarker([{
         position: { lat: 35.146, lng: -90.052 },
         title: 'Your Location',
-        icon: '/lovable-uploads/bd7d3e2c-d8cc-4ae3-b3f6-e23f3527fa24.png'
+        icon: '/lovable-uploads/bd7d3e2c-d8cc-4ae3-b3f6-e23f3527fa24.png',
       }]);
+    } else {
+      console.error("[TrackOrder] No orderId in URL!");
     }
-  }, [location.search, driverLocation]);
+  }, [location.search]);
 
-  // Progress status updates and driver movement effects (simulate)
   useEffect(() => {
     if (!order) return;
+    console.log("[TrackOrder] Starting progress timer...");
     let currentStep = 0;
     type StatusType = 'processing' | 'in-transit' | 'delivered';
     const statuses: { status: StatusType; progress: number; statusDetails: string }[] = [
@@ -131,7 +132,8 @@ const TrackOrder: React.FC = () => {
         return;
       }
       if (currentStep < statuses.length) {
-        setOrder((prev) => {
+        console.log(`[TrackOrder] Updating status to step ${currentStep}: ${statuses[currentStep].status} with progress ${statuses[currentStep].progress}`);
+        setOrder(prev => {
           if (!prev) return prev;
           return {
             ...prev,
@@ -144,6 +146,7 @@ const TrackOrder: React.FC = () => {
         if (currentStep === statuses.length) {
           setOrderComplete(true);
           setShowConfirmModal(true);
+          clearInterval(progressTimer);
         }
       } else {
         clearInterval(progressTimer);
@@ -156,6 +159,7 @@ const TrackOrder: React.FC = () => {
   useEffect(() => {
     if (!order) return;
     if (orderComplete && isMounted.current) {
+      console.log("[TrackOrder] Order complete, showing finish screen...");
       const finishTimer = setTimeout(() => {
         toast({
           title: 'Service Complete',
@@ -167,31 +171,40 @@ const TrackOrder: React.FC = () => {
       }, 2000);
       return () => clearTimeout(finishTimer);
     }
-  }, [orderComplete, toast]);
+  }, [orderComplete, toast, order]);
 
   useEffect(() => {
     if (!order) return;
-    // Simulate driver movement toward destination
+    // We use a static destination always for now
+    const destination = { lat: 35.146, lng: -90.052 };
     const moveInterval = setInterval(() => {
       if (!isMounted.current) {
         clearInterval(moveInterval);
         return;
       }
-      // Move driver location slightly towards destination
-      const destination = { lat: 35.146, lng: -90.052 };
+      // Calculate new driver location moving 5% closer to destination each tick
       const { lat, lng } = driverLocation;
-
-      const newLat = lat + (destination.lat - lat) * 0.05;
-      const newLng = lng + (destination.lng - lng) * 0.05;
+      const deltaLat = destination.lat - lat;
+      const deltaLng = destination.lng - lng;
+      if (Math.abs(deltaLat) < 0.00001 && Math.abs(deltaLng) < 0.00001) {
+        // Arrived close enough, stop moving
+        clearInterval(moveInterval);
+        return;
+      }
+      const newLat = lat + deltaLat * 0.05;
+      const newLng = lng + deltaLng * 0.05;
       const newLocation = { lat: newLat, lng: newLng };
 
-      setDriverLocation(newLocation);
-      setDriverMarkers([{
-        position: newLocation,
-        title: dedicatedDriver.name,
-        icon: dedicatedDriver.image,
-      }]);
-      setOrder(prev => prev ? { ...prev, driverLocation: newLocation } : prev);
+      // Only update if location changed to prevent re-rendering loops
+      if (newLat !== lat || newLng !== lng) {
+        setDriverLocation(newLocation);
+        setDriverMarkers([{
+          position: newLocation,
+          title: dedicatedDriver.name,
+          icon: dedicatedDriver.image,
+        }]);
+        setOrder(prev => prev ? { ...prev, driverLocation: newLocation } : prev);
+      }
     }, 3000);
 
     return () => clearInterval(moveInterval);
@@ -500,4 +513,3 @@ const TrackOrder: React.FC = () => {
 };
 
 export default TrackOrder;
-
