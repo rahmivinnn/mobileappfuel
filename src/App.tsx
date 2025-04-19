@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
@@ -33,19 +34,19 @@ import ResetPassword from './pages/auth/ResetPassword';
 function AppRoutes() {
   const location = useLocation();
   const navigate = useNavigate();
-  
+
   // Mock authentication handlers
   const handleLogin = (token: string) => {
     console.log("User logged in with token:", token);
     localStorage.setItem("auth-token", token);
   };
-  
+
   const handleLogout = () => {
     console.log("User logged out");
     localStorage.removeItem("auth-token");
     navigate("/signin");
   };
-  
+
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
@@ -61,7 +62,7 @@ function AppRoutes() {
         <Route path="/track" element={<TrackOrder />} />
         <Route path="/chat" element={<ChatScreen />} />
         <Route path="/call" element={<CallScreen />} />
-        
+
         {/* Auth routes */}
         <Route path="/welcome" element={<Welcome />} />
         <Route path="/signin" element={<SignIn onLogin={handleLogin} />} />
@@ -69,7 +70,7 @@ function AppRoutes() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/verify-otp" element={<VerifyOtp />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        
+
         {/* 404 */}
         <Route path="*" element={<NotFound />} />
       </Routes>
@@ -80,12 +81,13 @@ function AppRoutes() {
 function App() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
-  
+
   const handleSplashScreenFinish = useCallback(() => {
     setIsLoading(false);
+    // Fix the splash screen navigation to signin instead of signup
     navigate('/signin');
   }, [navigate]);
-  
+
   return (
     <ThemeProvider defaultTheme="system" storageKey="vite-react-theme">
       {isLoading ? (

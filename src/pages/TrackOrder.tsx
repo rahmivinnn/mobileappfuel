@@ -115,7 +115,8 @@ const TrackOrder: React.FC = () => {
   useEffect(() => {
     if (!order) return;
     let currentStep = 0;
-    const statuses = [
+    type StatusType = 'processing' | 'in-transit' | 'delivered';
+    const statuses: { status: StatusType; progress: number; statusDetails: string }[] = [
       { status: 'processing', progress: 0, statusDetails: 'Order received' },
       { status: 'processing', progress: 20, statusDetails: 'Processing your order' },
       { status: 'in-transit', progress: 40, statusDetails: 'Driver on the way to pickup' },
