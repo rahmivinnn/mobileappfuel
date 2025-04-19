@@ -39,6 +39,7 @@ function AppRoutes() {
   const handleLogin = (token: string) => {
     console.log("User logged in with token:", token);
     localStorage.setItem("auth-token", token);
+    navigate('/'); // Ensure navigation to home on login
   };
 
   const handleLogout = () => {
@@ -84,7 +85,6 @@ function App() {
 
   const handleSplashScreenFinish = useCallback(() => {
     setIsLoading(false);
-    // Fix the splash screen navigation to signin instead of signup
     navigate('/signin');
   }, [navigate]);
 
@@ -103,3 +103,4 @@ function App() {
 }
 
 export default App;
+
