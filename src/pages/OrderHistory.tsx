@@ -1,216 +1,201 @@
 
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { ShoppingBag, Calendar, Clock, ChevronRight, Filter } from 'lucide-react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { Phone, MessageSquare, MapPin, Target, Scissors } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import BottomNav from '@/components/layout/BottomNav';
-
-// Define consistent Order type used in the app:
-interface OrderItem {
-  name: string;
-  quantity: string;
-  price: number;
-}
 
 interface Order {
   id: string;
-  stationId: string;
-  stationName: string;
-  status: 'processing' | 'in-transit' | 'delivered';
-  orderDate: string;
-  orderTime: string;
-  location?: string;
-  fuelType?: string;
-  totalPrice: number;
-  paymentMethod?: string;
-  items: OrderItem[];
-  // Additional fields as needed
+  date: string;
+  pickupLocation: string;
+  dropoffLocation: string;
+  orderType: string;
+  status: 'pending' | 'active' | 'cancelled' | 'completed';
 }
 
-const orders: Order[] = [
+const initialOrderRequests: Order[] = [
   {
-    id: 'ORD-1234',
-    stationId: 'station-shell',
-    stationName: 'Shell Gas Station',
-    status: 'delivered',
-    orderDate: '2023-09-15',
-    orderTime: '14:30',
-    location: 'Memphis, TN',
-    fuelType: 'Regular Unleaded',
-    totalPrice: 22.45,
-    paymentMethod: 'Credit Card',
-    items: [
-      { name: 'Regular Unleaded', quantity: '5 Gallons', price: 18.95 },
-      { name: 'Snickers', quantity: '2x', price: 3.50 }
-    ],
+    id: '1',
+    date: '25/03/2025',
+    pickupLocation: 'Shell Station- Abc Town',
+    dropoffLocation: 'Shell Station- Abc Town',
+    orderType: 'Fuel delivery',
+    status: 'pending',
   },
   {
-    id: 'ORD-1235',
-    stationId: 'station-exxon',
-    stationName: 'ExxonMobil',
-    status: 'delivered',
-    orderDate: '2023-09-12',
-    orderTime: '10:15',
-    location: 'Memphis, TN',
-    fuelType: 'Premium Unleaded',
-    totalPrice: 45.80,
-    paymentMethod: 'PayPal',
-    items: [
-      { name: 'Premium Unleaded', quantity: '10 Gallons', price: 45.80 }
-    ],
+    id: '2',
+    date: '25/03/2025',
+    pickupLocation: 'Shell Station- Abc Town',
+    dropoffLocation: 'Shell Station- Abc Town',
+    orderType: 'Fuel delivery',
+    status: 'pending',
+  },
+];
+
+const initialCurrentOrders: Order[] = [
+  {
+    id: '123',
+    date: '25/03/2025',
+    pickupLocation: 'Shell Station- Tennessee',
+    dropoffLocation: 'Shell Station- Tennessee',
+    orderType: 'Fuel',
+    status: 'active',
   },
   {
-    id: 'ORD-1236',
-    stationId: 'station-chevron',
-    stationName: 'Chevron',
-    status: 'delivered',
-    orderDate: '2023-09-10',
-    orderTime: '16:45',
-    location: 'Memphis, TN',
-    fuelType: 'Diesel',
-    totalPrice: 38.89,
-    paymentMethod: 'Credit Card',
-    items: [
-      { name: 'Diesel', quantity: '8 Gallons', price: 34.40 },
-      { name: 'Coffee', quantity: '1x', price: 2.50 },
-      { name: 'Chips', quantity: '1x', price: 1.99 }
-    ],
-  }
+    id: '124',
+    date: '25/03/2025',
+    pickupLocation: 'Shell Station- Tennessee',
+    dropoffLocation: 'Shell Station- Tennessee',
+    orderType: 'Fuel',
+    status: 'active',
+  },
 ];
 
 const OrderHistory: React.FC = () => {
-  const [filter, setFilter] = useState<'all' | 'processing' | 'in-transit' | 'delivered'>('all');
-  const [filteredOrders, setFilteredOrders] = useState<Order[]>(orders);
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    if (filter === 'all') {
-      setFilteredOrders(orders);
-    } else {
-      setFilteredOrders(orders.filter((order) => order.status === filter));
-    }
-  }, [filter]);
+  const [orderRequests, setOrderRequests] = useState<Order[]>(initialOrderRequests);
+  const [currentOrders, setCurrentOrders] = useState<Order[]>(initialCurrentOrders);
+
+  const handleCancelJob = (orderId: string) => {
+    setOrderRequests((prev) => prev.filter((order) => order.id !== orderId));
+    alert(`Order #${orderId} cancelled.`);
+  };
+
+  const handleAcceptJob = (orderId: string) => {
+    const acceptedOrder = orderRequests.find((order) => order.id === orderId);
+    if (!acceptedOrder) return;
+    setOrderRequests((prev) => prev.filter((order) => order.id !== orderId));
+    setCurrentOrders((prev) => [...prev, { ...acceptedOrder, status: 'active' }]);
+    alert(`Order #${orderId} accepted.`);
+  };
+
+  const handleCall = (orderId: string) => {
+    alert(`Calling customer for order #${orderId}...`);
+  };
+
+  const handleMessage = (orderId: string) => {
+    alert(`Messaging customer for order #${orderId}...`);
+  };
+
+  const handleTrack = (orderId: string) => {
+    navigate(`/track?orderId=${orderId}`);
+  };
 
   return (
-    <div className="min-h-screen bg-black pb-20 max-w-md mx-auto text-white">
+    <div className="min-h-screen bg-black text-white max-w-md mx-auto pb-20 px-4 flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4">
-        <div className="flex items-center">
-          <div className="flex items-center justify-center bg-green-500 rounded-full h-10 w-10 mr-3">
-            <ShoppingBag className="h-5 w-5 text-black" />
-          </div>
-          <h1 className="text-xl font-bold">My Orders</h1>
-        </div>
-        <button className="h-10 w-10 flex items-center justify-center rounded-full bg-black border border-gray-800">
-          <Filter className="h-5 w-5" />
+      <div className="flex items-center justify-between py-5">
+        <h1 className="text-2xl font-bold">Order Requests</h1>
+        <button
+          onClick={() => alert('See all order requests - Not implemented')}
+          className="text-green-500 hover:underline"
+        >
+          See all
         </button>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="px-4 mb-4">
-        <div className="flex space-x-2 overflow-x-auto pb-2 scrollbar-none">
-          <button
-            onClick={() => setFilter('all')}
-            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
-              filter === 'all' ? 'bg-green-500 text-black' : 'bg-gray-800 text-gray-400'
-            }`}
-          >
-            All Orders
-          </button>
-          <button
-            onClick={() => setFilter('processing')}
-            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
-              filter === 'processing' ? 'bg-green-500 text-black' : 'bg-gray-800 text-gray-400'
-            }`}
-          >
-            Processing
-          </button>
-          <button
-            onClick={() => setFilter('in-transit')}
-            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
-              filter === 'in-transit' ? 'bg-green-500 text-black' : 'bg-gray-800 text-gray-400'
-            }`}
-          >
-            In Transit
-          </button>
-          <button
-            onClick={() => setFilter('delivered')}
-            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
-              filter === 'delivered' ? 'bg-green-500 text-black' : 'bg-gray-800 text-gray-400'
-            }`}
-          >
-            Delivered
-          </button>
-        </div>
-      </div>
-
-      {/* Orders List */}
-      <div className="px-4 space-y-4">
-        {filteredOrders.map((order, index) => (
-          <motion.div
+      {/* Order Requests */}
+      {orderRequests.length === 0 ? (
+        <p className="text-gray-400 mb-6">No pending order requests.</p>
+      ) : (
+        orderRequests.map((order) => (
+          <div
             key={order.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="bg-gray-900 rounded-xl p-4 border border-gray-800"
+            className="bg-gray-900 rounded-lg p-4 mb-4"
           >
-            <div className="flex justify-between items-start mb-3">
+            <div className="flex justify-between items-center mb-2">
               <div>
-                <h3 className="font-semibold text-lg">{order.id}</h3>
-                <div className="flex items-center text-sm text-gray-400 mt-1">
-                  <Calendar className="h-4 w-4 mr-1" />
-                  <span>{new Date(order.orderDate).toLocaleDateString()}</span>
-                  <span className="mx-2">•</span>
-                  <Clock className="h-4 w-4 mr-1" />
-                  <span>{order.orderTime}</span>
-                </div>
+                <h2 className="text-lg font-semibold">Order #{order.id}</h2>
+                <p className="text-sm text-gray-400">{order.date}</p>
               </div>
-              <div className="bg-green-500/10 text-green-500 px-2 py-1 rounded-full text-xs font-medium">
-                {order.status === 'delivered'
-                  ? 'Delivered'
-                  : order.status === 'in-transit'
-                  ? 'In Transit'
-                  : 'Processing'}
-              </div>
+              <span className="bg-yellow-600 text-yellow-300 text-xs font-semibold px-3 py-1 rounded-full">
+                Pending
+              </span>
             </div>
-
-            <div className="border-t border-gray-800 pt-3 pb-2">
-              <p className="text-sm font-medium mb-2">{order.stationName}</p>
-              {order.items.map((item, i) => (
-                <div key={i} className="flex justify-between text-sm mb-1">
-                  <span className="text-gray-400">{item.quantity} {item.name}</span>
-                  <span>${item.price.toFixed(2)}</span>
-                </div>
-              ))}
+            <div className="space-y-1 mb-4 text-sm text-gray-300">
+              <p className="flex items-center"><MapPin className="h-4 w-4 mr-1 text-red-500" /> Pickup: {order.pickupLocation}</p>
+              <p className="flex items-center"><Target className="h-4 w-4 mr-1 text-red-400" /> Drop off: {order.dropoffLocation}</p>
+              <p className="flex items-center"><Scissors className="h-4 w-4 mr-1 text-green-500" /> Order type: {order.orderType}</p>
             </div>
-
-            <div className="border-t border-gray-800 pt-2 flex justify-between items-center">
-              <div>
-                <span className="text-sm text-gray-400">Total</span>
-                <p className="font-semibold">${order.totalPrice.toFixed(2)}</p>
-              </div>
-              <Link
-                to={`/track?orderId=${order.id}`}
-                className="flex items-center text-green-500 text-sm font-medium"
+            <div className="flex space-x-3">
+              <button
+                onClick={() => handleCancelJob(order.id)}
+                className="flex-1 py-2 rounded-lg border border-gray-700 hover:bg-gray-800 transition text-center text-gray-300"
               >
-                View Details
-                <ChevronRight className="h-4 w-4 ml-1" />
-              </Link>
+                Cancel Job
+              </button>
+              <button
+                onClick={() => handleAcceptJob(order.id)}
+                className="flex-1 py-2 rounded-lg bg-green-500 hover:bg-green-600 transition text-black font-semibold"
+              >
+                Accept Job
+              </button>
             </div>
-          </motion.div>
-        ))}
-
-        {filteredOrders.length === 0 && (
-          <div className="text-center py-10">
-            <div className="w-20 h-20 mx-auto bg-gray-800 rounded-full flex items-center justify-center mb-4">
-              <ShoppingBag className="h-10 w-10 text-gray-600" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">No orders found</h3>
-            <p className="text-gray-400">
-              You don't have any {filter !== 'all' ? `${filter} ` : ''}orders yet.
-            </p>
           </div>
-        )}
+        ))
+      )}
+
+      {/* Current Orders */}
+      <div className="flex items-center justify-between mt-8 mb-4">
+        <h1 className="text-2xl font-bold">Current orders</h1>
+        <button
+          onClick={() => alert('See all current orders - Not implemented')}
+          className="text-green-500 hover:underline"
+        >
+          See all
+        </button>
       </div>
+
+      {currentOrders.length === 0 ? (
+        <p className="text-gray-400">No current orders.</p>
+      ) : (
+        currentOrders.map((order) => (
+          <div
+            key={order.id}
+            className="bg-gray-900 rounded-lg p-4 mb-4"
+          >
+            <div className="flex justify-between items-center mb-2">
+              <div>
+                <h2 className="text-lg font-semibold">Order #{order.id}</h2>
+                <p className="text-sm text-gray-400">{order.date}</p>
+              </div>
+              <span className="bg-blue-400 text-blue-900 text-xs font-semibold px-3 py-1 rounded-full">
+                Active
+              </span>
+            </div>
+            <div className="space-y-1 mb-4 text-sm text-gray-300">
+              <p className="flex items-center"><MapPin className="h-4 w-4 mr-1 text-red-500" /> Pickup: {order.pickupLocation}</p>
+              <p className="flex items-center"><Target className="h-4 w-4 mr-1 text-red-400" /> Drop off: {order.dropoffLocation}</p>
+              <p className="flex items-center"><Scissors className="h-4 w-4 mr-1 text-green-500" /> Order type: {order.orderType}</p>
+            </div>
+            <div className="flex justify-between items-center space-x-4 text-green-500 text-sm font-semibold">
+              <button
+                onClick={() => handleCall(order.id)}
+                className="flex items-center space-x-1 hover:underline"
+                aria-label={`Call customer for order ${order.id}`}
+              >
+                <Phone className="h-5 w-5" />
+                <span>Call</span>
+              </button>
+              <button
+                onClick={() => handleMessage(order.id)}
+                className="flex items-center space-x-1 hover:underline"
+                aria-label={`Message customer for order ${order.id}`}
+              >
+                <MessageSquare className="h-5 w-5" />
+                <span>Message</span>
+              </button>
+              <button
+                onClick={() => handleTrack(order.id)}
+                className="py-2 px-4 bg-green-500 hover:bg-green-600 rounded-lg text-black font-semibold transition"
+              >
+                Track Customer
+              </button>
+            </div>
+          </div>
+        ))
+      )}
 
       <BottomNav />
     </div>
@@ -218,4 +203,3 @@ const OrderHistory: React.FC = () => {
 };
 
 export default OrderHistory;
-
