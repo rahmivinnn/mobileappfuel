@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapPin, Phone, MessageSquare, ChevronLeft, Check } from "lucide-react";
+import { MapPin, Phone, MessageSquare, ChevronLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -202,6 +202,22 @@ const TrackOrder: React.FC = () => {
     navigate(`/chat?fuelFriendName=${encodeURIComponent(order.driver.name)}`);
   };
 
+  // Colors for the progress bar according to the status
+  const progressColor = () => {
+    switch (order?.status) {
+      case "job-accepted":
+        return "bg-gray-500";
+      case "processing":
+        return "bg-blue-500";
+      case "in-transit":
+        return "bg-green-500";
+      case "delivered":
+        return "bg-green-600";
+      default:
+        return "bg-gray-500";
+    }
+  };
+
   return (
     <div className="fixed inset-0 flex flex-col bg-dark-purple text-white">
       {/* Header */}
@@ -213,9 +229,7 @@ const TrackOrder: React.FC = () => {
         >
           <ChevronLeft className="h-6 w-6 text-[#d6bcfa]" />
         </button>
-        <h1 className="flex-grow text-center font-semibold text-lg text-[#d6bcfa]">
-          Track Customer
-        </h1>
+        <h1 className="flex-grow text-center font-semibold text-lg text-[#d6bcfa]">Track Order</h1>
         <div className="w-10" /> {/* placeholder for right side spacing */}
       </header>
 
@@ -241,7 +255,16 @@ const TrackOrder: React.FC = () => {
               </button>
               <div className="flex flex-col items-center text-center space-y-4">
                 <div className="w-20 h-20 rounded-full bg-green-600 flex items-center justify-center ring-4 ring-green-400">
-                  <Check className="h-12 w-12 text-white" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-12 w-12 text-white"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
                 </div>
                 <h2 className="text-xl font-semibold text-white">Job Started Successfully!</h2>
                 <p className="text-gray-400 px-1">
@@ -249,13 +272,45 @@ const TrackOrder: React.FC = () => {
                 </p>
                 <div className="space-y-2 text-left text-sm text-[#d6bcfa] w-full px-8">
                   <p>
-                    <span className="inline-block mr-1 text-[#00E676]">📍</span> Pickup: {order?.pickupLocation}
+                    <MapPin className="inline-block mr-1 mb-0.5 text-[#00E676]" size={16} />
+                    Pickup: {order?.pickupLocation}
                   </p>
                   <p>
-                    <span className="inline-block mr-1 text-[#00E676]">🎯</span> Drop off: {order?.dropoffLocation}
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="inline-block mr-1 mb-0.5 text-[#00E676]"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      width={16}
+                      height={16}
+                    >
+                      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth={2} fill="none" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M12 7v5l3 3"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      />
+                    </svg>
+                    Drop off: {order?.dropoffLocation}
                   </p>
                   <p>
-                    <span className="inline-block mr-1 text-[#00E676]">🎫</span> Order type: {order?.orderType}
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="inline-block mr-1 mb-0.5 text-[#00E676]"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      width={16}
+                      height={16}
+                    >
+                      <rect width="14" height="14" x="5" y="5" stroke="currentColor" strokeWidth={2} fill="none" rx="4" ry="4" />
+                    </svg>
+                    Type: {order?.orderType}
                   </p>
                 </div>
                 <button
@@ -270,7 +325,7 @@ const TrackOrder: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Map & driver info */}
+      {/* Interactive map with driver info panel */}
       <main className="flex-grow relative">
         <Map
           className="w-full h-full rounded-b-3xl"
@@ -281,36 +336,64 @@ const TrackOrder: React.FC = () => {
           zoom={14}
         />
 
+        {/* Driver Info Panel */}
         {!showJobStartedModal && order && (
-          <footer className="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-[#15172B] rounded-3xl p-4 max-w-lg w-full flex items-center justify-between space-x-4 shadow-lg border border-[#403d49]">
-            <div className="flex items-center space-x-4">
-              <img
-                src={order.driver.image}
-                alt={order.driver.name}
-                className="w-14 h-14 rounded-full object-cover border-2 border-[#00E676]"
-              />
-              <div>
-                <p className="text-white font-semibold text-lg">{order.driver.name}</p>
-                <p className="text-[#d6bcfa] text-sm">{order.driver.location}</p>
+          <div className="absolute bottom-0 left-0 right-0 px-4 pb-6 bg-gradient-to-t from-[#15172B] via-[#15172B]/95 to-transparent rounded-t-3xl">
+            <div className="max-w-lg mx-auto bg-[#252e42] rounded-3xl p-6 flex flex-col space-y-4 shadow-lg border border-[#403d49] backdrop-blur-md">
+              {/* Status */}
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="text-gray-300 uppercase text-xs tracking-widest font-semibold">
+                    Status
+                  </p>
+                  <p className="text-white font-bold text-lg">{order.statusDetails}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-gray-300 uppercase text-xs tracking-widest font-semibold">Est. Delivery</p>
+                  <p className="text-white font-bold text-lg">{order.estimatedDelivery}</p>
+                </div>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="w-full h-3 rounded-full bg-gray-700 overflow-hidden">
+                <div
+                  className={`h-3 rounded-full transition-all duration-500 ease-in-out ${progressColor()}`}
+                  style={{ width: `${order.progress}%` }}
+                />
+              </div>
+
+              {/* Driver Info and Actions */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <img
+                    src={order.driver.image}
+                    alt={order.driver.name}
+                    className="w-16 h-16 rounded-full object-cover border-2 border-[#00E676]"
+                  />
+                  <div>
+                    <p className="text-white font-semibold text-lg">{order.driver.name}</p>
+                    <p className="text-[#d6bcfa] text-sm">{order.driver.vehicle}</p>
+                  </div>
+                </div>
+                <div className="flex space-x-4">
+                  <button
+                    onClick={handleMessage}
+                    aria-label={`Message ${order.driver.name}`}
+                    className="w-12 h-12 rounded-full bg-[#00E676] hover:bg-[#00C853] flex items-center justify-center"
+                  >
+                    <MessageSquare className="h-6 w-6 text-black" />
+                  </button>
+                  <button
+                    onClick={handleCall}
+                    aria-label={`Call ${order.driver.name}`}
+                    className="w-12 h-12 rounded-full bg-[#00E676] hover:bg-[#00C853] flex items-center justify-center"
+                  >
+                    <Phone className="h-6 w-6 text-black" />
+                  </button>
+                </div>
               </div>
             </div>
-            <div className="flex space-x-4">
-              <button
-                onClick={handleMessage}
-                aria-label={`Message ${order.driver.name}`}
-                className="w-12 h-12 rounded-full bg-[#00E676] hover:bg-[#00C853] flex items-center justify-center"
-              >
-                <MessageSquare className="h-6 w-6 text-black" />
-              </button>
-              <button
-                onClick={handleCall}
-                aria-label={`Call ${order.driver.name}`}
-                className="w-12 h-12 rounded-full bg-[#00E676] hover:bg-[#00C853] flex items-center justify-center"
-              >
-                <Phone className="h-6 w-6 text-black" />
-              </button>
-            </div>
-          </footer>
+          </div>
         )}
       </main>
     </div>
