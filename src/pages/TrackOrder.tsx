@@ -1,11 +1,11 @@
 
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { MapPin, Phone, MessageSquare, ChevronLeft, Check } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useToast } from '@/hooks/use-toast';
-import { useIsMobile } from '@/hooks/use-mobile';
-import Map from '@/components/ui/Map';
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { MapPin, Phone, MessageSquare, ChevronLeft, Check } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
+import Map from "@/components/ui/Map";
 
 interface OrderItem {
   name: string;
@@ -24,7 +24,7 @@ interface Driver {
 
 interface Order {
   id: string;
-  status: 'job-accepted' | 'processing' | 'in-transit' | 'delivered';
+  status: "job-accepted" | "processing" | "in-transit" | "delivered";
   estimatedDelivery: string;
   items: OrderItem[];
   total: number;
@@ -39,12 +39,12 @@ interface Order {
 }
 
 const dedicatedDriver: Driver = {
-  name: 'Cristopert Dastin',
-  location: 'Tennessee',
-  image: '/lovable-uploads/a3df03b1-a154-407f-b8fe-e5dd6f0bade3.png',
+  name: "Cristopert Dastin",
+  location: "Tennessee",
+  image: "/lovable-uploads/a3df03b1-a154-407f-b8fe-e5dd6f0bade3.png",
   rating: 4.8,
-  phone: '+1 (901) 555-3478',
-  vehicle: 'White Toyota Camry',
+  phone: "+1 (901) 555-3478",
+  vehicle: "White Toyota Camry",
 };
 
 const TrackOrder: React.FC = () => {
@@ -54,7 +54,10 @@ const TrackOrder: React.FC = () => {
 
   const [order, setOrder] = useState<Order | null>(null);
   const [showJobStartedModal, setShowJobStartedModal] = useState(true);
-  const [driverLocation, setDriverLocation] = useState<{ lat: number; lng: number }>({ lat: 35.149, lng: -90.048 });
+  const [driverLocation, setDriverLocation] = useState<{ lat: number; lng: number }>({
+    lat: 35.149,
+    lng: -90.048,
+  });
   const [driverMarkers, setDriverMarkers] = useState<any[]>([]);
   const [destinationMarker, setDestinationMarker] = useState<any[]>([]);
 
@@ -62,54 +65,60 @@ const TrackOrder: React.FC = () => {
 
   useEffect(() => {
     isMounted.current = true;
-    return () => { isMounted.current = false };
+    return () => {
+      isMounted.current = false;
+    };
   }, []);
 
   useEffect(() => {
     // Setup order & markers
     const mockOrder: Order = {
-      id: '123',
-      status: 'job-accepted',
-      estimatedDelivery: '7:15 - 7:45 PM',
+      id: "123",
+      status: "job-accepted",
+      estimatedDelivery: "7:15 - 7:45 PM",
       items: [
-        { name: '2 Gallons Regular Unleaded', quantity: '1x', price: 7.34 },
-        { name: 'Chocolate cookies', quantity: '2x', price: 3.5 }
+        { name: "2 Gallons Regular Unleaded", quantity: "1x", price: 7.34 },
+        { name: "Chocolate cookies", quantity: "2x", price: 3.5 },
       ],
       total: 10.84,
-      pickupLocation: 'Shell Station- Abc Town',
-      dropoffLocation: 'Shell Station- Abc Town',
-      orderType: 'Fuel delivery',
-      licensePlate: 'TN-56A782',
+      pickupLocation: "Shell Station- Abc Town",
+      dropoffLocation: "Shell Station- Abc Town",
+      orderType: "Fuel delivery",
+      licensePlate: "TN-56A782",
       driver: dedicatedDriver,
       progress: 0,
-      statusDetails: 'Job Accepted',
+      statusDetails: "Job Accepted",
       driverLocation,
     };
     setOrder(mockOrder);
-    setDriverMarkers([{
-      position: driverLocation,
-      title: dedicatedDriver.name,
-      icon: dedicatedDriver.image,
-    }]);
-    setDestinationMarker([{
-      position: { lat: 35.146, lng: -90.052 },
-      title: 'Customer',
-      icon: '/lovable-uploads/bd7d3e2c-d8cc-4ae3-b3f6-e23f3527fa24.png',
-    }]);
+    setDriverMarkers([
+      {
+        position: driverLocation,
+        title: dedicatedDriver.name,
+        icon: dedicatedDriver.image,
+      },
+    ]);
+    setDestinationMarker([
+      {
+        position: { lat: 35.146, lng: -90.052 },
+        title: "Customer",
+        icon: "/lovable-uploads/bd7d3e2c-d8cc-4ae3-b3f6-e23f3527fa24.png",
+      },
+    ]);
   }, []);
 
   // Simulate driver movement & status update once job starts (modal closed)
   useEffect(() => {
-    if (!order || order.status !== 'processing') return;
+    if (!order || order.status !== "processing") return;
 
     let currentStep = 0;
-    type StatusType = 'processing' | 'in-transit' | 'delivered';
+    type StatusType = "processing" | "in-transit" | "delivered";
     const statuses: { status: StatusType; progress: number; statusDetails: string }[] = [
-      { status: 'processing', progress: 10, statusDetails: 'Order received' },
-      { status: 'processing', progress: 30, statusDetails: 'Processing your order' },
-      { status: 'in-transit', progress: 50, statusDetails: 'Driver on the way to pickup' },
-      { status: 'in-transit', progress: 80, statusDetails: 'Fuel picked up, headed your way' },
-      { status: 'delivered', progress: 100, statusDetails: 'Delivery complete!' },
+      { status: "processing", progress: 10, statusDetails: "Order received" },
+      { status: "processing", progress: 30, statusDetails: "Processing your order" },
+      { status: "in-transit", progress: 50, statusDetails: "Driver on the way to pickup" },
+      { status: "in-transit", progress: 80, statusDetails: "Fuel picked up, headed your way" },
+      { status: "delivered", progress: 100, statusDetails: "Delivery complete!" },
     ];
 
     const progressTimer = setInterval(() => {
@@ -118,7 +127,7 @@ const TrackOrder: React.FC = () => {
         return;
       }
       if (currentStep < statuses.length) {
-        setOrder(prev => {
+        setOrder((prev) => {
           if (!prev) return prev;
           return {
             ...prev,
@@ -141,7 +150,7 @@ const TrackOrder: React.FC = () => {
 
   // Driver movement simulation on map
   useEffect(() => {
-    if (!order || order.status === 'job-accepted') return;
+    if (!order || order.status === "job-accepted") return;
 
     const destination = { lat: 35.146, lng: -90.052 };
     const moveInterval = setInterval(() => {
@@ -162,12 +171,14 @@ const TrackOrder: React.FC = () => {
 
       if (newLat !== lat || newLng !== lng) {
         setDriverLocation(newLocation);
-        setDriverMarkers([{
-          position: newLocation,
-          title: dedicatedDriver.name,
-          icon: dedicatedDriver.image,
-        }]);
-        setOrder(prev => prev ? { ...prev, driverLocation: newLocation } : prev);
+        setDriverMarkers([
+          {
+            position: newLocation,
+            title: dedicatedDriver.name,
+            icon: dedicatedDriver.image,
+          },
+        ]);
+        setOrder((prev) => (prev ? { ...prev, driverLocation: newLocation } : prev));
       }
     }, 3000);
 
@@ -176,7 +187,9 @@ const TrackOrder: React.FC = () => {
 
   const handleStartTracking = () => {
     setShowJobStartedModal(false);
-    setOrder(prev => prev ? { ...prev, status: 'processing', statusDetails: 'Order started', progress: 10 } : prev);
+    setOrder((prev) =>
+      prev ? { ...prev, status: "processing", statusDetails: "Order started", progress: 10 } : prev
+    );
   };
 
   const handleCall = () => {
@@ -189,24 +202,18 @@ const TrackOrder: React.FC = () => {
     navigate(`/chat?fuelFriendName=${encodeURIComponent(order.driver.name)}`);
   };
 
-  if (!order) return (
-    <div className="fixed inset-0 bg-black text-white flex items-center justify-center p-6">
-      <p>Loading order...</p>
-    </div>
-  );
-
   return (
-    <div className="fixed inset-0 flex flex-col bg-black text-white">
+    <div className="fixed inset-0 flex flex-col bg-dark-purple text-white">
       {/* Header */}
-      <header className="flex items-center h-[60px] px-4 border-b border-gray-700 bg-black/90">
+      <header className="flex items-center h-[60px] px-4 border-b border-[#403d49] bg-[#1A1F2C]">
         <button
           aria-label="Back"
           onClick={() => navigate("/orders")}
-          className="p-2 rounded-full hover:bg-gray-800 transition-colors"
+          className="p-2 rounded-full hover:bg-[#333a57] transition-colors"
         >
-          <ChevronLeft className="h-6 w-6 text-gray-300" />
+          <ChevronLeft className="h-6 w-6 text-[#d6bcfa]" />
         </button>
-        <h1 className="flex-grow text-center font-semibold text-lg text-gray-300">
+        <h1 className="flex-grow text-center font-semibold text-lg text-[#d6bcfa]">
           Track Customer
         </h1>
         <div className="w-10" /> {/* placeholder for right side spacing */}
@@ -224,7 +231,7 @@ const TrackOrder: React.FC = () => {
             aria-modal="true"
             role="dialog"
           >
-            <motion.div className="bg-gray-900 rounded-2xl p-6 max-w-md w-full shadow-lg relative">
+            <motion.div className="bg-[#15172B] rounded-2xl p-6 max-w-md w-full shadow-lg relative">
               <button
                 onClick={() => setShowJobStartedModal(false)}
                 aria-label="Close modal"
@@ -240,14 +247,20 @@ const TrackOrder: React.FC = () => {
                 <p className="text-gray-400 px-1">
                   Track your customer's location to ensure a smooth delivery!
                 </p>
-                <div className="space-y-2 text-left text-sm text-gray-300 w-full px-8">
-                  <p><span className="inline-block mr-1 text-red-500">📍</span> Pickup: {order.pickupLocation}</p>
-                  <p><span className="inline-block mr-1 text-red-400">🎯</span> Drop off: {order.dropoffLocation}</p>
-                  <p><span className="inline-block mr-1 text-green-500">🎫</span> Order type: {order.orderType}</p>
+                <div className="space-y-2 text-left text-sm text-[#d6bcfa] w-full px-8">
+                  <p>
+                    <span className="inline-block mr-1 text-[#00E676]">📍</span> Pickup: {order?.pickupLocation}
+                  </p>
+                  <p>
+                    <span className="inline-block mr-1 text-[#00E676]">🎯</span> Drop off: {order?.dropoffLocation}
+                  </p>
+                  <p>
+                    <span className="inline-block mr-1 text-[#00E676]">🎫</span> Order type: {order?.orderType}
+                  </p>
                 </div>
                 <button
                   onClick={handleStartTracking}
-                  className="mt-4 w-full bg-green-500 text-black font-semibold rounded-full py-3 hover:bg-green-600 transition"
+                  className="mt-4 w-full bg-[#00E676] text-black font-semibold rounded-full py-3 hover:bg-[#00C853] transition"
                 >
                   Track Order
                 </button>
@@ -257,52 +270,49 @@ const TrackOrder: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {!showJobStartedModal && (
-        <>
-          {/* Map */}
-          <main className="flex-grow relative">
-            <Map
-              className="w-full h-full rounded-b-3xl"
-              markers={[...driverMarkers, ...destinationMarker]}
-              directions
-              showRoute
-              interactive
-              zoom={14}
-            />
-          </main>
+      {/* Map & driver info */}
+      <main className="flex-grow relative">
+        <Map
+          className="w-full h-full rounded-b-3xl"
+          markers={[...driverMarkers, ...destinationMarker]}
+          directions
+          showRoute
+          interactive
+          zoom={14}
+        />
 
-          {/* Bottom Driver Info */}
-          <footer className="bg-gray-900 rounded-t-3xl p-4 max-w-md mx-auto w-full fixed bottom-0 left-0 right-0 flex items-center justify-between space-x-4">
+        {!showJobStartedModal && order && (
+          <footer className="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-[#15172B] rounded-3xl p-4 max-w-lg w-full flex items-center justify-between space-x-4 shadow-lg border border-[#403d49]">
             <div className="flex items-center space-x-4">
               <img
                 src={order.driver.image}
                 alt={order.driver.name}
-                className="w-14 h-14 rounded-full object-cover border-2 border-green-500"
+                className="w-14 h-14 rounded-full object-cover border-2 border-[#00E676]"
               />
               <div>
                 <p className="text-white font-semibold text-lg">{order.driver.name}</p>
-                <p className="text-gray-400 text-sm">{order.driver.location}</p>
+                <p className="text-[#d6bcfa] text-sm">{order.driver.location}</p>
               </div>
             </div>
             <div className="flex space-x-4">
               <button
                 onClick={handleMessage}
                 aria-label={`Message ${order.driver.name}`}
-                className="w-12 h-12 rounded-full bg-green-500 hover:bg-green-600 flex items-center justify-center"
+                className="w-12 h-12 rounded-full bg-[#00E676] hover:bg-[#00C853] flex items-center justify-center"
               >
                 <MessageSquare className="h-6 w-6 text-black" />
               </button>
               <button
                 onClick={handleCall}
                 aria-label={`Call ${order.driver.name}`}
-                className="w-12 h-12 rounded-full bg-green-500 hover:bg-green-600 flex items-center justify-center"
+                className="w-12 h-12 rounded-full bg-[#00E676] hover:bg-[#00C853] flex items-center justify-center"
               >
                 <Phone className="h-6 w-6 text-black" />
               </button>
             </div>
           </footer>
-        </>
-      )}
+        )}
+      </main>
     </div>
   );
 };
