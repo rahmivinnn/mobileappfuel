@@ -1,11 +1,10 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { MapPin, Phone, MessageSquare, ChevronLeft, Check } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
-import RatingModal from '@/components/ui/RatingModal';
-import OrderConfirmModal from '@/components/ui/OrderConfirmModal';
 import Map from '@/components/ui/Map';
 
 interface OrderItem {
@@ -25,10 +24,13 @@ interface Driver {
 
 interface Order {
   id: string;
-  status: 'processing' | 'in-transit' | 'delivered';
+  status: 'job-accepted' | 'processing' | 'in-transit' | 'delivered';
   estimatedDelivery: string;
   items: OrderItem[];
   total: number;
+  pickupLocation: string;
+  dropoffLocation: string;
+  orderType: string;
   licensePlate: string;
   driver: Driver;
   progress: number;
@@ -37,15 +39,13 @@ interface Order {
 }
 
 const dedicatedDriver: Driver = {
-  name: 'Christopher Dastin',
-  location: 'Memphis, TN',
+  name: 'Cristopert Dastin',
+  location: 'Tennessee',
   image: '/lovable-uploads/a3df03b1-a154-407f-b8fe-e5dd6f0bade3.png',
   rating: 4.8,
   phone: '+1 (901) 555-3478',
   vehicle: 'White Toyota Camry',
 };
-
-const deliveryTime = '7:15 - 7:45 PM';
 
 const TrackOrder: React.FC = () => {
   const location = useLocation();
@@ -54,75 +54,62 @@ const TrackOrder: React.FC = () => {
   const isMobile = useIsMobile();
 
   const [order, setOrder] = useState<Order | null>(null);
-  const [orderComplete, setOrderComplete] = useState(false);
+  const [showJobStartedModal, setShowJobStartedModal] = useState(true);
   const [driverLocation, setDriverLocation] = useState<{ lat: number; lng: number }>({ lat: 35.149, lng: -90.048 });
   const [driverMarkers, setDriverMarkers] = useState<any[]>([]);
   const [destinationMarker, setDestinationMarker] = useState<any[]>([]);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [showRatingModal, setShowRatingModal] = useState(false);
-  const [showFinishScreen, setShowFinishScreen] = useState(false);
 
   const isMounted = useRef(true);
 
   useEffect(() => {
     isMounted.current = true;
-    return () => {
-      isMounted.current = false;
-    };
+    return () => { isMounted.current = false };
   }, []);
 
   useEffect(() => {
-    console.log("[TrackOrder] Parsing orderId from URL...");
-    const params = new URLSearchParams(location.search);
-    const orderId = params.get('orderId');
+    // Mock setup order
+    const mockOrder: Order = {
+      id: '123',
+      status: 'job-accepted',
+      estimatedDelivery: '7:15 - 7:45 PM',
+      items: [
+        { name: '2 Gallons Regular Unleaded', quantity: '1x', price: 7.34 },
+        { name: 'Chocolate cookies', quantity: '2x', price: 3.5 }
+      ],
+      total: 10.84,
+      pickupLocation: 'Shell Station- Abc Town',
+      dropoffLocation: 'Shell Station- Abc Town',
+      orderType: 'Fuel delivery',
+      licensePlate: 'TN-56A782',
+      driver: dedicatedDriver,
+      progress: 0,
+      statusDetails: 'Job Accepted',
+      driverLocation,
+    };
+    setOrder(mockOrder);
+    setDriverMarkers([{
+      position: driverLocation,
+      title: dedicatedDriver.name,
+      icon: dedicatedDriver.image,
+    }]);
+    setDestinationMarker([{
+      position: { lat: 35.146, lng: -90.052 },
+      title: 'Customer',
+      icon: '/lovable-uploads/bd7d3e2c-d8cc-4ae3-b3f6-e23f3527fa24.png',
+    }]);
+  }, []);
 
-    if (orderId) {
-      console.log(`[TrackOrder] Found orderId: ${orderId}`);
-      const mockOrder: Order = {
-        id: orderId,
-        status: 'processing',
-        estimatedDelivery: deliveryTime,
-        items: [
-          { name: '2 Gallons Regular Unleaded', quantity: '1x', price: 7.34 },
-          { name: 'Chocolate cookies', quantity: '2x', price: 3.5 }
-        ],
-        total: 10.84,
-        licensePlate: 'TN-56A782',
-        driver: dedicatedDriver,
-        progress: 0,
-        statusDetails: 'Order received',
-        driverLocation: driverLocation,
-      };
-      setOrder(mockOrder);
-
-      // Setup markers for driver and destination only once per orderId
-      setDriverMarkers([{
-        position: driverLocation,
-        title: dedicatedDriver.name,
-        icon: dedicatedDriver.image,
-      }]);
-
-      setDestinationMarker([{
-        position: { lat: 35.146, lng: -90.052 },
-        title: 'Your Location',
-        icon: '/lovable-uploads/bd7d3e2c-d8cc-4ae3-b3f6-e23f3527fa24.png',
-      }]);
-    } else {
-      console.error("[TrackOrder] No orderId in URL!");
-    }
-  }, [location.search]);
-
+  // Simulate driver movement & status update once job starts (modal closed)
   useEffect(() => {
-    if (!order) return;
-    console.log("[TrackOrder] Starting progress timer...");
+    if (!order || order.status !== 'processing') return;
+
     let currentStep = 0;
     type StatusType = 'processing' | 'in-transit' | 'delivered';
     const statuses: { status: StatusType; progress: number; statusDetails: string }[] = [
-      { status: 'processing', progress: 0, statusDetails: 'Order received' },
-      { status: 'processing', progress: 20, statusDetails: 'Processing your order' },
-      { status: 'in-transit', progress: 40, statusDetails: 'Driver on the way to pickup' },
-      { status: 'in-transit', progress: 60, statusDetails: 'Fuel picked up, headed your way' },
-      { status: 'in-transit', progress: 80, statusDetails: 'Almost at your location' },
+      { status: 'processing', progress: 10, statusDetails: 'Order received' },
+      { status: 'processing', progress: 30, statusDetails: 'Processing your order' },
+      { status: 'in-transit', progress: 50, statusDetails: 'Driver on the way to pickup' },
+      { status: 'in-transit', progress: 80, statusDetails: 'Fuel picked up, headed your way' },
       { status: 'delivered', progress: 100, statusDetails: 'Delivery complete!' },
     ];
 
@@ -132,7 +119,6 @@ const TrackOrder: React.FC = () => {
         return;
       }
       if (currentStep < statuses.length) {
-        console.log(`[TrackOrder] Updating status to step ${currentStep}: ${statuses[currentStep].status} with progress ${statuses[currentStep].progress}`);
         setOrder(prev => {
           if (!prev) return prev;
           return {
@@ -144,58 +130,37 @@ const TrackOrder: React.FC = () => {
         });
         currentStep++;
         if (currentStep === statuses.length) {
-          setOrderComplete(true);
-          setShowConfirmModal(true);
           clearInterval(progressTimer);
         }
       } else {
         clearInterval(progressTimer);
       }
-    }, 5000);
+    }, 8000);
 
     return () => clearInterval(progressTimer);
-  }, [order]);
+  }, [order?.status]);
 
+  // Driver movement simulation on map
   useEffect(() => {
-    if (!order) return;
-    if (orderComplete && isMounted.current) {
-      console.log("[TrackOrder] Order complete, showing finish screen...");
-      const finishTimer = setTimeout(() => {
-        toast({
-          title: 'Service Complete',
-          description: 'Your Fuel Friend has finished pumping gas and delivered your groceries!',
-          duration: 2000,
-          className: 'bg-green-500 border-green-600 text-white',
-        });
-        setShowFinishScreen(true);
-      }, 2000);
-      return () => clearTimeout(finishTimer);
-    }
-  }, [orderComplete, toast, order]);
+    if (!order || order.status === 'job-accepted') return;
 
-  useEffect(() => {
-    if (!order) return;
-    // We use a static destination always for now
     const destination = { lat: 35.146, lng: -90.052 };
     const moveInterval = setInterval(() => {
       if (!isMounted.current) {
         clearInterval(moveInterval);
         return;
       }
-      // Calculate new driver location moving 5% closer to destination each tick
       const { lat, lng } = driverLocation;
       const deltaLat = destination.lat - lat;
       const deltaLng = destination.lng - lng;
       if (Math.abs(deltaLat) < 0.00001 && Math.abs(deltaLng) < 0.00001) {
-        // Arrived close enough, stop moving
         clearInterval(moveInterval);
         return;
       }
-      const newLat = lat + deltaLat * 0.05;
-      const newLng = lng + deltaLng * 0.05;
+      const newLat = lat + deltaLat * 0.07;
+      const newLng = lng + deltaLng * 0.07;
       const newLocation = { lat: newLat, lng: newLng };
 
-      // Only update if location changed to prevent re-rendering loops
       if (newLat !== lat || newLng !== lng) {
         setDriverLocation(newLocation);
         setDriverMarkers([{
@@ -208,7 +173,12 @@ const TrackOrder: React.FC = () => {
     }, 3000);
 
     return () => clearInterval(moveInterval);
-  }, [driverLocation, order]);
+  }, [driverLocation, order?.status]);
+
+  const handleStartTracking = () => {
+    setShowJobStartedModal(false);
+    setOrder(prev => prev ? { ...prev, status: 'processing', statusDetails: 'Order started', progress: 10 } : prev);
+  };
 
   const handleCall = () => {
     if (!order) return;
@@ -220,100 +190,12 @@ const TrackOrder: React.FC = () => {
     navigate(`/chat?fuelFriendName=${encodeURIComponent(order.driver.name)}`);
   };
 
-  const handleOrderConfirm = () => {
-    setShowConfirmModal(false);
-    toast({
-      title: 'Order Confirmed',
-      description: 'Your payment has been processed successfully.',
-      duration: 3000,
-      className: 'bg-green-500 border-green-600 text-white',
-    });
-    setTimeout(() => {
-      setShowRatingModal(true);
-    }, 1000);
-  };
-
-  const handleRatingSubmit = (driverRating: number, stationRating: number, feedback: string) => {
-    setShowRatingModal(false);
-    setShowFinishScreen(true);
-    toast({
-      title: 'Thank You for Your Feedback',
-      description: 'Your ratings have been submitted.',
-      duration: 3000,
-    });
-    setTimeout(() => {
-      navigate('/');
-    }, 5000);
-  };
-
-  if (showFinishScreen) {
-    return (
-      <motion.div
-        className="fixed inset-0 bg-black text-white flex flex-col items-center justify-center p-6"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-      >
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: 'spring', stiffness: 100, damping: 15 }}
-          className="w-24 h-24 bg-green-500/20 rounded-full flex items-center justify-center mb-6"
-        >
-          <svg className="h-12 w-12 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-          </svg>
-        </motion.div>
-        <motion.h1
-          className="text-2xl font-bold mb-2 text-center"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          Order Complete
-        </motion.h1>
-        <motion.p
-          className="text-gray-400 text-center mb-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          Thank you for using our service. Your payment has been processed successfully.
-        </motion.p>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="text-center w-full"
-        >
-          <p className="text-gray-400 mb-1">Order ID: {order?.id}</p>
-          <p className="text-gray-400 mb-4">Amount: ${(order?.total + 3.99).toFixed(2)}</p>
-          <div className="flex justify-center mt-4">
-            <Link to="/" className="inline-block">
-              <button className="px-6 py-3 bg-green-500 text-black rounded-xl font-medium">
-                Return to Home
-              </button>
-            </Link>
-          </div>
-        </motion.div>
-      </motion.div>
-    );
-  }
-
-  if (!order) {
-    return (
-      <div className="fixed inset-0 bg-black text-white flex flex-col items-center justify-center p-6">
-        <p>Loading order details...</p>
-      </div>
-    );
-  }
-
-  const status = order.status;
-  const progress = order.progress;
-  const statusDetails = order.statusDetails;
-
+  // Status color helper
   const getStatusColor = (status: string | undefined) => {
     if (!status) return 'bg-gray-500';
     switch (status) {
+      case 'job-accepted':
+        return 'bg-green-400';
       case 'processing':
         return 'bg-yellow-500';
       case 'in-transit':
@@ -324,189 +206,120 @@ const TrackOrder: React.FC = () => {
         return 'bg-gray-500';
     }
   };
-  const getStatusName = (status: string | undefined) => {
-    if (!status) return 'Unknown';
-    switch (status) {
-      case 'processing':
-        return 'Processing';
-      case 'in-transit':
-        return 'In Transit';
-      case 'delivered':
-        return 'Delivered';
-      default:
-        return 'Unknown';
-    }
-  };
+
+  if (!order) return (
+    <div className="fixed inset-0 bg-black text-white flex items-center justify-center p-6">
+      <p>Loading order...</p>
+    </div>
+  );
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-black text-white">
-      <div className="relative px-4 py-3 flex items-center justify-center">
-        <Link to="/orders" className="absolute left-4">
-          <div className="h-10 w-10 flex items-center justify-center rounded-full bg-gray-800">
-            <ChevronLeft className="h-6 w-6" />
+    <div className="fixed inset-0 flex flex-col bg-black text-white px-4">
+      {/* Header */}
+      <div className="flex items-center py-4">
+        <button
+          aria-label="Back"
+          onClick={() => navigate("/orders")}
+          className="p-2 rounded-full bg-gray-900 hover:bg-gray-800 transition"
+        >
+          <ChevronLeft className="h-6 w-6" />
+        </button>
+        <h1 className="flex-grow text-center font-semibold text-lg sm:text-xl px-4">
+          {showJobStartedModal ? 'Track Your Customer' : 'Track Customer'}
+        </h1>
+        <div className="w-10" /> {/* Placeholder for spacing */}
+      </div>
+
+      {/* Job Started Modal */}
+      <AnimatePresence>
+      {showJobStartedModal && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          transition={{ duration: 0.3 }}
+          className="fixed inset-0 bg-black/80 flex items-center justify-center px-4"
+          aria-modal="true"
+          role="dialog"
+        >
+          <motion.div className="bg-gray-900 rounded-2xl p-6 max-w-md w-full shadow-lg relative">
+            <button
+              onClick={() => setShowJobStartedModal(false)}
+              aria-label="Close modal"
+              className="absolute top-4 right-4 text-gray-400 hover:text-white transition"
+            >
+              &#x2715;
+            </button>
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className="w-20 h-20 rounded-full bg-green-600 flex items-center justify-center ring-4 ring-green-400">
+                <Check className="h-12 w-12 text-white" />
+              </div>
+              <h2 className="text-xl font-semibold text-white">Job Started Successfully!</h2>
+              <p className="text-gray-400 px-1">
+                Track your customer&apos;s location to ensure a smooth delivery!
+              </p>
+              <div className="space-y-2 text-left text-sm text-gray-300 w-full px-8">
+                <p><span className="inline-block mr-1 text-red-500">📍</span> Pickup: {order.pickupLocation}</p>
+                <p><span className="inline-block mr-1 text-red-400">🎯</span> Drop off: {order.dropoffLocation}</p>
+                <p><span className="inline-block mr-1 text-green-500">🎫</span> Order type: {order.orderType}</p>
+              </div>
+              <button
+                onClick={handleStartTracking}
+                className="mt-4 w-full bg-green-500 text-black font-semibold rounded-full py-3 hover:bg-green-600 transition"
+              >
+                Track Order
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+      </AnimatePresence>
+
+      {!showJobStartedModal && (
+        <>
+          {/* Map */}
+          <div className={`${isMobile ? 'h-[400px]' : 'h-[450px]'} rounded-2xl overflow-hidden`}>
+            <Map
+              className="w-full h-full"
+              markers={[...driverMarkers, ...destinationMarker]}
+              directions={true}
+              showRoute={true}
+              interactive={true}
+              zoom={14}
+            />
           </div>
-        </Link>
-        <h1 className="text-xl font-semibold">Track Fuel Friend</h1>
-      </div>
 
-      <div className="px-4 py-2">
-        <div className="flex justify-between items-center mb-2">
-          <div className="flex items-center">
-            <div className={`w-3 h-3 rounded-full ${getStatusColor(status)} mr-2`}></div>
-            <span className="font-medium">{getStatusName(status)}</span>
-          </div>
-          <span className="text-sm text-gray-400">{order.id}</span>
-        </div>
-
-        <div className="w-full bg-gray-700 rounded-full h-2 mb-2">
-          <motion.div
-            className={`h-2 rounded-full ${getStatusColor(status)}`}
-            initial={{ width: 0 }}
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.5 }}
-          />
-        </div>
-        <p className="text-gray-400 text-sm">{statusDetails}</p>
-      </div>
-
-      <div className={`${isMobile ? 'h-[350px]' : 'h-[300px]'} mb-4 mt-2 relative`}>
-        <Map
-          className="w-full h-full"
-          markers={[...driverMarkers, ...destinationMarker]}
-          directions={true}
-          showRoute={true}
-          interactive={true}
-          zoom={14}
-        />
-      </div>
-
-      <div className="px-4 py-2 bg-black relative">
-        <div className="flex items-center mb-6">
-          <div className="mr-3">
-            <div className="h-14 w-14 rounded-full bg-green-500 flex items-center justify-center border-2 border-white text-black overflow-hidden">
+          {/* Driver Info Bottom */}
+          <div className="mt-6 bg-gray-900 px-6 py-4 rounded-2xl flex items-center justify-between">
+            <div className="flex items-center space-x-4">
               <img
                 src={order.driver.image}
                 alt={order.driver.name}
-                className="h-full w-full object-cover"
+                className="w-14 h-14 rounded-full object-cover border-2 border-green-500"
               />
+              <div>
+                <p className="font-semibold">{order.driver.name}</p>
+                <p className="text-sm text-gray-400">{order.driver.location}</p>
+              </div>
+            </div>
+            <div className="flex space-x-4">
+              <button
+                onClick={handleMessage}
+                aria-label={`Message ${order.driver.name}`}
+                className="w-12 h-12 rounded-full bg-green-500 hover:bg-green-600 flex items-center justify-center"
+              >
+                <MessageSquare className="h-6 w-6 text-black" />
+              </button>
+              <button
+                onClick={handleCall}
+                aria-label={`Call ${order.driver.name}`}
+                className="w-12 h-12 rounded-full bg-green-500 hover:bg-green-600 flex items-center justify-center"
+              >
+                <Phone className="h-6 w-6 text-black" />
+              </button>
             </div>
           </div>
-          <div className="flex-1">
-            <h3 className="font-semibold text-lg">{order.driver.name}</h3>
-            <p className="text-gray-400">{order.driver.location}</p>
-            <div className="flex items-center space-x-2 mt-1">
-              <p className="text-gray-400 text-xs">Vehicle: {order.driver.vehicle}</p>
-              <p className="text-gray-400 text-xs">License: {order.licensePlate}</p>
-            </div>
-          </div>
-          <div className="flex space-x-2">
-            <button onClick={handleMessage} className="h-12 w-12 p-0 rounded-full bg-green-500 hover:bg-green-600">
-              <MessageSquare className="h-6 w-6 mx-auto text-black" />
-            </button>
-            <button onClick={handleCall} className="h-12 w-12 p-0 rounded-full bg-green-500 hover:bg-green-600">
-              <Phone className="h-6 w-6 mx-auto text-black" />
-            </button>
-          </div>
-        </div>
-
-        <div className="mb-6">
-          <h4 className="text-gray-400 mb-1">Your Fuel Friend Will Arrive</h4>
-          <p className="font-semibold text-white text-lg">Estimated {order.estimatedDelivery}</p>
-        </div>
-
-        <div className="mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col items-center">
-              <div
-                className={`w-8 h-8 ${progress >= 20 ? 'bg-green-500' : 'bg-gray-700'} rounded-full flex items-center justify-center`}
-              >
-                <MapPin className={`h-4 w-4 ${progress >= 20 ? 'text-black' : 'text-gray-400'}`} />
-              </div>
-              <p className="text-xs text-gray-400 mt-1">Assigned</p>
-            </div>
-            <div className="flex-1 mx-1 h-0.5">
-              <div
-                className={`h-0.5 w-full border-t-2 border-dashed ${
-                  progress >= 40 ? 'border-green-500' : 'border-gray-700'
-                }`}
-              />
-            </div>
-            <div className="flex flex-col items-center">
-              <div
-                className={`w-8 h-8 ${progress >= 40 ? 'bg-green-500' : 'bg-gray-700'} rounded-full flex items-center justify-center`}
-              >
-                <svg
-                  className={`h-4 w-4 ${progress >= 40 ? 'text-black' : 'text-gray-400'}`}
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    fill="currentColor"
-                    d="M18 18.5c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5-1.5.67-1.5 1.5.67 1.5 1.5 1.5M20 8l3 4v5h-2c0 1.66-1.34 3-3 3s-3-1.34-3-3H9c0 1.66-1.34 3-3 3s-3-1.34-3-3H1V6c0-1.11.89-2 2-2h14v4h3M3 6v9h.76c.55-.61 1.35-1 2.24-1 .89 0 1.69.39 2.24 1H15V6H3z"
-                  />
-                </svg>
-              </div>
-              <p className="text-xs text-gray-400 mt-1">At Station</p>
-            </div>
-            <div className="flex-1 mx-1 h-0.5">
-              <div
-                className={`h-0.5 w-full border-t-2 border-dashed ${
-                  progress >= 80 ? 'border-green-500' : 'border-gray-700'
-                }`}
-              />
-            </div>
-            <div className="flex flex-col items-center">
-              <div
-                className={`w-8 h-8 ${progress >= 80 ? 'bg-green-500' : 'bg-gray-700'} rounded-full flex items-center justify-center`}
-              >
-                <svg
-                  className={`h-4 w-4 ${progress >= 80 ? 'text-black' : 'text-gray-400'}`}
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    fill="currentColor"
-                    d="M18 10a1 1 0 0 1-1-1 1 1 0 0 1 1-1 1 1 0 0 1 1 1 1 1 0 0 1-1 1m-6 0H6V5h6m7.77 2.23l.01-.01-3.72-3.72L15 4.56l2.11 2.11C16.17 7 15.5 7.93 15.5 9a2.5 2.5 0 0 0 2.5 2.5c.36 0 .69-.08 1-.21v7.21a1 1 0 0 1-1 1 1 1 0 0 1-1-1V14a2 2 0 0 0-2-2h-1V5a2 2 0 0 0-2-2H6c-1.11 0-2 .89-2 2v16h10v-7.5h1.5v5a2.5 2.5 0 0 0 2.5 2.5 2.5 2.5 0 0 0 2.5-2.5V9c0-.69-.28-1.32-.73-1.77M12 10H6V9h6m0-2H6V7h6M6 19v-3h5v3H6m0-4.5V19h-1v-4.5"
-                  />
-                </svg>
-              </div>
-              <p className="text-xs text-gray-400 mt-1">Pumping</p>
-            </div>
-            <div className="flex-1 mx-1 h-0.5">
-              <div
-                className={`h-0.5 w-full border-t-2 border-dashed ${
-                  progress >= 100 ? 'border-green-500' : 'border-gray-700'
-                }`}
-              />
-            </div>
-            <div className="flex flex-col items-center">
-              <div
-                className={`w-8 h-8 ${progress >= 100 ? 'bg-green-500' : 'bg-gray-700'} rounded-full flex items-center justify-center`}
-              >
-                <Check className={`h-4 w-4 ${progress >= 100 ? 'text-black' : 'text-gray-400'}`} />
-              </div>
-              <p className="text-xs text-gray-400 mt-1">Complete</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {showConfirmModal && (
-        <OrderConfirmModal
-          onConfirm={handleOrderConfirm}
-          orderTotal={order.total}
-          serviceFee={3.99}
-          driverName={order.driver.name}
-          licensePlate={order.licensePlate}
-          items={order.items}
-        />
-      )}
-
-      {showRatingModal && (
-        <RatingModal
-          driverName={order.driver.name}
-          stationName="Memphis Fuel Station"
-          onClose={() => setShowRatingModal(false)}
-          onSubmit={handleRatingSubmit}
-        />
+        </>
       )}
     </div>
   );
