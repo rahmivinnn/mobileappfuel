@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapPin, Phone, MessageSquare, ChevronLeft, Clock, MapIcon } from "lucide-react";
+import { MapPin, Phone, MessageSquare, ChevronLeft, Clock, Navigation } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -20,6 +20,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerFooter,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 
 interface OrderItem {
   name: string;
@@ -76,6 +84,7 @@ const TrackOrder: React.FC = () => {
   });
   const [driverMarkers, setDriverMarkers] = useState<any[]>([]);
   const [destinationMarker, setDestinationMarker] = useState<any[]>([]);
+  const [showOrderDetails, setShowOrderDetails] = useState(false);
 
   const isMounted = useRef(true);
 
@@ -207,7 +216,12 @@ const TrackOrder: React.FC = () => {
   const handleStartTracking = () => {
     setShowJobStartedModal(false);
     setOrder((prev) =>
-      prev ? { ...prev, status: "processing", statusDetails: "Order started", progress: 10 } : prev
+      prev ? { 
+        ...prev, 
+        status: "processing", 
+        statusDetails: "Order started", 
+        progress: 10 
+      } : prev
     );
     toast({
       title: "Order is now being processed",
@@ -248,7 +262,7 @@ const TrackOrder: React.FC = () => {
       case "processing":
         return <Clock className="h-5 w-5 text-blue-500 animate-pulse" />;
       case "in-transit":
-        return <MapIcon className="h-5 w-5 text-[#00E676]" />;
+        return <Navigation className="h-5 w-5 text-[#00E676]" />;
       case "delivered":
         return <MapPin className="h-5 w-5 text-[#00C853]" />;
       default:
@@ -257,25 +271,30 @@ const TrackOrder: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-dark-purple text-white">
+    <div className="fixed inset-0 flex flex-col bg-[#0F1117]">
       {/* Header */}
-      <header className="flex items-center h-[60px] px-4 border-b border-[#403d49] bg-[#1A1F2C] z-10">
+      <header className="flex items-center h-[60px] px-4 border-b border-[#262A34] bg-[#151822] z-10">
         <button
           aria-label="Back"
           onClick={() => navigate("/orders")}
-          className="p-2 rounded-full hover:bg-[#333a57] transition-colors"
+          className="p-2 rounded-full hover:bg-[#262A34] transition-colors"
         >
           <ChevronLeft className="h-6 w-6 text-[#d6bcfa]" />
         </button>
         <h1 className="flex-grow text-center font-semibold text-lg text-[#d6bcfa]">Track Order</h1>
-        <div className="w-10" /> {/* placeholder for right side spacing */}
+        <button
+          onClick={() => setShowOrderDetails(true)}
+          className="p-2 rounded-full bg-[#262A34] text-[#d6bcfa]"
+        >
+          <Clock className="h-5 w-5" />
+        </button>
       </header>
 
       {/* Enhanced Job Started Modal */}
       <Dialog open={showJobStartedModal} onOpenChange={setShowJobStartedModal}>
-        <DialogContent className="bg-[#15172B] border-[#403d49] text-white max-w-md w-[95%]">
+        <DialogContent className="bg-[#151822] border-[#262A34] text-white max-w-md w-[95%] rounded-xl">
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold text-center text-[#d6bcfa]">
+            <DialogTitle className="text-xl font-bold text-center text-[#d6bcfa]">
               New Order Accepted!
             </DialogTitle>
             <DialogDescription className="text-center text-gray-400">
@@ -297,12 +316,12 @@ const TrackOrder: React.FC = () => {
               </svg>
             </div>
             
-            <Card className="w-full bg-[#1e2235] border-[#403d49]">
+            <Card className="w-full bg-[#1A1F2C] border-[#262A34] shadow-xl">
               <CardContent className="pt-6">
                 <div className="space-y-3">
                   {/* Customer Info */}
-                  <div className="flex items-center space-x-3 pb-3 border-b border-[#403d49]">
-                    <div className="h-12 w-12 rounded-full bg-[#403d49] flex items-center justify-center">
+                  <div className="flex items-center space-x-3 pb-3 border-b border-[#262A34]">
+                    <div className="h-12 w-12 rounded-full bg-[#262A34] flex items-center justify-center">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="h-6 w-6 text-[#d6bcfa]"
@@ -325,7 +344,7 @@ const TrackOrder: React.FC = () => {
                   </div>
                   
                   {/* Order Details */}
-                  <div className="space-y-2 text-sm">
+                  <div className="space-y-3 text-sm">
                     <div className="flex space-x-2">
                       <MapPin className="h-5 w-5 text-[#00E676] flex-shrink-0" />
                       <div>
@@ -365,18 +384,90 @@ const TrackOrder: React.FC = () => {
                   </div>
                 </div>
               </CardContent>
-              <CardFooter>
+              <CardFooter className="pt-2">
                 <button
                   onClick={handleStartTracking}
-                  className="w-full bg-[#00E676] text-black font-medium py-3 rounded-full hover:bg-[#00C853] transition-colors"
+                  className="w-full bg-[#00E676] text-black font-bold py-3.5 rounded-lg hover:bg-[#00C853] transition-colors"
                 >
-                  Start Tracking Now
+                  Start Tracking
                 </button>
               </CardFooter>
             </Card>
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Order Details Drawer */}
+      <Drawer open={showOrderDetails} onOpenChange={setShowOrderDetails}>
+        <DrawerContent className="bg-[#151822] border-t border-[#262A34]">
+          <DrawerHeader>
+            <DrawerTitle className="text-[#d6bcfa] text-center">Order Details</DrawerTitle>
+          </DrawerHeader>
+          
+          <div className="px-4 py-2 space-y-4">
+            {order && (
+              <>
+                <div className="rounded-lg bg-[#1A1F2C] p-4 border border-[#262A34]">
+                  <h3 className="text-sm font-medium text-gray-400 mb-1">Order ID</h3>
+                  <p className="font-medium">#{order.id}</p>
+                </div>
+              
+                <div className="rounded-lg bg-[#1A1F2C] p-4 border border-[#262A34]">
+                  <h3 className="text-sm font-medium text-gray-400 mb-1">Items</h3>
+                  <div className="space-y-2">
+                    {order.items.map((item, index) => (
+                      <div key={index} className="flex justify-between">
+                        <p>{item.quantity} {item.name}</p>
+                        <p>${item.price.toFixed(2)}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-[#262A34] flex justify-between font-semibold">
+                    <p>Total</p>
+                    <p>${order.total.toFixed(2)}</p>
+                  </div>
+                </div>
+                
+                <div className="rounded-lg bg-[#1A1F2C] p-4 border border-[#262A34]">
+                  <h3 className="text-sm font-medium text-gray-400 mb-1">Delivery Info</h3>
+                  <div className="space-y-2 mt-2">
+                    <div className="flex space-x-2">
+                      <MapPin className="h-5 w-5 text-[#00E676] flex-shrink-0" />
+                      <div>
+                        <p className="text-xs text-gray-400">Pickup</p>
+                        <p className="font-medium">{order.pickupLocation}</p>
+                      </div>
+                    </div>
+                    <div className="flex space-x-2">
+                      <MapPin className="h-5 w-5 text-[#00E676] flex-shrink-0" />
+                      <div>
+                        <p className="text-xs text-gray-400">Dropoff</p>
+                        <p className="font-medium">{order.dropoffLocation}</p>
+                      </div>
+                    </div>
+                    <div className="flex space-x-2">
+                      <Clock className="h-5 w-5 text-[#00E676] flex-shrink-0" />
+                      <div>
+                        <p className="text-xs text-gray-400">Estimated Delivery</p>
+                        <p className="font-medium">{order.estimatedDelivery}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+          
+          <DrawerFooter>
+            <button 
+              onClick={() => setShowOrderDetails(false)}
+              className="w-full bg-[#262A34] text-white py-3 rounded-lg hover:bg-[#1e2235] transition-colors"
+            >
+              Close
+            </button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
 
       {/* Interactive map with driver info panel */}
       <main className="flex-grow relative">
@@ -391,77 +482,89 @@ const TrackOrder: React.FC = () => {
 
         {/* Enhanced Driver Info Panel */}
         {!showJobStartedModal && order && (
-          <div className="absolute bottom-0 left-0 right-0 px-4 pb-6 bg-gradient-to-t from-[#15172B] via-[#15172B]/95 to-transparent">
-            <div className="max-w-lg mx-auto bg-[#252e42] rounded-3xl p-5 shadow-lg border border-[#403d49] backdrop-blur-md">
-              {/* Customer Info */}
-              <div className="flex items-center space-x-3 mb-4 pb-3 border-b border-[#403d49]">
-                <div className="h-12 w-12 rounded-full bg-[#403d49] flex items-center justify-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-[#d6bcfa]"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    />
-                  </svg>
+          <div className="absolute bottom-0 left-0 right-0">
+            <div className="bg-gradient-to-t from-[#151822] via-[#151822]/95 to-transparent pt-10 px-4 pb-6">
+              {/* Progress bar and status */}
+              <div className="mb-3">
+                <div className="flex justify-between items-center mb-2">
+                  <div className="flex items-center space-x-2">
+                    {getStatusIcon()}
+                    <p className="font-semibold text-white">{order.statusDetails}</p>
+                  </div>
+                  <p className="text-sm text-gray-300">{order.estimatedDelivery}</p>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-400">Customer</p>
-                  <p className="font-semibold">{order?.customerName || "Michael Johnson"}</p>
-                </div>
-              </div>
-              
-              {/* Status and Progress */}
-              <div className="flex justify-between items-center mb-2">
-                <div className="flex items-center space-x-2">
-                  {getStatusIcon()}
-                  <p className="font-semibold">{order.statusDetails}</p>
-                </div>
-                <p className="text-sm">{order.estimatedDelivery}</p>
-              </div>
-              
-              {/* Progress Bar */}
-              <div className="w-full h-2.5 rounded-full bg-[#1e2235] overflow-hidden mb-4">
-                <div
-                  className={`h-2.5 rounded-full transition-all duration-500 ease-in-out ${progressColor()}`}
-                  style={{ width: `${order.progress}%` }}
-                />
-              </div>
-
-              {/* Driver Info and Actions */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <img
-                    src={order.driver.image}
-                    alt={order.driver.name}
-                    className="w-14 h-14 rounded-full object-cover border-2 border-[#00E676]"
+                
+                <div className="w-full h-2 rounded-full bg-[#262A34] overflow-hidden">
+                  <motion.div
+                    initial={{ width: "0%" }}
+                    animate={{ width: `${order.progress}%` }}
+                    transition={{ duration: 0.5 }}
+                    className={`h-2 rounded-full ${progressColor()}`}
                   />
-                  <div>
-                    <p className="font-semibold">{order.driver.name}</p>
-                    <p className="text-sm text-gray-400">{order.driver.vehicle}</p>
+                </div>
+              </div>
+              
+              {/* Driver card */}
+              <div className="bg-[#1A1F2C] rounded-2xl p-4 shadow-lg border border-[#262A34]">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="relative">
+                      <img
+                        src={order.driver.image}
+                        alt={order.driver.name}
+                        className="w-14 h-14 rounded-full object-cover border-2 border-[#00E676]"
+                      />
+                      <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#00E676] flex items-center justify-center">
+                        <span className="text-xs font-bold text-black">{order.driver.rating}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-white">{order.driver.name}</p>
+                      <p className="text-sm text-gray-400">{order.driver.vehicle}</p>
+                      <p className="text-xs text-[#00E676]">{order.licensePlate}</p>
+                    </div>
+                  </div>
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={handleMessage}
+                      aria-label={`Message ${order.driver.name}`}
+                      className="w-12 h-12 rounded-full bg-[#262A34] border border-[#403d49] hover:bg-[#2a3049] flex items-center justify-center"
+                    >
+                      <MessageSquare className="h-5 w-5 text-[#d6bcfa]" />
+                    </button>
+                    <button
+                      onClick={handleCall}
+                      aria-label={`Call ${order.driver.name}`}
+                      className="w-12 h-12 rounded-full bg-[#00E676] hover:bg-[#00C853] flex items-center justify-center"
+                    >
+                      <Phone className="h-5 w-5 text-black" />
+                    </button>
                   </div>
                 </div>
-                <div className="flex space-x-3">
-                  <button
-                    onClick={handleMessage}
-                    aria-label={`Message ${order.driver.name}`}
-                    className="w-12 h-12 rounded-full bg-[#1e2235] border border-[#403d49] hover:bg-[#2a3049] flex items-center justify-center"
-                  >
-                    <MessageSquare className="h-6 w-6 text-[#d6bcfa]" />
-                  </button>
-                  <button
-                    onClick={handleCall}
-                    aria-label={`Call ${order.driver.name}`}
-                    className="w-12 h-12 rounded-full bg-[#00E676] hover:bg-[#00C853] flex items-center justify-center"
-                  >
-                    <Phone className="h-6 w-6 text-black" />
-                  </button>
+                
+                {/* Customer card - Minimized */}
+                <div className="mt-4 bg-[#262A34] rounded-xl p-3 flex items-center">
+                  <div className="h-10 w-10 rounded-full bg-[#363C4B] flex items-center justify-center mr-3">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5 text-[#d6bcfa]"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-400">Customer</p>
+                    <p className="font-medium text-white">{order.customerName}</p>
+                  </div>
+                  <MapPin className="h-5 w-5 text-[#00E676]" />
                 </div>
               </div>
             </div>
