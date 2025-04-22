@@ -1,11 +1,25 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapPin, Phone, MessageSquare, ChevronLeft } from "lucide-react";
+import { MapPin, Phone, MessageSquare, ChevronLeft, Clock, MapIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import Map from "@/components/ui/Map";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface OrderItem {
   name: string;
@@ -36,6 +50,8 @@ interface Order {
   progress: number;
   statusDetails: string;
   driverLocation: { lat: number; lng: number };
+  customerName?: string;
+  customerLocation?: { lat: number; lng: number };
 }
 
 const dedicatedDriver: Driver = {
@@ -72,6 +88,7 @@ const TrackOrder: React.FC = () => {
 
   useEffect(() => {
     // Setup order & markers
+    const customerLocation = { lat: 35.146, lng: -90.052 };
     const mockOrder: Order = {
       id: "123",
       status: "job-accepted",
@@ -89,6 +106,8 @@ const TrackOrder: React.FC = () => {
       progress: 0,
       statusDetails: "Job Accepted",
       driverLocation,
+      customerName: "Michael Johnson",
+      customerLocation
     };
     setOrder(mockOrder);
     setDriverMarkers([
@@ -100,7 +119,7 @@ const TrackOrder: React.FC = () => {
     ]);
     setDestinationMarker([
       {
-        position: { lat: 35.146, lng: -90.052 },
+        position: customerLocation,
         title: "Customer",
         icon: "/lovable-uploads/bd7d3e2c-d8cc-4ae3-b3f6-e23f3527fa24.png",
       },
@@ -152,7 +171,7 @@ const TrackOrder: React.FC = () => {
   useEffect(() => {
     if (!order || order.status === "job-accepted") return;
 
-    const destination = { lat: 35.146, lng: -90.052 };
+    const destination = order.customerLocation || { lat: 35.146, lng: -90.052 };
     const moveInterval = setInterval(() => {
       if (!isMounted.current) {
         clearInterval(moveInterval);
@@ -190,6 +209,10 @@ const TrackOrder: React.FC = () => {
     setOrder((prev) =>
       prev ? { ...prev, status: "processing", statusDetails: "Order started", progress: 10 } : prev
     );
+    toast({
+      title: "Order is now being processed",
+      description: "You can track your order in real-time",
+    });
   };
 
   const handleCall = () => {
@@ -210,18 +233,33 @@ const TrackOrder: React.FC = () => {
       case "processing":
         return "bg-blue-500";
       case "in-transit":
-        return "bg-green-500";
+        return "bg-[#00E676]";
       case "delivered":
-        return "bg-green-600";
+        return "bg-[#00C853]";
       default:
         return "bg-gray-500";
+    }
+  };
+
+  const getStatusIcon = () => {
+    switch(order?.status) {
+      case "job-accepted":
+        return <Clock className="h-5 w-5 text-gray-500" />;
+      case "processing":
+        return <Clock className="h-5 w-5 text-blue-500 animate-pulse" />;
+      case "in-transit":
+        return <MapIcon className="h-5 w-5 text-[#00E676]" />;
+      case "delivered":
+        return <MapPin className="h-5 w-5 text-[#00C853]" />;
+      default:
+        return <Clock className="h-5 w-5 text-gray-500" />;
     }
   };
 
   return (
     <div className="fixed inset-0 flex flex-col bg-dark-purple text-white">
       {/* Header */}
-      <header className="flex items-center h-[60px] px-4 border-b border-[#403d49] bg-[#1A1F2C]">
+      <header className="flex items-center h-[60px] px-4 border-b border-[#403d49] bg-[#1A1F2C] z-10">
         <button
           aria-label="Back"
           onClick={() => navigate("/orders")}
@@ -233,102 +271,117 @@ const TrackOrder: React.FC = () => {
         <div className="w-10" /> {/* placeholder for right side spacing */}
       </header>
 
-      {/* Job Started Modal */}
-      <AnimatePresence>
-        {showJobStartedModal && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-0 bg-black/80 flex items-center justify-center px-4"
-            aria-modal="true"
-            role="dialog"
-          >
-            <motion.div className="bg-[#15172B] rounded-2xl p-6 max-w-md w-full shadow-lg relative">
-              <button
-                onClick={() => setShowJobStartedModal(false)}
-                aria-label="Close modal"
-                className="absolute top-4 right-4 text-gray-400 hover:text-white transition"
+      {/* Enhanced Job Started Modal */}
+      <Dialog open={showJobStartedModal} onOpenChange={setShowJobStartedModal}>
+        <DialogContent className="bg-[#15172B] border-[#403d49] text-white max-w-md w-[95%]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold text-center text-[#d6bcfa]">
+              New Order Accepted!
+            </DialogTitle>
+            <DialogDescription className="text-center text-gray-400">
+              Track your customer's order in real-time for a smooth delivery experience
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex flex-col items-center space-y-5 my-4">
+            <div className="w-20 h-20 rounded-full bg-[#00E676] flex items-center justify-center ring-4 ring-[#00E676]/30">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-12 w-12 text-black"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
               >
-                &#x2715;
-              </button>
-              <div className="flex flex-col items-center text-center space-y-4">
-                <div className="w-20 h-20 rounded-full bg-green-600 flex items-center justify-center ring-4 ring-green-400">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-12 w-12 text-white"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <h2 className="text-xl font-semibold text-white">Job Started Successfully!</h2>
-                <p className="text-gray-400 px-1">
-                  Track your customer's location to ensure a smooth delivery!
-                </p>
-                <div className="space-y-2 text-left text-sm text-[#d6bcfa] w-full px-8">
-                  <p>
-                    <MapPin className="inline-block mr-1 mb-0.5 text-[#00E676]" size={16} />
-                    Pickup: {order?.pickupLocation}
-                  </p>
-                  <p>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="inline-block mr-1 mb-0.5 text-[#00E676]"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                      width={16}
-                      height={16}
-                    >
-                      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth={2} fill="none" />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M12 7v5l3 3"
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            
+            <Card className="w-full bg-[#1e2235] border-[#403d49]">
+              <CardContent className="pt-6">
+                <div className="space-y-3">
+                  {/* Customer Info */}
+                  <div className="flex items-center space-x-3 pb-3 border-b border-[#403d49]">
+                    <div className="h-12 w-12 rounded-full bg-[#403d49] flex items-center justify-center">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-6 w-6 text-[#d6bcfa]"
+                        fill="none"
+                        viewBox="0 0 24 24"
                         stroke="currentColor"
                         strokeWidth={2}
-                      />
-                    </svg>
-                    Drop off: {order?.dropoffLocation}
-                  </p>
-                  <p>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="inline-block mr-1 mb-0.5 text-[#00E676]"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                      width={16}
-                      height={16}
-                    >
-                      <rect width="14" height="14" x="5" y="5" stroke="currentColor" strokeWidth={2} fill="none" rx="4" ry="4" />
-                    </svg>
-                    Type: {order?.orderType}
-                  </p>
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-400">Customer</p>
+                      <p className="font-semibold">{order?.customerName || "Michael Johnson"}</p>
+                    </div>
+                  </div>
+                  
+                  {/* Order Details */}
+                  <div className="space-y-2 text-sm">
+                    <div className="flex space-x-2">
+                      <MapPin className="h-5 w-5 text-[#00E676] flex-shrink-0" />
+                      <div>
+                        <p className="text-gray-400">Pickup Location</p>
+                        <p className="font-medium">{order?.pickupLocation}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex space-x-2">
+                      <MapPin className="h-5 w-5 text-[#00E676] flex-shrink-0" />
+                      <div>
+                        <p className="text-gray-400">Drop off Location</p>
+                        <p className="font-medium">{order?.dropoffLocation}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex space-x-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5 text-[#00E676] flex-shrink-0"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                        />
+                      </svg>
+                      <div>
+                        <p className="text-gray-400">Order Type</p>
+                        <p className="font-medium">{order?.orderType}</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
+              </CardContent>
+              <CardFooter>
                 <button
                   onClick={handleStartTracking}
-                  className="mt-4 w-full bg-[#00E676] text-black font-semibold rounded-full py-3 hover:bg-[#00C853] transition"
+                  className="w-full bg-[#00E676] text-black font-medium py-3 rounded-full hover:bg-[#00C853] transition-colors"
                 >
-                  Track Order
+                  Start Tracking Now
                 </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              </CardFooter>
+            </Card>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Interactive map with driver info panel */}
       <main className="flex-grow relative">
         <Map
-          className="w-full h-full rounded-b-3xl"
+          className="w-full h-full"
           markers={[...driverMarkers, ...destinationMarker]}
           directions
           showRoute
@@ -336,52 +389,71 @@ const TrackOrder: React.FC = () => {
           zoom={14}
         />
 
-        {/* Driver Info Panel */}
+        {/* Enhanced Driver Info Panel */}
         {!showJobStartedModal && order && (
-          <div className="absolute bottom-0 left-0 right-0 px-4 pb-6 bg-gradient-to-t from-[#15172B] via-[#15172B]/95 to-transparent rounded-t-3xl">
-            <div className="max-w-lg mx-auto bg-[#252e42] rounded-3xl p-6 flex flex-col space-y-4 shadow-lg border border-[#403d49] backdrop-blur-md">
-              {/* Status */}
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="text-gray-300 uppercase text-xs tracking-widest font-semibold">
-                    Status
-                  </p>
-                  <p className="text-white font-bold text-lg">{order.statusDetails}</p>
+          <div className="absolute bottom-0 left-0 right-0 px-4 pb-6 bg-gradient-to-t from-[#15172B] via-[#15172B]/95 to-transparent">
+            <div className="max-w-lg mx-auto bg-[#252e42] rounded-3xl p-5 shadow-lg border border-[#403d49] backdrop-blur-md">
+              {/* Customer Info */}
+              <div className="flex items-center space-x-3 mb-4 pb-3 border-b border-[#403d49]">
+                <div className="h-12 w-12 rounded-full bg-[#403d49] flex items-center justify-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 text-[#d6bcfa]"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
                 </div>
-                <div className="text-right">
-                  <p className="text-gray-300 uppercase text-xs tracking-widest font-semibold">Est. Delivery</p>
-                  <p className="text-white font-bold text-lg">{order.estimatedDelivery}</p>
+                <div>
+                  <p className="text-sm text-gray-400">Customer</p>
+                  <p className="font-semibold">{order?.customerName || "Michael Johnson"}</p>
                 </div>
               </div>
-
+              
+              {/* Status and Progress */}
+              <div className="flex justify-between items-center mb-2">
+                <div className="flex items-center space-x-2">
+                  {getStatusIcon()}
+                  <p className="font-semibold">{order.statusDetails}</p>
+                </div>
+                <p className="text-sm">{order.estimatedDelivery}</p>
+              </div>
+              
               {/* Progress Bar */}
-              <div className="w-full h-3 rounded-full bg-gray-700 overflow-hidden">
+              <div className="w-full h-2.5 rounded-full bg-[#1e2235] overflow-hidden mb-4">
                 <div
-                  className={`h-3 rounded-full transition-all duration-500 ease-in-out ${progressColor()}`}
+                  className={`h-2.5 rounded-full transition-all duration-500 ease-in-out ${progressColor()}`}
                   style={{ width: `${order.progress}%` }}
                 />
               </div>
 
               {/* Driver Info and Actions */}
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-3">
                   <img
                     src={order.driver.image}
                     alt={order.driver.name}
-                    className="w-16 h-16 rounded-full object-cover border-2 border-[#00E676]"
+                    className="w-14 h-14 rounded-full object-cover border-2 border-[#00E676]"
                   />
                   <div>
-                    <p className="text-white font-semibold text-lg">{order.driver.name}</p>
-                    <p className="text-[#d6bcfa] text-sm">{order.driver.vehicle}</p>
+                    <p className="font-semibold">{order.driver.name}</p>
+                    <p className="text-sm text-gray-400">{order.driver.vehicle}</p>
                   </div>
                 </div>
-                <div className="flex space-x-4">
+                <div className="flex space-x-3">
                   <button
                     onClick={handleMessage}
                     aria-label={`Message ${order.driver.name}`}
-                    className="w-12 h-12 rounded-full bg-[#00E676] hover:bg-[#00C853] flex items-center justify-center"
+                    className="w-12 h-12 rounded-full bg-[#1e2235] border border-[#403d49] hover:bg-[#2a3049] flex items-center justify-center"
                   >
-                    <MessageSquare className="h-6 w-6 text-black" />
+                    <MessageSquare className="h-6 w-6 text-[#d6bcfa]" />
                   </button>
                   <button
                     onClick={handleCall}
@@ -401,4 +473,3 @@ const TrackOrder: React.FC = () => {
 };
 
 export default TrackOrder;
-
