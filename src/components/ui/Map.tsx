@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Motion, AnimatePresence, motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface MapProps extends React.HTMLAttributes<HTMLDivElement> {
   center?: { lat: number; lng: number };
