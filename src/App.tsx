@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
+import PageTransition from './components/ui/PageTransition';
 
 // Components
 import SplashScreen from './components/ui/SplashScreen';
@@ -51,29 +52,29 @@ function AppRoutes() {
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<Index />} />
-        <Route path="/map" element={<MapView />} />
-        <Route path="/settings" element={<Settings onLogout={handleLogout} />} />
-        <Route path="/station/:id" element={<StationDetails />} />
-        <Route path="/station/:id/fuel" element={<FuelSelection />} />
-        <Route path="/station/:id/groceries" element={<GroceryList />} />
-        <Route path="/payment" element={<Payment />} />
-        <Route path="/confirmation" element={<Confirmation />} />
-        <Route path="/orders" element={<OrderHistory />} />
-        <Route path="/track" element={<TrackOrder />} />
-        <Route path="/chat" element={<ChatScreen />} />
-        <Route path="/call" element={<CallScreen />} />
+        <Route path="/" element={<PageTransition><Index /></PageTransition>} />
+        <Route path="/map" element={<PageTransition><MapView /></PageTransition>} />
+        <Route path="/settings" element={<PageTransition><Settings onLogout={handleLogout} /></PageTransition>} />
+        <Route path="/station/:id" element={<PageTransition><StationDetails /></PageTransition>} />
+        <Route path="/station/:id/fuel" element={<PageTransition><FuelSelection /></PageTransition>} />
+        <Route path="/station/:id/groceries" element={<PageTransition><GroceryList /></PageTransition>} />
+        <Route path="/payment" element={<PageTransition><Payment /></PageTransition>} />
+        <Route path="/confirmation" element={<PageTransition><Confirmation /></PageTransition>} />
+        <Route path="/orders" element={<PageTransition><OrderHistory /></PageTransition>} />
+        <Route path="/track" element={<PageTransition><TrackOrder /></PageTransition>} />
+        <Route path="/chat" element={<PageTransition><ChatScreen /></PageTransition>} />
+        <Route path="/call" element={<PageTransition><CallScreen /></PageTransition>} />
 
         {/* Auth routes */}
-        <Route path="/welcome" element={<Welcome />} />
-        <Route path="/signin" element={<SignIn onLogin={handleLogin} />} />
-        <Route path="/signup" element={<SignUp onLogin={handleLogin} />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/verify-otp" element={<VerifyOtp />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/welcome" element={<PageTransition><Welcome /></PageTransition>} />
+        <Route path="/signin" element={<PageTransition><SignIn onLogin={handleLogin} /></PageTransition>} />
+        <Route path="/signup" element={<PageTransition><SignUp onLogin={handleLogin} /></PageTransition>} />
+        <Route path="/forgot-password" element={<PageTransition><ForgotPassword /></PageTransition>} />
+        <Route path="/verify-otp" element={<PageTransition><VerifyOtp /></PageTransition>} />
+        <Route path="/reset-password" element={<PageTransition><ResetPassword /></PageTransition>} />
 
         {/* 404 */}
-        <Route path="*" element={<NotFound />} />
+        <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
       </Routes>
     </AnimatePresence>
   );
@@ -90,14 +91,30 @@ function App() {
 
   return (
     <ThemeProvider defaultTheme="system" storageKey="vite-react-theme">
-      {isLoading ? (
-        <SplashScreen onFinish={handleSplashScreenFinish} />
-      ) : (
-        <>
-          <AppRoutes />
-          <Toaster />
-        </>
-      )}
+      <AnimatePresence mode="wait">
+        {isLoading ? (
+          <motion.div
+            key="splash"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <SplashScreen onFinish={handleSplashScreenFinish} />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="app"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="w-full h-full"
+          >
+            <AppRoutes />
+            <Toaster />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </ThemeProvider>
   );
 }

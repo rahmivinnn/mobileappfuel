@@ -1,89 +1,76 @@
-
 import React, { useState, useEffect, useRef } from "react";
-
-// Add lastMarkerUpdate to window object
-declare global {
-  interface Window {
-    lastMarkerUpdate?: number;
-  }
-}
 import { useNavigate } from "react-router-dom";
-import { MapPin, Phone, MessageSquare, ChevronLeft, Clock, Navigation } from "lucide-react";
+import { MapPin, Phone, MessageSquare, ChevronLeft, Clock, Navigation, Car, Layers } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import Map from "@/components/ui/Map";
 import { MAPBOX_STYLE, MAP_STYLES } from '@/config/mapbox';
+
+// UI Components
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
+
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
+
 import {
   Card,
   CardContent,
+  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerFooter,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
+
+// Types
+interface Driver {
+  name: string;
+  image: string;
+  vehicle: string;
+  rating: number;
+  phone: string;
+}
 
 interface OrderItem {
   name: string;
-  quantity: string;
+  quantity: number;
   price: number;
-}
-
-interface Driver {
-  name: string;
-  location: string;
-  image: string;
-  rating: number;
-  phone: string;
-  vehicle: string;
 }
 
 interface Order {
   id: string;
-  status: "job-accepted" | "processing" | "in-transit" | "delivered";
-  estimatedDelivery: string;
-  items: OrderItem[];
-  total: number;
+  customerName: string;
   pickupLocation: string;
   dropoffLocation: string;
   orderType: string;
-  licensePlate: string;
-  driver: Driver;
-  progress: number;
+  status: "preparing" | "on_the_way" | "arriving" | "delivered";
   statusDetails: string;
-  driverLocation: { lat: number; lng: number };
-  customerName?: string;
-  customerLocation?: { lat: number; lng: number };
+  estimatedDelivery: string;
+  progress: number;
+  driver: Driver;
+  licensePlate: string;
+  items: OrderItem[];
+  total: number;
 }
-
-const dedicatedDriver: Driver = {
-  name: "Cristopert Dastin",
-  location: "Tennessee",
-  image: "/lovable-uploads/a3df03b1-a154-407f-b8fe-e5dd6f0bade3.png",
-  rating: 4.8,
-  phone: "+1 (901) 555-3478",
-  vehicle: "White Toyota Camry",
-};
 
 const TrackOrder: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const isMobile = useIsMobile();
-
+  
+  // State
   const [order, setOrder] = useState<Order | null>(null);
   const [showJobStartedModal, setShowJobStartedModal] = useState(true);
   const [driverLocation, setDriverLocation] = useState<{ lat: number; lng: number }>({
@@ -94,187 +81,130 @@ const TrackOrder: React.FC = () => {
   const [destinationMarker, setDestinationMarker] = useState<any[]>([]);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
   const [showTraffic, setShowTraffic] = useState(true);
-  const [currentMapStyle, setCurrentMapStyle] = useState(MAP_STYLES.NAVIGATION_DAY);
+  const [currentMapStyle, setCurrentMapStyle] = useState(MAP_STYLES.STREETS);
 
-  const isMounted = useRef(true);
-
+  // Load mock data
   useEffect(() => {
-    isMounted.current = true;
-    return () => {
-      isMounted.current = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    // Setup order & markers
-    const customerLocation = { lat: 35.146, lng: -90.052 };
+    // Mock order data
     const mockOrder: Order = {
-      id: "123",
-      status: "job-accepted",
-      estimatedDelivery: "7:15 - 7:45 PM",
-      items: [
-        { name: "2 Gallons Regular Unleaded", quantity: "1x", price: 7.34 },
-        { name: "Chocolate cookies", quantity: "2x", price: 3.5 },
-      ],
-      total: 10.84,
-      pickupLocation: "Shell Station- Abc Town",
-      dropoffLocation: "Shell Station- Abc Town",
-      orderType: "Fuel delivery",
-      licensePlate: "TN-56A782",
-      driver: dedicatedDriver,
-      progress: 0,
-      statusDetails: "Job Accepted",
-      driverLocation,
+      id: "ORD-7829",
       customerName: "Michael Johnson",
-      customerLocation
+      pickupLocation: "Shell Gas Station, 123 Main St",
+      dropoffLocation: "456 Park Avenue, Memphis, TN",
+      orderType: "Premium Fuel Delivery",
+      status: "on_the_way",
+      statusDetails: "Driver is on the way",
+      estimatedDelivery: "10:45 AM",
+      progress: 45,
+      driver: {
+        name: "Robert Williams",
+        image: "/lovable-uploads/f7931378-76e5-4e0a-bc3c-1d7b4fff6f0d.png",
+        vehicle: "Toyota Prius",
+        rating: 4.8,
+        phone: "+1 (555) 123-4567",
+      },
+      licensePlate: "TN 123-ABC",
+      items: [
+        { name: "Premium Unleaded", quantity: 10, price: 35.99 },
+        { name: "Delivery Fee", quantity: 1, price: 5.99 },
+      ],
+      total: 41.98,
     };
+
     setOrder(mockOrder);
+
+    // Set up markers
     setDriverMarkers([
       {
         position: driverLocation,
-        title: dedicatedDriver.name,
-        icon: dedicatedDriver.image,
+        title: "Driver",
+        icon: mockOrder.driver.image,
       },
     ]);
+
     setDestinationMarker([
       {
-        position: customerLocation,
-        title: "Customer",
-        icon: "/lovable-uploads/bd7d3e2c-d8cc-4ae3-b3f6-e23f3527fa24.png",
+        position: { lat: 35.142, lng: -90.052 },
+        title: "Destination",
       },
     ]);
+
+    // Simulate driver movement
+    const interval = setInterval(() => {
+      setDriverLocation((prev) => ({
+        lat: prev.lat + 0.0001,
+        lng: prev.lng - 0.0001,
+      }));
+    }, 3000);
+
+    return () => clearInterval(interval);
   }, []);
 
-  // Simulate driver movement & status update once job starts (modal closed)
+  // Update driver marker when location changes
   useEffect(() => {
-    if (!order || order.status !== "processing") return;
+    if (order) {
+      setDriverMarkers([
+        {
+          position: driverLocation,
+          title: "Driver",
+          icon: order.driver.image,
+        },
+      ]);
+    }
+  }, [driverLocation, order]);
 
-    let currentStep = 0;
-    type StatusType = "processing" | "in-transit" | "delivered";
-    const statuses: { status: StatusType; progress: number; statusDetails: string }[] = [
-      { status: "processing", progress: 10, statusDetails: "Order received" },
-      { status: "processing", progress: 30, statusDetails: "Processing your order" },
-      { status: "in-transit", progress: 50, statusDetails: "Driver on the way to pickup" },
-      { status: "in-transit", progress: 80, statusDetails: "Fuel picked up, headed your way" },
-      { status: "delivered", progress: 100, statusDetails: "Delivery complete!" },
-    ];
-
-    const progressTimer = setInterval(() => {
-      if (!isMounted.current) {
-        clearInterval(progressTimer);
-        return;
-      }
-      if (currentStep < statuses.length) {
-        setOrder((prev) => {
-          if (!prev) return prev;
-          return {
-            ...prev,
-            status: statuses[currentStep].status,
-            progress: statuses[currentStep].progress,
-            statusDetails: statuses[currentStep].statusDetails,
-          };
-        });
-        currentStep++;
-        if (currentStep === statuses.length) {
-          clearInterval(progressTimer);
-        }
-      } else {
-        clearInterval(progressTimer);
-      }
-    }, 8000);
-
-    return () => clearInterval(progressTimer);
-  }, [order?.status]);
-
-  // Driver movement simulation on map
-  useEffect(() => {
-    if (!order || order.status === "job-accepted") return;
-
-    const destination = order.customerLocation || { lat: 35.146, lng: -90.052 };
-    const moveInterval = setInterval(() => {
-      if (!isMounted.current) {
-        clearInterval(moveInterval);
-        return;
-      }
-      const { lat, lng } = driverLocation;
-      const deltaLat = destination.lat - lat;
-      const deltaLng = destination.lng - lng;
-      if (Math.abs(deltaLat) < 0.00001 && Math.abs(deltaLng) < 0.00001) {
-        clearInterval(moveInterval);
-        return;
-      }
-      const newLat = lat + deltaLat * 0.03; // Slower movement
-      const newLng = lng + deltaLng * 0.03; // Slower movement
-      const newLocation = { lat: newLat, lng: newLng };
-
-      if (newLat !== lat || newLng !== lng) {
-        // Batch all updates together to prevent multiple re-renders
-        setDriverLocation(newLocation);
-        setDriverMarkers([
-          {
-            position: newLocation,
-            title: dedicatedDriver.name,
-            icon: dedicatedDriver.image,
-          },
-        ]);
-        setOrder((prev) => (prev ? { ...prev, driverLocation: newLocation } : prev));
-      }
-    }, 8000); // Very slow updates to prevent flickering
-
-    return () => clearInterval(moveInterval);
-  }, [order?.status]); // Remove driverLocation from dependencies to prevent re-renders
-
+  // Handlers
   const handleStartTracking = () => {
     setShowJobStartedModal(false);
-    setOrder((prev) =>
-      prev ? {
-        ...prev,
-        status: "processing",
-        statusDetails: "Order started",
-        progress: 10
-      } : prev
-    );
-    toast({
-      title: "Order is now being processed",
-      description: "You can track your order in real-time",
-    });
   };
 
   const handleCall = () => {
-    if (!order) return;
-    navigate(`/call?fuelFriendName=${encodeURIComponent(order.driver.name)}`);
+    if (order) {
+      toast({
+        title: `Calling ${order.driver.name}`,
+        description: `Connecting to ${order.driver.phone}...`,
+      });
+      navigate("/call");
+    }
   };
 
   const handleMessage = () => {
-    if (!order) return;
-    navigate(`/chat?fuelFriendName=${encodeURIComponent(order.driver.name)}`);
+    if (order) {
+      toast({
+        title: `Message ${order.driver.name}`,
+        description: "Opening chat...",
+      });
+      navigate("/chat");
+    }
   };
 
-  // Colors for the progress bar according to the status
+  // Helper functions
   const progressColor = () => {
-    switch (order?.status) {
-      case "job-accepted":
-        return "bg-gray-500";
-      case "processing":
+    if (!order) return "bg-gray-500";
+    
+    switch (order.status) {
+      case "preparing":
+        return "bg-yellow-500";
+      case "on_the_way":
         return "bg-blue-500";
-      case "in-transit":
-        return "bg-[#00E676]";
+      case "arriving":
+        return "bg-green-500";
       case "delivered":
-        return "bg-[#00C853]";
+        return "bg-purple-500";
       default:
         return "bg-gray-500";
     }
   };
 
   const getStatusIcon = () => {
-    switch(order?.status) {
-      case "job-accepted":
-        return <Clock className="h-5 w-5 text-gray-500" />;
-      case "processing":
-        return <Clock className="h-5 w-5 text-blue-500 animate-pulse" />;
-      case "in-transit":
-        return <Navigation className="h-5 w-5 text-[#00E676]" />;
-      case "delivered":
+    if (!order) return null;
+    
+    switch (order.status) {
+      case "preparing":
+        return <Clock className="h-5 w-5 text-yellow-500" />;
+      case "on_the_way":
+        return <Navigation className="h-5 w-5 text-blue-500" />;
+      case "arriving":
         return <MapPin className="h-5 w-5 text-[#00C853]" />;
       default:
         return <Clock className="h-5 w-5 text-gray-500" />;
@@ -284,7 +214,7 @@ const TrackOrder: React.FC = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-[#0F1117]">
       {/* Header */}
-      <motion.header
+      <motion.header 
         className="flex items-center h-[60px] px-4 border-b border-[#262A34] bg-[#151822] z-10"
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -299,7 +229,7 @@ const TrackOrder: React.FC = () => {
         >
           <ChevronLeft className="h-6 w-6 text-[#d6bcfa]" />
         </motion.button>
-        <motion.h1
+        <motion.h1 
           className="flex-grow text-center font-semibold text-lg text-[#d6bcfa]"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -328,9 +258,9 @@ const TrackOrder: React.FC = () => {
               Track your customer's order in real-time for a smooth delivery experience
             </DialogDescription>
           </DialogHeader>
-
+          
           <div className="flex flex-col items-center space-y-5 my-4">
-            <motion.div
+            <motion.div 
               className="w-20 h-20 rounded-full bg-[#00E676] flex items-center justify-center ring-4 ring-[#00E676]/30"
               initial={{ scale: 0, rotate: -180 }}
               animate={{ scale: 1, rotate: 0 }}
@@ -347,9 +277,9 @@ const TrackOrder: React.FC = () => {
                 animate={{ pathLength: 1 }}
                 transition={{ duration: 0.8, delay: 0.5 }}
               >
-                <motion.path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+                <motion.path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
                   d="M5 13l4 4L19 7"
                   initial={{ pathLength: 0 }}
                   animate={{ pathLength: 1 }}
@@ -358,7 +288,7 @@ const TrackOrder: React.FC = () => {
               </motion.svg>
             </motion.div>
 
-            <motion.div
+            <motion.div 
               className="w-full"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -368,13 +298,13 @@ const TrackOrder: React.FC = () => {
                 <CardContent className="pt-6">
                   <div className="space-y-3">
                     {/* Customer Info */}
-                    <motion.div
+                    <motion.div 
                       className="flex items-center space-x-3 pb-3 border-b border-[#262A34]"
                       initial={{ x: -20, opacity: 0 }}
                       animate={{ x: 0, opacity: 1 }}
                       transition={{ delay: 0.4 }}
                     >
-                      <motion.div
+                      <motion.div 
                         className="h-12 w-12 rounded-full bg-[#262A34] flex items-center justify-center"
                         whileHover={{ scale: 1.1, backgroundColor: "rgba(214, 188, 250, 0.2)" }}
                       >
@@ -401,7 +331,7 @@ const TrackOrder: React.FC = () => {
 
                   {/* Order Details */}
                   <div className="space-y-3 text-sm">
-                    <motion.div
+                    <motion.div 
                       className="flex space-x-2"
                       initial={{ x: -20, opacity: 0 }}
                       animate={{ x: 0, opacity: 1 }}
@@ -415,8 +345,8 @@ const TrackOrder: React.FC = () => {
                         <p className="font-medium">{order?.pickupLocation}</p>
                       </div>
                     </motion.div>
-
-                    <motion.div
+                    
+                    <motion.div 
                       className="flex space-x-2"
                       initial={{ x: -20, opacity: 0 }}
                       animate={{ x: 0, opacity: 1 }}
@@ -430,8 +360,8 @@ const TrackOrder: React.FC = () => {
                         <p className="font-medium">{order?.dropoffLocation}</p>
                       </div>
                     </motion.div>
-
-                    <motion.div
+                    
+                    <motion.div 
                       className="flex space-x-2"
                       initial={{ x: -20, opacity: 0 }}
                       animate={{ x: 0, opacity: 1 }}
@@ -574,14 +504,17 @@ const TrackOrder: React.FC = () => {
             });
           }}
           onTrafficToggle={(show) => {
-            // Hanya update state tanpa toast
             setShowTraffic(show);
+            toast({
+              title: show ? "Traffic Enabled" : "Traffic Disabled",
+              description: show ? "Now showing real-time traffic conditions" : "Traffic layer has been hidden"
+            });
           }}
         />
 
         {/* Enhanced Driver Info Panel */}
         {!showJobStartedModal && order && (
-          <motion.div
+          <motion.div 
             className="absolute bottom-0 left-0 right-0"
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -589,7 +522,7 @@ const TrackOrder: React.FC = () => {
           >
             <div className="bg-gradient-to-t from-[#151822] via-[#151822]/95 to-transparent pt-10 px-4 pb-6">
               {/* Progress bar and status */}
-              <motion.div
+              <motion.div 
                 className="mb-3"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -602,7 +535,7 @@ const TrackOrder: React.FC = () => {
                     </div>
                     <p className="font-semibold text-white">{order.statusDetails}</p>
                   </div>
-                  <motion.p
+                  <motion.p 
                     className="text-sm text-gray-300"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -611,7 +544,7 @@ const TrackOrder: React.FC = () => {
                     {order.estimatedDelivery}
                   </motion.p>
                 </div>
-
+                
                 <div className="w-full h-2 rounded-full bg-[#262A34] overflow-hidden">
                   <div
                     style={{ width: `${order.progress}%` }}
@@ -621,7 +554,7 @@ const TrackOrder: React.FC = () => {
               </motion.div>
 
               {/* Driver card */}
-              <motion.div
+              <motion.div 
                 className="bg-[#1A1F2C] rounded-2xl p-4 shadow-lg border border-[#262A34] hover:shadow-[#262A34]/20 transition-all duration-300"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -630,7 +563,7 @@ const TrackOrder: React.FC = () => {
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <motion.div
+                    <motion.div 
                       className="relative"
                       whileHover={{ scale: 1.1 }}
                       transition={{ type: "spring", stiffness: 400, damping: 10 }}
@@ -648,7 +581,7 @@ const TrackOrder: React.FC = () => {
                         alt={order.driver.name}
                         className="w-14 h-14 rounded-full object-cover border-2 border-[#00E676]"
                       />
-                      <div
+                      <div 
                         className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#00E676] flex items-center justify-center"
                       >
                         <span className="text-xs font-bold text-black">{order.driver.rating}</span>
@@ -685,7 +618,7 @@ const TrackOrder: React.FC = () => {
                 </div>
 
                 {/* Customer card - Minimized */}
-                <div
+                <div 
                   className="mt-4 bg-[#262A34] rounded-xl p-3 flex items-center hover:bg-[#2a2e3d] transition-all duration-200"
                 >
                   <div
@@ -722,38 +655,37 @@ const TrackOrder: React.FC = () => {
         {/* Traffic and weather indicators */}
         <AnimatePresence>
           {!showJobStartedModal && (
-            <motion.div
-              className="absolute top-4 left-4 flex flex-col space-y-2"
-              initial={{ opacity: 0, x: -20 }}
+            <motion.div 
+              className="absolute top-4 right-4 flex flex-col space-y-2"
+              initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ delay: 0.5, duration: 0.3 }}
             >
-              <motion.div
-                className="bg-black/80 backdrop-blur-md rounded-xl p-3 border-2 border-blue-500 shadow-xl"
+              <motion.div 
+                className="bg-black/70 backdrop-blur-md rounded-lg p-2 border border-gray-800 shadow-lg"
                 whileHover={{ scale: 1.05 }}
               >
-                <div className="text-sm text-white text-center font-bold mb-1 border-b border-blue-500 pb-2">TRAFFIC INFO</div>
                 <div className="flex items-center space-x-2 px-2 py-1">
-                  <div className="h-3 w-3 rounded-full bg-green-500"></div>
+                  <div className="h-2 w-2 rounded-full bg-green-500"></div>
                   <span className="text-xs text-white">Light traffic</span>
                 </div>
                 <div className="flex items-center space-x-2 px-2 py-1">
-                  <div className="h-3 w-3 rounded-full bg-yellow-500"></div>
+                  <div className="h-2 w-2 rounded-full bg-yellow-500"></div>
                   <span className="text-xs text-white">Moderate traffic</span>
                 </div>
                 <div className="flex items-center space-x-2 px-2 py-1">
-                  <div className="h-3 w-3 rounded-full bg-red-500"></div>
+                  <div className="h-2 w-2 rounded-full bg-red-500"></div>
                   <span className="text-xs text-white">Heavy traffic</span>
                 </div>
               </motion.div>
-
-              <motion.div
-                className="bg-black/80 backdrop-blur-md rounded-xl p-3 border-2 border-purple-500 shadow-xl"
+              
+              <motion.div 
+                className="bg-black/70 backdrop-blur-md rounded-lg p-2 border border-gray-800 shadow-lg"
                 whileHover={{ scale: 1.05 }}
               >
-                <div className="text-sm text-white text-center font-bold mb-1 border-b border-purple-500 pb-2">ARRIVAL TIME</div>
-                <div className="text-center text-xl font-bold text-green-500 mt-2">{order?.estimatedDelivery}</div>
+                <div className="text-center text-xs text-white py-1">Estimated arrival</div>
+                <div className="text-center text-lg font-bold text-green-500">{order?.estimatedDelivery}</div>
               </motion.div>
             </motion.div>
           )}

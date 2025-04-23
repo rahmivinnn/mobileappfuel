@@ -2,7 +2,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
- 
+
 @layer base {
   :root {
     --background: 0 0% 0%;
@@ -10,63 +10,63 @@
 
     --card: 0 0% 3%;
     --card-foreground: 0 0% 100%;
- 
+
     --popover: 0 0% 3%;
     --popover-foreground: 0 0% 100%;
- 
+
     --primary: 142.1 76.2% 36.3%;
     --primary-foreground: 355.7 100% 97.3%;
- 
+
     --secondary: 0 0% 10%;
     --secondary-foreground: 0 0% 100%;
- 
+
     --muted: 0 0% 10%;
     --muted-foreground: 0 0% 70%;
- 
+
     --accent: 0 0% 10%;
     --accent-foreground: 0 0% 100%;
- 
+
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 0 0% 15%;
     --input: 0 0% 15%;
     --ring: 142.1 76.2% 36.3%;
- 
+
     --radius: 0.5rem;
   }
- 
+
   .dark {
     --background: 0 0% 0%;
     --foreground: 0 0% 100%;
- 
+
     --card: 0 0% 3%;
     --card-foreground: 0 0% 100%;
- 
+
     --popover: 0 0% 3%;
     --popover-foreground: 0 0% 100%;
- 
+
     --primary: 142.1 70.6% 45.3%;
     --primary-foreground: 144.9 80.4% 10%;
- 
+
     --secondary: 0 0% 10%;
     --secondary-foreground: 0 0% 100%;
- 
+
     --muted: 0 0% 10%;
     --muted-foreground: 0 0% 70%;
- 
+
     --accent: 0 0% 10%;
     --accent-foreground: 0 0% 100%;
- 
+
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 100%;
- 
+
     --border: 0 0% 15%;
     --input: 0 0% 15%;
     --ring: 142.4 71.8% 29.2%;
   }
 }
- 
+
 @layer base {
   * {
     @apply border-border;
@@ -81,34 +81,167 @@
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
   }
-  
+
   .scrollbar-hide::-webkit-scrollbar {
     display: none;  /* Chrome, Safari and Opera */
   }
-  
+
   .glass {
     @apply dark:bg-black/80 bg-white/90 backdrop-filter backdrop-blur-md;
   }
-  
+
   .card-shadow {
     @apply shadow-md dark:shadow-black/20 shadow-gray-200/50;
   }
-  
+
   .page-container {
     @apply max-w-md mx-auto px-4 py-2 pb-24;
   }
-  
+
   .animate-dash {
     animation: dash 20s linear infinite;
   }
-  
+
   @keyframes dash {
     to {
       stroke-dashoffset: -1000;
     }
   }
-  
+
   .animate-pulse-slow {
     animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* Mapbox custom styles */
+  .mapboxgl-ctrl-logo {
+    display: none !important;
+  }
+
+  .mapboxgl-ctrl-attrib {
+    display: none !important;
+  }
+
+  .custom-marker img {
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+  }
+
+  .mapboxgl-popup-content {
+    background: rgba(26, 31, 44, 0.9) !important;
+    backdrop-filter: blur(8px) !important;
+    color: white !important;
+    border: 1px solid rgba(155, 135, 245, 0.2) !important;
+    border-radius: 8px !important;
+    padding: 12px !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35), 0 0 15px rgba(155, 135, 245, 0.2) !important;
+  }
+
+  .mapboxgl-popup-tip {
+    border-top-color: rgba(26, 31, 44, 0.9) !important;
+    border-bottom-color: rgba(26, 31, 44, 0.9) !important;
+  }
+
+  /* Custom animations */
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+    100% {
+      transform: translateY(0px);
+    }
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      opacity: 1;
+      filter: brightness(1) blur(0px);
+    }
+    50% {
+      opacity: 0.7;
+      filter: brightness(1.2) blur(3px);
+    }
+  }
+
+  .animate-bounce-subtle {
+    animation: bounce-subtle 2s infinite;
+  }
+
+  @keyframes bounce-subtle {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-5px);
+    }
+  }
+
+  .animate-spin-slow {
+    animation: spin 3s linear infinite;
+  }
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* Transition utilities */
+  .transition-all-300 {
+    transition: all 0.3s ease;
+  }
+
+  .transition-transform-300 {
+    transition: transform 0.3s ease;
+  }
+
+  .transition-opacity-300 {
+    transition: opacity 0.3s ease;
+  }
+
+  .hover-scale-105:hover {
+    transform: scale(1.05);
+  }
+
+  .hover-scale-110:hover {
+    transform: scale(1.1);
+  }
+
+  .active-scale-95:active {
+    transform: scale(0.95);
+  }
+
+  /* Prevent flickering during map interactions */
+  .mapboxgl-canvas-container {
+    will-change: transform;
+  }
+
+  .mapboxgl-canvas {
+    outline: none;
+  }
+
+  /* Optimize rendering performance */
+  .mapboxgl-map {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
   }
 }
