@@ -107,44 +107,41 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
             animate={{ y: 0, opacity: 1, scale: 1, rotate: 0 }}
             transition={{ duration: 0.8, type: "spring", stiffness: 100, damping: 15 }}
           >
-            {/* Circular pulse effect */}
+            {/* Replace flame with the new logo */}
             <motion.div
-              className="absolute inset-0 rounded-full border-2 border-white/50"
-              animate={{ scale: [1, 1.5, 1], opacity: [0.7, 0, 0.7] }}
-              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-            />
-          </motion.div>
-          
-          {/* Flame animation */}
-          <motion.div
-            className="absolute top-0 left-0 w-full h-full flex items-center justify-center"
-            initial={{ y: 300, opacity: 0, scale: 0.5 }}
-            animate={{ y: 0, opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, type: "spring", stiffness: 100, damping: 15, delay: 0.2 }}
-          >
-            <motion.div
-              animate={{ 
-                scale: [1, 1.1, 1], 
-                rotate: [0, 5, -5, 0],
-                y: [0, -2, 0]
-              }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute top-0 left-0 w-full h-full flex items-center justify-center"
+              initial={{ y: 300, opacity: 0, scale: 0.5 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, type: "spring", stiffness: 100, damping: 15, delay: 0.2 }}
             >
-              <Flame className="h-12 w-12 text-white drop-shadow-lg" />
+              <motion.div
+                animate={{ 
+                  scale: [1, 1.1, 1], 
+                  rotate: [0, 5, -5, 0],
+                  y: [0, -2, 0]
+                }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <motion.img 
+                  src="/lovable-uploads/f01d03f8-3174-4828-bdcd-196b636f0b6f.png"
+                  alt="FUELFRIENDLY Logo"
+                  className="h-16 w-16 object-contain"
+                />
+              </motion.div>
             </motion.div>
           </motion.div>
         </div>
         
-        {/* FUELFRIENDLY text that appears after animation */}
+        {/* FUELFRIENDLY text that appears after animation - updated with new image */}
         <motion.div 
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 1.2, duration: 0.5 }}
         >
           <motion.img 
-            src="/lovable-uploads/2b80eff8-6efd-4f15-9213-ed9fe4e0cba9.png" 
+            src="/lovable-uploads/f01d03f8-3174-4828-bdcd-196b636f0b6f.png" 
             alt="FUELFRIENDLY" 
-            className="h-6"
+            className="h-10"
             animate={{ y: [0, -3, 0] }}
             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
           />
