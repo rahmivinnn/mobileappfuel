@@ -5,15 +5,17 @@ import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { ChevronRight, Moon, Sun, Bell, Shield, CreditCard, HelpCircle, LogOut } from "lucide-react";
+import { Moon, Sun, Bell, Shield, CreditCard, HelpCircle, LogOut } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useNavigate } from "react-router-dom";
 
 interface SettingsProps {
-  onLogout: () => void;
+  onLogout?: () => void;
 }
 
 const Settings: React.FC<SettingsProps> = ({ onLogout }) => {
   const { theme, setTheme } = useTheme();
+  const navigate = useNavigate();
   const isDarkMode = theme === 'dark';
 
   const handleToggleTheme = () => {
@@ -26,30 +28,34 @@ const Settings: React.FC<SettingsProps> = ({ onLogout }) => {
   };
 
   const handleNotifications = () => {
+    navigate('/notifications');
     toast({
       title: "Notifications",
-      description: "Notifications settings page coming soon",
+      description: "Opening notifications settings",
     });
   };
 
   const handleSecurity = () => {
+    navigate('/security');
     toast({
       title: "Security",
-      description: "Security settings page coming soon",
+      description: "Opening security settings",
     });
   };
 
   const handlePaymentMethods = () => {
+    navigate('/payment-methods');
     toast({
       title: "Payment Methods",
-      description: "Payment methods settings page coming soon",
+      description: "Opening payment methods settings",
     });
   };
 
   const handleHelpCenter = () => {
+    navigate('/help');
     toast({
       title: "Help Center",
-      description: "Help center page coming soon",
+      description: "Opening help center",
     });
   };
 
@@ -58,8 +64,10 @@ const Settings: React.FC<SettingsProps> = ({ onLogout }) => {
       title: "Logging out",
       description: "You have been logged out successfully",
     });
-    onLogout();
-    // The redirect will happen automatically because of the protected route in App.tsx
+    if (onLogout) {
+      onLogout();
+    }
+    navigate('/');
   };
 
   const settingSections = [
@@ -108,7 +116,7 @@ const Settings: React.FC<SettingsProps> = ({ onLogout }) => {
   ];
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className={`min-h-screen ${!isDarkMode ? 'bg-white' : 'bg-background'} pb-20`}>
       <Header title="Settings" showBack={false} />
       <div className="container max-w-md mx-auto px-4 py-6">
         <motion.div 
@@ -119,25 +127,41 @@ const Settings: React.FC<SettingsProps> = ({ onLogout }) => {
         >
           {settingSections.map((section, index) => (
             <div key={index} className="space-y-2">
-              <h2 className="text-sm font-medium text-muted-foreground">{section.title}</h2>
+              <h2 className={`text-sm font-medium ${!isDarkMode ? 'text-gray-600' : 'text-muted-foreground'}`}>
+                {section.title}
+              </h2>
               <div className="space-y-1 rounded-lg overflow-hidden">
                 {section.items.map((item, itemIndex) => (
                   <button
                     key={itemIndex}
-                    className="w-full flex items-center justify-between p-3 bg-card hover:bg-accent/50 transition-colors"
+                    className={`w-full flex items-center justify-between p-3 ${
+                      !isDarkMode 
+                        ? 'bg-gray-50 hover:bg-gray-100' 
+                        : 'bg-card hover:bg-accent/50'
+                    } transition-colors`}
                     onClick={item.action}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="text-primary">{item.icon}</div>
-                      <span>{item.name}</span>
+                      <div className={`text-primary ${!isDarkMode ? 'text-green-600' : ''}`}>
+                        {item.icon}
+                      </div>
+                      <span className={!isDarkMode ? 'text-gray-900' : ''}>
+                        {item.name}
+                      </span>
                     </div>
                     {item.isToggle ? (
-                      <div className={`w-11 h-6 rounded-full p-1 transition-colors ${item.value ? 'bg-primary' : 'bg-gray-400'}`}>
-                        <div className={`w-4 h-4 rounded-full bg-white transform transition-transform ${item.value ? 'translate-x-5' : 'translate-x-0'}`} />
+                      <div className={`w-11 h-6 rounded-full p-1 transition-colors ${
+                        item.value 
+                          ? 'bg-green-500' 
+                          : !isDarkMode 
+                            ? 'bg-gray-300' 
+                            : 'bg-gray-600'
+                      }`}>
+                        <div className={`w-4 h-4 rounded-full bg-white transform transition-transform ${
+                          item.value ? 'translate-x-5' : 'translate-x-0'
+                        }`} />
                       </div>
-                    ) : (
-                      <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                    )}
+                    ) : null}
                   </button>
                 ))}
               </div>

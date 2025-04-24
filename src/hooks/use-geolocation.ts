@@ -13,7 +13,14 @@ interface Location {
 }
 
 export const useGeolocation = () => {
-  const [location, setLocation] = useState<Location | null>(null);
+  const [location, setLocation] = useState<Location | null>({
+    country: 'Malaysia',
+    city: 'Kuala Lumpur',
+    coordinates: {
+      lat: 3.1390,
+      lng: 101.6869
+    }
+  });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -36,11 +43,11 @@ export const useGeolocation = () => {
         
         const country = features.context.find((ctx: any) => 
           ctx.id.startsWith('country')
-        )?.text || 'Unknown Country';
+        )?.text || 'Malaysia';
         
         const city = features.context.find((ctx: any) => 
           ctx.id.startsWith('place')
-        )?.text || 'Unknown City';
+        )?.text || 'Kuala Lumpur';
 
         setLocation({
           country,
@@ -51,8 +58,16 @@ export const useGeolocation = () => {
           }
         });
       } catch (err) {
-        setError('Unable to get your location');
         console.error('Geolocation error:', err);
+        // Default to Kuala Lumpur if geolocation fails
+        setLocation({
+          country: 'Malaysia',
+          city: 'Kuala Lumpur',
+          coordinates: {
+            lat: 3.1390,
+            lng: 101.6869
+          }
+        });
       } finally {
         setLoading(false);
       }
