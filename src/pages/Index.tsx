@@ -13,9 +13,9 @@ import { allStations } from "@/data/dummyData";
 import { MAPBOX_STYLE, MAP_STYLES } from '@/config/mapbox';
 
 const trafficConditions = {
-  light: ['Union Ave', 'Madison Ave', 'Cooper St'],
-  moderate: ['Poplar Ave', 'Central Ave'],
-  heavy: ['I-240', 'I-40', 'Sam Cooper Blvd']
+  light: ['Jalan Ampang', 'Jalan Tun Razak', 'Jalan Raja Chulan'],
+  moderate: ['Jalan Sultan Ismail', 'Jalan Bukit Bintang'],
+  heavy: ['SMART Tunnel', 'Jalan Kuching', 'Federal Highway']
 };
 
 const Index = () => {
@@ -135,7 +135,7 @@ const Index = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground transition-colors duration-300 max-w-[420px] mx-auto">
+    <div className={`min-h-screen ${!isDarkMode ? 'bg-white' : 'bg-background'} pb-20`}>
       <div className="flex justify-between items-center px-4 py-2">
         <div className="relative group">
           <Avatar className="w-10 h-10 bg-green-500 ring-2 ring-green-500/50 hover:ring-green-500 transition-all duration-300 transform hover:scale-110 group-hover:rotate-6">
@@ -193,13 +193,18 @@ const Index = () => {
             className="h-56 w-full rounded-lg overflow-hidden"
             interactive={true}
             showTraffic={showTraffic}
-            showBackButton={false}
+            center={DEFAULT_CENTER}
+            zoom={DEFAULT_ZOOM}
             mapStyle={currentMapStyle}
             onStyleChange={(style) => {
               setCurrentMapStyle(style);
               toast({
                 title: "Map Style Changed",
-                description: `Map style updated to ${Object.keys(MAP_STYLES).find(key => MAP_STYLES[key as keyof typeof MAP_STYLES] === style)?.replace(/_/g, ' ') || 'new style'}`
+                description: style === MAP_STYLES.STREETS 
+                  ? "Switched to Street view"
+                  : style === MAP_STYLES.SATELLITE
+                  ? "Switched to Satellite view"
+                  : "Switched to Dark mode view"
               });
             }}
             onTrafficToggle={(show) => {
