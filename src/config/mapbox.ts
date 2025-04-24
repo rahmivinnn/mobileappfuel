@@ -7,6 +7,8 @@ export const MAP_STYLES = {
   STREETS: 'mapbox://styles/mapbox/streets-v12',       // Default street view
   SATELLITE: 'mapbox://styles/mapbox/satellite-streets-v12', // Satellite with streets
   DARK: 'mapbox://styles/mapbox/dark-v11',             // Dark theme
+  LIGHT: 'mapbox://styles/mapbox/light-v11',           // Light theme
+  NAVIGATION_DAY: 'mapbox://styles/mapbox/navigation-day-v1' // Navigation style for backward compatibility
 };
 
 // Default map style

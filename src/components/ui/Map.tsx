@@ -30,7 +30,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
   (
     {
       className,
-      center = { lat: 35.149, lng: -90.048 },
+      center = { lat: 3.1390, lng: 101.6869 },
       zoom = 13,
       markers = [],
       interactive = true,
@@ -268,8 +268,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
     const mapStyleOptions = [
       { name: 'Streets', value: MAP_STYLES.STREETS },
       { name: 'Satellite', value: MAP_STYLES.SATELLITE },
-      { name: 'Dark', value: MAP_STYLES.DARK },
-      { name: 'Light', value: MAP_STYLES.LIGHT }
+      { name: 'Dark', value: MAP_STYLES.DARK }
     ];
 
     return (

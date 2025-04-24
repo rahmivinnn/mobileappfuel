@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
 import { allStations } from "@/data/dummyData";
-import { MAPBOX_STYLE, MAP_STYLES } from '@/config/mapbox';
+import { MAPBOX_STYLE, MAP_STYLES, DEFAULT_CENTER, DEFAULT_ZOOM } from '@/config/mapbox';
 
 const trafficConditions = {
   light: ['Jalan Ampang', 'Jalan Tun Razak', 'Jalan Raja Chulan'],
@@ -24,8 +24,9 @@ const Index = () => {
   const [showTraffic, setShowTraffic] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [mapVisible, setMapVisible] = useState(false);
-  const [currentMapStyle, setCurrentMapStyle] = useState(MAP_STYLES.NAVIGATION_DAY);
+  const [currentMapStyle, setCurrentMapStyle] = useState(MAP_STYLES.STREETS);
   const [scrollPosition, setScrollPosition] = useState(0);
+  const [isDarkMode, setIsDarkMode] = useState(true);
   const stationListRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { toast } = useToast();

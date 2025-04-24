@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 
 // Add lastMarkerUpdate to window object
@@ -87,14 +86,14 @@ const TrackOrder: React.FC = () => {
   const [order, setOrder] = useState<Order | null>(null);
   const [showJobStartedModal, setShowJobStartedModal] = useState(true);
   const [driverLocation, setDriverLocation] = useState<{ lat: number; lng: number }>({
-    lat: 35.149,
-    lng: -90.048,
+    lat: 3.1390,
+    lng: 101.6869,
   });
   const [driverMarkers, setDriverMarkers] = useState<any[]>([]);
   const [destinationMarker, setDestinationMarker] = useState<any[]>([]);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
   const [showTraffic, setShowTraffic] = useState(true);
-  const [currentMapStyle, setCurrentMapStyle] = useState(MAP_STYLES.NAVIGATION_DAY);
+  const [currentMapStyle, setCurrentMapStyle] = useState(MAP_STYLES.STREETS);
 
   const isMounted = useRef(true);
 
@@ -514,7 +513,7 @@ const TrackOrder: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="rounded-lg bg-[#1A1F2C] p-4 border border-[#262A34]">
+                <div className="rounded-lg bg-[#1A1F2C] p-4 border border-[#26A34]">
                   <h3 className="text-sm font-medium text-gray-400 mb-1">Delivery Info</h3>
                   <div className="space-y-2 mt-2">
                     <div className="flex space-x-2">
