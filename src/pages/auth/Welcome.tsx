@@ -1,13 +1,15 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useGeolocation } from '@/hooks/use-geolocation';
+import { MapPin } from 'lucide-react';
 import { Flame } from 'lucide-react';
 
 const Welcome: React.FC = () => {
   const isMobile = useIsMobile();
+  const { location, loading } = useGeolocation();
   
   return (
     <div className="min-h-screen bg-black flex flex-col relative overflow-hidden">
@@ -22,22 +24,21 @@ const Welcome: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
         >
-          {/* Logo circle - removed inner image */}
+          {/* Logo circle */}
           <motion.div 
             className="w-24 h-24 rounded-full border-2 border-white flex items-center justify-center mb-4 relative"
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, duration: 0.5, type: "spring" }}
           >
-            {/* Flame positioned inside the circle */}
-            <motion.div
-              className="absolute inset-0 flex items-center justify-center"
+            <motion.img
+              src="/lovable-uploads/6f89f6f2-3266-46ed-af21-f0e8fab6256e.png"
+              alt="Logo"
+              className="h-16 w-16"
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.4, duration: 0.5, type: "spring" }}
-            >
-              <Flame className="h-12 w-12 text-white" />
-            </motion.div>
+            />
           </motion.div>
           
           {/* Brand name */}
@@ -53,6 +54,19 @@ const Welcome: React.FC = () => {
               className="h-8"
             />
           </motion.div>
+
+          {/* Location indicator */}
+          {location && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+              className="mt-4 flex items-center space-x-2 text-white/70 text-sm"
+            >
+              <MapPin className="h-4 w-4" />
+              <span>{location.city}, {location.country}</span>
+            </motion.div>
+          )}
         </motion.div>
         
         {/* Buttons container */}
