@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -43,6 +42,42 @@ const SignIn: React.FC<SignInProps> = ({ onLogin }) => {
       });
       navigate('/');
     }, 1500);
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Create a new instance of Google Auth Provider
+      const googleProvider = new window.google.accounts.oauth2.initTokenClient({
+        client_id: '827572931268-4cq1n0a4976tavc8nu4degr4me3e7moa.apps.googleusercontent.com',
+        callback: (response: any) => {
+          if (response.access_token) {
+            const token = "google-auth-token-" + Math.random();
+            onLogin(token);
+            toast({
+              title: "Welcome back!",
+              description: "Successfully logged in with Google",
+            });
+            navigate('/');
+          }
+        },
+        scope: 'email profile',
+      });
+
+      // Show the Google account selection popup
+      googleProvider.requestAccessToken();
+      
+    } catch (error) {
+      console.error('Google Sign In Error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to sign in with Google. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -174,15 +209,7 @@ const SignIn: React.FC<SignInProps> = ({ onLogin }) => {
               type="button" 
               variant="outline" 
               className="w-full h-12 rounded-full border-2 border-green-500 bg-transparent text-white hover:bg-green-500/10 font-medium text-base flex items-center justify-center gap-2 transition-all transform active:scale-95"
-              onClick={() => {
-                setIsLoading(true);
-                setTimeout(() => {
-                  const token = "google-auth-token-" + Math.random();
-                  onLogin(token);
-                  setIsLoading(false);
-                  navigate('/');
-                }, 1500);
-              }}
+              onClick={handleGoogleSignIn}
               disabled={isLoading}
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
