@@ -22,6 +22,8 @@ interface MapProps extends React.HTMLAttributes<HTMLDivElement> {
   mapStyle?: string;
   onStyleChange?: (style: string) => void;
   onTrafficToggle?: (show: boolean) => void;
+  showBackButton?: boolean;
+  onMarkerClick?: (index: number) => void;
 }
 
 const Map = React.forwardRef<HTMLDivElement, MapProps>(
@@ -38,6 +40,8 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
       mapStyle = MAP_STYLES.STREETS,
       onStyleChange,
       onTrafficToggle,
+      showBackButton,
+      onMarkerClick,
       ...props
     },
     ref
@@ -128,7 +132,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
       markersRef.current = [];
 
       // Add new markers
-      markers.forEach(marker => {
+      markers.forEach((marker, index) => {
         // Create marker element
         const el = document.createElement('div');
         el.className = 'custom-marker';
@@ -140,6 +144,12 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
         el.style.justifyContent = 'center';
         el.style.background = marker.icon ? 'transparent' : '#00E676';
         el.style.boxShadow = '0 0 10px rgba(0, 230, 118, 0.5)';
+        
+        // Make marker clickable if onMarkerClick is provided
+        if (onMarkerClick) {
+          el.style.cursor = 'pointer';
+          el.onclick = () => onMarkerClick(index);
+        }
 
         // Add icon or default marker
         if (marker.icon) {
@@ -171,7 +181,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
         // Store marker reference
         markersRef.current.push(mapboxMarker);
       });
-    }, [markers, mapLoaded, isMoving]);
+    }, [markers, mapLoaded, isMoving, onMarkerClick]);
 
     // Add route line between markers if directions and showRoute are enabled
     useEffect(() => {
