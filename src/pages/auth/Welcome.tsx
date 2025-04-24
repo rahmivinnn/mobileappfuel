@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -33,9 +32,9 @@ const Welcome: React.FC = () => {
             transition={{ delay: 0.2, duration: 0.5, type: "spring" }}
           >
             <motion.img
-              src="/lovable-uploads/f01d03f8-3174-4828-bdcd-196b636f0b6f.png"
+              src="/lovable-uploads/6f89f6f2-3266-46ed-af21-f0e8fab6256e.png"
               alt="Logo"
-              className="h-16 w-16 object-contain"
+              className="h-16 w-16"
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.4, duration: 0.5, type: "spring" }}
@@ -49,10 +48,10 @@ const Welcome: React.FC = () => {
             transition={{ delay: 0.4, duration: 0.5 }}
             className="mt-2"
           >
-            <motion.img 
-              src="/lovable-uploads/f01d03f8-3174-4828-bdcd-196b636f0b6f.png" 
+            <img 
+              src="/lovable-uploads/63b42fc8-62eb-4bdb-84c2-73e747d69d45.png" 
               alt="FUELFRIENDLY" 
-              className="h-10 object-contain"
+              className="h-8"
             />
           </motion.div>
 
