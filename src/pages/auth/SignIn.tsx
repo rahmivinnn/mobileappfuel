@@ -1,26 +1,14 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 import { ArrowLeft, AtSign, Lock, Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface SignInProps {
   onLogin: (token: string) => void;
-}
-
-declare global {
-  interface Window {
-    google?: {
-      accounts: {
-        oauth2: {
-          initTokenClient: (config: any) => any;
-        }
-      }
-    }
-  }
 }
 
 const SignIn: React.FC<SignInProps> = ({ onLogin }) => {
@@ -28,7 +16,21 @@ const SignIn: React.FC<SignInProps> = ({ onLogin }) => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [googleLoaded, setGoogleLoaded] = useState(false);
   const navigate = useNavigate();
+  const { loginWithGoogle } = useAuth();
+
+  // Check if Google API is loaded
+  useEffect(() => {
+    const checkGoogleApi = setInterval(() => {
+      if (window.google && window.google.accounts) {
+        setGoogleLoaded(true);
+        clearInterval(checkGoogleApi);
+      }
+    }, 500);
+
+    return () => clearInterval(checkGoogleApi);
+  }, []);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,36 +64,48 @@ const SignIn: React.FC<SignInProps> = ({ onLogin }) => {
       setIsLoading(true);
       
       // Check if Google API is loaded
-      if (!window.google) {
+      if (!window.google || !window.google.accounts) {
         toast({
-          title: "Error",
-          description: "Google API not available. Please try again later.",
+          title: "Google API Error",
+          description: "Google Sign-In is not available. Please try again later.",
           variant: "destructive"
         });
         setIsLoading(false);
         return;
       }
       
-      // Create a new instance of Google Auth Provider
+      // Create a new instance of Google Auth Provider with account selection
       const googleProvider = window.google.accounts.oauth2.initTokenClient({
         client_id: '827572931268-4cq1n0a4976tavc8nu4degr4me3e7moa.apps.googleusercontent.com',
         callback: (response) => {
           if (response.access_token) {
             const token = "google-auth-token-" + Math.random();
             onLogin(token);
+            
+            // Use the Auth Context to handle Google login
+            loginWithGoogle(token).catch(error => {
+              console.error('Login with Google error:', error);
+              toast({
+                title: "Error",
+                description: "Failed to complete Google authentication. Please try again.",
+                variant: "destructive"
+              });
+            });
+            
             toast({
               title: "Welcome back!",
               description: "Successfully logged in with Google",
             });
             navigate('/');
           }
+          setIsLoading(false);
         },
-        scope: 'email profile',
+        scope: 'email profile openid',
         prompt: 'select_account', // Force account selection
         error_callback: (error) => {
           console.error('Google Sign In Error:', error);
           toast({
-            title: "Error",
+            title: "Google Sign-In Error",
             description: "Failed to sign in with Google. Please try again.",
             variant: "destructive"
           });
@@ -241,9 +255,9 @@ const SignIn: React.FC<SignInProps> = ({ onLogin }) => {
             <Button 
               type="button" 
               variant="outline" 
-              className="w-full h-12 rounded-full border-2 border-green-500 bg-transparent text-white hover:bg-green-500/10 font-medium text-base flex items-center justify-center gap-2 transition-all transform active:scale-95"
+              className={`w-full h-12 rounded-full border-2 border-green-500 bg-transparent text-white hover:bg-green-500/10 font-medium text-base flex items-center justify-center gap-2 transition-all transform active:scale-95 ${!googleLoaded ? 'opacity-50 cursor-not-allowed' : ''}`}
               onClick={handleGoogleSignIn}
-              disabled={isLoading}
+              disabled={isLoading || !googleLoaded}
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <g transform="matrix(1, 0, 0, 1, 27.009001, -39.238998)">
@@ -253,7 +267,7 @@ const SignIn: React.FC<SignInProps> = ({ onLogin }) => {
                   <path fill="#EA4335" d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 42.369 C -8.804 40.429 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z"/>
                 </g>
               </svg>
-              Continue with Google
+              {!googleLoaded ? 'Loading Google Sign-In...' : 'Continue with Google'}
             </Button>
           </motion.form>
         </motion.div>

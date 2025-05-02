@@ -14,7 +14,7 @@ interface GoogleOAuthInitOptions {
   client_id: string;
   callback: (response: GoogleTokenResponse) => void;
   scope?: string;
-  prompt?: string;
+  prompt?: string;  // This enables the account selection with 'select_account'
   error_callback?: (error: Error) => void;
 }
 
