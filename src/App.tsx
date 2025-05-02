@@ -9,6 +9,9 @@ import SplashScreen from './components/ui/SplashScreen';
 import { ThemeProvider } from './components/ui/theme-provider';
 import { Toaster } from './components/ui/toaster';
 
+// Context Providers
+import { AuthProvider } from './contexts/AuthContext';
+
 // Pages
 import Index from './pages/Index';
 import Settings from './pages/Settings';
@@ -35,7 +38,7 @@ import ResetPassword from './pages/auth/ResetPassword';
 function AppRoutes() {
   const location = useLocation();
   const navigate = useNavigate();
-
+  
   // Mock authentication handlers
   const handleLogin = (token: string) => {
     console.log("User logged in with token:", token);
@@ -90,34 +93,35 @@ function App() {
   }, [navigate]);
 
   return (
-    <ThemeProvider defaultTheme="system" storageKey="vite-react-theme">
-      <AnimatePresence mode="wait">
-        {isLoading ? (
-          <motion.div
-            key="splash"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <SplashScreen onFinish={handleSplashScreenFinish} />
-          </motion.div>
-        ) : (
-          <motion.div
-            key="app"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="w-full h-full"
-          >
-            <AppRoutes />
-            <Toaster />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider defaultTheme="system" storageKey="vite-react-theme">
+        <AnimatePresence mode="wait">
+          {isLoading ? (
+            <motion.div
+              key="splash"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <SplashScreen onFinish={handleSplashScreenFinish} />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="app"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+              className="w-full h-full"
+            >
+              <AppRoutes />
+              <Toaster />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
 
 export default App;
-

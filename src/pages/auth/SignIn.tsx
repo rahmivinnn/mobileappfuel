@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -49,9 +50,9 @@ const SignIn: React.FC<SignInProps> = ({ onLogin }) => {
       setIsLoading(true);
       
       // Create a new instance of Google Auth Provider
-      const googleProvider = new window.google.accounts.oauth2.initTokenClient({
+      const googleProvider = window.google.accounts.oauth2.initTokenClient({
         client_id: '827572931268-4cq1n0a4976tavc8nu4degr4me3e7moa.apps.googleusercontent.com',
-        callback: (response: any) => {
+        callback: (response) => {
           if (response.access_token) {
             const token = "google-auth-token-" + Math.random();
             onLogin(token);
@@ -63,6 +64,16 @@ const SignIn: React.FC<SignInProps> = ({ onLogin }) => {
           }
         },
         scope: 'email profile',
+        prompt: 'select_account', // Force account selection
+        error_callback: (error) => {
+          console.error('Google Sign In Error:', error);
+          toast({
+            title: "Error",
+            description: "Failed to sign in with Google. Please try again.",
+            variant: "destructive"
+          });
+          setIsLoading(false);
+        }
       });
 
       // Show the Google account selection popup
@@ -75,7 +86,6 @@ const SignIn: React.FC<SignInProps> = ({ onLogin }) => {
         description: "Failed to sign in with Google. Please try again.",
         variant: "destructive"
       });
-    } finally {
       setIsLoading(false);
     }
   };
