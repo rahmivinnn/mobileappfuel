@@ -4,23 +4,38 @@ import { QrCode } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 
-interface QrCodeLoginProps {
-  clientId: string;
-  onClose: () => void;
+interface QrCodeProps {
+  clientId?: string;
+  onClose?: () => void;
+  verificationCode?: string;
+  paymentData?: {
+    amount: number;
+    orderId: string;
+    stationId: string;
+  };
+  isPayment?: boolean;
 }
 
-const QrCodeLogin: React.FC<QrCodeLoginProps> = ({ clientId, onClose }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+const QrCodeDisplay: React.FC<QrCodeProps> = ({ 
+  clientId, 
+  onClose, 
+  verificationCode: propVerificationCode,
+  paymentData,
+  isPayment = false
+}) => {
+  const [isExpanded, setIsExpanded] = useState(isPayment ? true : false);
 
   // Generate a random verification code for this QR code session
-  const verificationCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+  const verificationCode = propVerificationCode || Math.random().toString(36).substring(2, 8).toUpperCase();
   
-  // Generate QR code content (in a real app, this would likely be a deep link with authentication parameters)
-  const qrCodeContent = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&response_type=code&scope=email+profile&redirect_uri=storagerelay://https/localhost&verification_code=${verificationCode}`;
+  // Generate QR code content based on the use case
+  const qrCodeContent = isPayment 
+    ? `fuelfriendly://payment/${paymentData?.orderId || 'order'}?amount=${paymentData?.amount || 0}&stationId=${paymentData?.stationId || ''}&verify=${verificationCode}`
+    : `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&response_type=code&scope=email+profile&redirect_uri=storagerelay://https/localhost&verification_code=${verificationCode}`;
 
   return (
     <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-      {!isExpanded ? (
+      {!isExpanded && !isPayment ? (
         <div className="flex items-center justify-center">
           <Button
             onClick={() => setIsExpanded(true)}
@@ -38,7 +53,9 @@ const QrCodeLogin: React.FC<QrCodeLoginProps> = ({ clientId, onClose }) => {
           exit={{ opacity: 0, height: 0 }}
           className="text-center"
         >
-          <div className="mb-3 text-gray-400 text-sm">Scan with your mobile device</div>
+          <div className="mb-3 text-gray-400 text-sm">
+            {isPayment ? "Show this to the gas station attendant" : "Scan with your mobile device"}
+          </div>
           <div className="bg-white p-4 rounded-lg mb-4 inline-block">
             {/* Here we use a simple visual QR code representation */}
             <div className="w-48 h-48 mx-auto relative">
@@ -68,20 +85,29 @@ const QrCodeLogin: React.FC<QrCodeLoginProps> = ({ clientId, onClose }) => {
             </div>
           </div>
           <div className="mb-4 text-sm">
-            <div className="font-medium text-white mb-1">Verification Code</div>
+            <div className="font-medium text-white mb-1">
+              {isPayment ? "Payment Code" : "Verification Code"}
+            </div>
             <div className="font-mono tracking-widest text-green-500 text-lg">{verificationCode}</div>
+            {isPayment && (
+              <div className="mt-2 font-medium text-white">
+                Amount: <span className="text-green-500">${paymentData?.amount.toFixed(2)}</span>
+              </div>
+            )}
           </div>
-          <Button 
-            variant="ghost" 
-            className="text-sm text-gray-400 hover:text-white" 
-            onClick={onClose}
-          >
-            Back to login
-          </Button>
+          {onClose && (
+            <Button 
+              variant="ghost" 
+              className="text-sm text-gray-400 hover:text-white" 
+              onClick={onClose}
+            >
+              {isPayment ? "Back to payment options" : "Back to login"}
+            </Button>
+          )}
         </motion.div>
       )}
     </div>
   );
 };
 
-export default QrCodeLogin;
+export default QrCodeDisplay;

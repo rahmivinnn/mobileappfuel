@@ -1,10 +1,11 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
-import { Check, ChevronLeft, CreditCard } from 'lucide-react';
+import { Check, ChevronLeft, CreditCard, QrCode } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import CreditCardForm from '@/components/ui/CreditCardForm';
 import PaymentMethod from '@/components/ui/PaymentMethod';
+import QrCodeDisplay from '@/components/ui/QrCodeLogin';
 
 const Payment: React.FC = () => {
   const navigate = useNavigate();
@@ -18,17 +19,25 @@ const Payment: React.FC = () => {
   };
   
   const [selectedPayment, setSelectedPayment] = useState('credit-card');
+  const [showQrCode, setShowQrCode] = useState(false);
+
+  // Generate a unique order ID
+  const orderId = `FUEL-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
   
   const handlePayNow = () => {
-    // In a real app, we would process the payment here
-    navigate('/confirmation', { 
-      state: { 
-        fuelType, 
-        quantity, 
-        totalPrice, 
-        paymentMethod: paymentMethods.find(m => m.id === selectedPayment) 
-      }
-    });
+    if (selectedPayment === 'qr-code') {
+      setShowQrCode(true);
+    } else {
+      // In a real app, we would process the payment here
+      navigate('/confirmation', { 
+        state: { 
+          fuelType, 
+          quantity, 
+          totalPrice, 
+          paymentMethod: paymentMethods.find(m => m.id === selectedPayment) 
+        }
+      });
+    }
   };
   
   const paymentMethods = [
@@ -59,7 +68,18 @@ const Payment: React.FC = () => {
               <path d="M12 2v7" />
             </svg>
     },
+    {
+      id: 'qr-code',
+      name: 'QR Code',
+      description: 'Pay at the gas station',
+      icon: <QrCode className="h-5 w-5" />
+    }
   ];
+
+  // Handle QR code close
+  const handleQrCodeClose = () => {
+    setShowQrCode(false);
+  };
   
   return (
     <div className="min-h-screen bg-black text-white pb-8">
@@ -103,31 +123,68 @@ const Payment: React.FC = () => {
         </div>
       </div>
       
-      {/* Payment methods */}
-      <div className="px-4 mb-6">
-        <PaymentMethod 
-          methods={paymentMethods}
-          selectedMethod={selectedPayment}
-          onSelectMethod={setSelectedPayment}
-        />
-      </div>
-      
-      {/* Card Form Component */}
-      <div className="px-4 mb-6">
-        {selectedPayment === 'credit-card' && (
-          <CreditCardForm onSubmit={handlePayNow} />
-        )}
-      </div>
-      
-      {selectedPayment !== 'credit-card' && (
-        <div className="px-4 fixed bottom-8 left-0 right-0">
-          <Button 
-            className="w-full py-6 bg-green-500 hover:bg-green-600 text-black rounded-full text-lg font-medium"
-            onClick={handlePayNow}
-          >
-            Pay Now
-          </Button>
+      {showQrCode ? (
+        <div className="px-4 mb-6">
+          <QrCodeDisplay 
+            isPayment={true}
+            verificationCode={orderId}
+            paymentData={{
+              amount: totalPrice,
+              orderId: orderId,
+              stationId: id || '1'
+            }}
+            onClose={handleQrCodeClose}
+          />
+          <div className="mt-6 text-center">
+            <p className="text-gray-400 mb-4">
+              After showing the QR code to the attendant and completing your payment, click below to continue.
+            </p>
+            <Button 
+              className="w-full py-6 bg-green-500 hover:bg-green-600 text-black rounded-full text-lg font-medium"
+              onClick={() => {
+                navigate('/confirmation', { 
+                  state: { 
+                    fuelType, 
+                    quantity, 
+                    totalPrice,
+                    paymentMethod: paymentMethods.find(m => m.id === 'qr-code')
+                  }
+                });
+              }}
+            >
+              I've Completed Payment
+            </Button>
+          </div>
         </div>
+      ) : (
+        <>
+          {/* Payment methods */}
+          <div className="px-4 mb-6">
+            <PaymentMethod 
+              methods={paymentMethods}
+              selectedMethod={selectedPayment}
+              onSelectMethod={setSelectedPayment}
+            />
+          </div>
+          
+          {/* Card Form Component */}
+          <div className="px-4 mb-6">
+            {selectedPayment === 'credit-card' && (
+              <CreditCardForm onSubmit={handlePayNow} />
+            )}
+          </div>
+          
+          {selectedPayment !== 'credit-card' && (
+            <div className="px-4 fixed bottom-8 left-0 right-0">
+              <Button 
+                className="w-full py-6 bg-green-500 hover:bg-green-600 text-black rounded-full text-lg font-medium"
+                onClick={handlePayNow}
+              >
+                {selectedPayment === 'qr-code' ? 'Show QR Code' : 'Pay Now'}
+              </Button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
