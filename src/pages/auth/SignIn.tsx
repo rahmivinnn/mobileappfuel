@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -76,7 +77,7 @@ const SignIn: React.FC<SignInProps> = ({ onLogin }) => {
       
       // Create a new instance of Google Auth Provider with account selection
       const googleProvider = window.google.accounts.oauth2.initTokenClient({
-        client_id: '827572931268-4cq1n0a4976tavc8nu4degr4me3e7moa.apps.googleusercontent.com',
+        client_id: '849289854634-s2rpf8ulkdaliogemfbu8qeprkom4rtp.apps.googleusercontent.com',
         callback: (response) => {
           if (response.access_token) {
             const token = "google-auth-token-" + Math.random();
