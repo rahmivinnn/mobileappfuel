@@ -11,6 +11,18 @@ interface SignInProps {
   onLogin: (token: string) => void;
 }
 
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        oauth2: {
+          initTokenClient: (config: any) => any;
+        }
+      }
+    }
+  }
+}
+
 const SignIn: React.FC<SignInProps> = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -48,6 +60,17 @@ const SignIn: React.FC<SignInProps> = ({ onLogin }) => {
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true);
+      
+      // Check if Google API is loaded
+      if (!window.google) {
+        toast({
+          title: "Error",
+          description: "Google API not available. Please try again later.",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
       
       // Create a new instance of Google Auth Provider
       const googleProvider = window.google.accounts.oauth2.initTokenClient({
