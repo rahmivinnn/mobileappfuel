@@ -75,7 +75,7 @@ const SignIn: React.FC<SignInProps> = ({ onLogin }) => {
         return;
       }
       
-      // Create a new instance of Google Auth Provider with account selection
+      // Create a new instance of Google Auth Provider with explicit web platform configuration
       const googleProvider = window.google.accounts.oauth2.initTokenClient({
         client_id: '849289854634-s2rpf8ulkdaliogemfbu8qeprkom4rtp.apps.googleusercontent.com',
         callback: (response) => {
@@ -107,7 +107,7 @@ const SignIn: React.FC<SignInProps> = ({ onLogin }) => {
           console.error('Google Sign In Error:', error);
           toast({
             title: "Google Sign-In Error",
-            description: "Failed to sign in with Google. Please try again.",
+            description: error.message || "Failed to sign in with Google. Please try again.",
             variant: "destructive"
           });
           setIsLoading(false);
