@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -60,7 +59,7 @@ const SignIn: React.FC<SignInProps> = ({ onLogin }) => {
     }, 1500);
   };
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignIn = () => {
     try {
       setIsLoading(true);
       
@@ -75,34 +74,41 @@ const SignIn: React.FC<SignInProps> = ({ onLogin }) => {
         return;
       }
       
-      // Create a new instance of Google Auth Provider with explicit web platform configuration
-      const googleProvider = window.google.accounts.oauth2.initTokenClient({
+      // Create token client with web configuration
+      const tokenClient = window.google.accounts.oauth2.initTokenClient({
         client_id: '849289854634-s2rpf8ulkdaliogemfbu8qeprkom4rtp.apps.googleusercontent.com',
+        scope: 'email profile openid',
+        prompt: 'select_account', // Forces account selection every time
         callback: (response) => {
           if (response.access_token) {
+            console.log("Google login successful, access token received");
             const token = "google-auth-token-" + Math.random();
-            onLogin(token);
             
             // Use the Auth Context to handle Google login
-            loginWithGoogle(token).catch(error => {
-              console.error('Login with Google error:', error);
-              toast({
-                title: "Error",
-                description: "Failed to complete Google authentication. Please try again.",
-                variant: "destructive"
+            loginWithGoogle(token)
+              .then(() => {
+                onLogin(token);
+                toast({
+                  title: "Welcome back!",
+                  description: "Successfully logged in with Google",
+                });
+                navigate('/');
+              })
+              .catch(error => {
+                console.error('Login with Google error:', error);
+                toast({
+                  title: "Error",
+                  description: "Failed to complete Google authentication. Please try again.",
+                  variant: "destructive"
+                });
+              })
+              .finally(() => {
+                setIsLoading(false);
               });
-            });
-            
-            toast({
-              title: "Welcome back!",
-              description: "Successfully logged in with Google",
-            });
-            navigate('/');
+          } else {
+            setIsLoading(false);
           }
-          setIsLoading(false);
         },
-        scope: 'email profile openid',
-        prompt: 'select_account', // Force account selection
         error_callback: (error) => {
           console.error('Google Sign In Error:', error);
           toast({
@@ -114,8 +120,8 @@ const SignIn: React.FC<SignInProps> = ({ onLogin }) => {
         }
       });
 
-      // Show the Google account selection popup
-      googleProvider.requestAccessToken();
+      // Request token - this opens the Google account selection popup
+      tokenClient.requestAccessToken();
       
     } catch (error) {
       console.error('Google Sign In Error:', error);
