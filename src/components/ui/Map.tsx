@@ -1,8 +1,10 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { MAPBOX_TOKEN, MAP_STYLES } from '@/config/mapbox';
-import { Map as MapIcon, Layers, Car } from 'lucide-react';
+import { Map as MapIcon, Layers, Car, Target } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 // Set Mapbox token
 mapboxgl.accessToken = MAPBOX_TOKEN;
@@ -50,12 +52,14 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
     const markersRef = useRef<mapboxgl.Marker[]>([]);
+    const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
 
     // State
     const [mapLoaded, setMapLoaded] = useState(false);
     const [currentMapStyle, setCurrentMapStyle] = useState(mapStyle);
     const [trafficVisible, setTrafficVisible] = useState(showTraffic);
     const [isMoving, setIsMoving] = useState(false);
+    const [isLocatingUser, setIsLocatingUser] = useState(false);
 
     // Initialize map
     useEffect(() => {
@@ -76,6 +80,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
 
       // Set map loaded when map is ready
       map.on('load', () => {
+        console.log("Map loaded successfully");
         setMapLoaded(true);
 
         // Add event listeners for map movement
@@ -86,6 +91,41 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
         map.on('moveend', () => {
           setIsMoving(false);
         });
+
+        // Add traffic layer if needed
+        if (showTraffic) {
+          try {
+            map.addSource('traffic', {
+              type: 'vector',
+              url: 'mapbox://mapbox.mapbox-traffic-v1'
+            });
+            
+            map.addLayer({
+              'id': 'traffic-data',
+              'type': 'line',
+              'source': 'traffic',
+              'source-layer': 'traffic',
+              'layout': {
+                'line-join': 'round',
+                'line-cap': 'round'
+              },
+              'paint': {
+                'line-width': 2,
+                'line-color': [
+                  'match',
+                  ['get', 'congestion'],
+                  'low', '#00E676',
+                  'moderate', '#FFAB00',
+                  'heavy', '#FF5252',
+                  'severe', '#D50000',
+                  '#00E676' // default
+                ]
+              }
+            });
+          } catch (error) {
+            console.error("Error adding traffic layer:", error);
+          }
+        }
       });
 
       // Clean up on unmount
@@ -264,6 +304,109 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
       };
     }, [directions, showRoute, markers, isMoving]);
 
+    // Function to locate user
+    const locateUser = () => {
+      if (!mapInstanceRef.current) return;
+
+      setIsLocatingUser(true);
+      toast({
+        title: "Locating you...",
+        description: "Please allow location access if prompted",
+      });
+
+      // Request location
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          const map = mapInstanceRef.current;
+
+          if (map) {
+            // Fly to user location
+            map.flyTo({
+              center: [longitude, latitude],
+              zoom: 16,
+              essential: true,
+              duration: 2000
+            });
+
+            // Add or update user location marker
+            if (userMarkerRef.current) {
+              userMarkerRef.current.setLngLat([longitude, latitude]);
+            } else {
+              // Create user marker element
+              const el = document.createElement('div');
+              el.className = 'user-location-marker';
+              el.innerHTML = `
+                <div style="
+                  width: 24px; 
+                  height: 24px; 
+                  background-color: #3498db; 
+                  border: 3px solid white; 
+                  border-radius: 50%; 
+                  box-shadow: 0 0 0 2px rgba(0,0,0,0.1), 0 0 10px rgba(52,152,219,0.7);
+                ">
+                </div>
+                <div style="
+                  position: absolute;
+                  top: 0;
+                  left: 0;
+                  width: 24px;
+                  height: 24px;
+                  background: rgba(52,152,219,0.3);
+                  border-radius: 50%;
+                  animation: pulse 2s ease-out infinite;
+                  transform: scale(1);
+                  opacity: 1;
+                ">
+                </div>
+              `;
+              
+              // Add keyframes for pulse animation
+              if (!document.querySelector('#pulse-animation')) {
+                const style = document.createElement('style');
+                style.id = 'pulse-animation';
+                style.innerHTML = `
+                  @keyframes pulse {
+                    0% { transform: scale(1); opacity: 1; }
+                    100% { transform: scale(3); opacity: 0; }
+                  }
+                `;
+                document.head.appendChild(style);
+              }
+
+              // Create and add marker
+              userMarkerRef.current = new mapboxgl.Marker({
+                element: el,
+                anchor: 'center'
+              })
+                .setLngLat([longitude, latitude])
+                .addTo(map);
+            }
+
+            toast({
+              title: "Location found",
+              description: "Map updated to your current location",
+            });
+          }
+          setIsLocatingUser(false);
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+          toast({
+            title: "Location Error",
+            description: error.message || "Unable to access your location",
+            variant: "destructive"
+          });
+          setIsLocatingUser(false);
+        },
+        { 
+          enableHighAccuracy: true, 
+          timeout: 10000, 
+          maximumAge: 0 
+        }
+      );
+    };
+
     // Map style options
     const mapStyleOptions = [
       { name: 'Streets', value: MAP_STYLES.STREETS },
@@ -341,6 +484,15 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
               }}
             >
               <MapIcon size={22} />
+            </button>
+
+            {/* Locate me button */}
+            <button
+              className={`w-12 h-12 rounded-full ${isLocatingUser ? 'bg-blue-500 animate-pulse' : 'bg-blue-600'} text-white flex items-center justify-center shadow-lg hover:bg-blue-500 hover:scale-105 transition-all duration-200`}
+              onClick={locateUser}
+              disabled={isLocatingUser}
+            >
+              <Target size={22} />
             </button>
 
             {/* Traffic toggle button */}

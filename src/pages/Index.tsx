@@ -10,7 +10,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
 import { allStations } from "@/data/dummyData";
-import { MAPBOX_STYLE, MAP_STYLES, DEFAULT_CENTER, DEFAULT_ZOOM } from '@/config/mapbox';
+import { MAPBOX_STYLE, MAP_STYLES } from '@/config/mapbox';
+import { useGeolocation } from '@/hooks/use-geolocation';
 
 const trafficConditions = {
   light: ['Jalan Ampang', 'Jalan Tun Razak', 'Jalan Raja Chulan'],
@@ -19,6 +20,7 @@ const trafficConditions = {
 };
 
 const Index = () => {
+  const { location } = useGeolocation();
   const [searchQuery, setSearchQuery] = useState('');
   const isMobile = useIsMobile();
   const [showTraffic, setShowTraffic] = useState(true);
@@ -194,8 +196,8 @@ const Index = () => {
             className="h-56 w-full rounded-lg overflow-hidden"
             interactive={true}
             showTraffic={showTraffic}
-            center={DEFAULT_CENTER}
-            zoom={DEFAULT_ZOOM}
+            center={location ? location.coordinates : undefined}
+            zoom={13}
             mapStyle={currentMapStyle}
             onStyleChange={(style) => {
               setCurrentMapStyle(style);

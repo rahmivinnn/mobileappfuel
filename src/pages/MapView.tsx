@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Map from '@/components/ui/Map';
 import Header from '@/components/layout/Header';
@@ -8,12 +8,20 @@ import { allStations } from '@/data/dummyData';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from '@/hooks/use-toast';
 import { MAPBOX_STYLE, MAP_STYLES } from '@/config/mapbox';
+import { useGeolocation } from '@/hooks/use-geolocation';
 
 const MapView: React.FC = () => {
   const navigate = useNavigate();
+  const { location, loading: locationLoading } = useGeolocation();
   const [selectedStationId, setSelectedStationId] = useState<string | null>(null);
   const [showTraffic, setShowTraffic] = useState(true);
   const [currentMapStyle, setCurrentMapStyle] = useState(MAPBOX_STYLE);
+
+  useEffect(() => {
+    if (location) {
+      console.log("MapView received location:", location);
+    }
+  }, [location]);
 
   // Convert stations to map markers
   const markers = allStations.map(station => ({
@@ -63,6 +71,7 @@ const MapView: React.FC = () => {
         <Map
           className="w-full h-full"
           zoom={13}
+          center={location ? location.coordinates : undefined}
           markers={markers}
           onMarkerClick={handleMarkerClick}
           showBackButton={true}
