@@ -36,21 +36,39 @@ export function ThemeProvider({
 
   useEffect(() => {
     const root = window.document.documentElement
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
+    // Remove all theme classes
     root.classList.remove("light", "dark")
 
+    // Apply the current theme
     if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-        .matches
-        ? "dark"
-        : "light"
-
+      const systemTheme = mediaQuery.matches ? "dark" : "light"
       root.classList.add(systemTheme)
-      return
+    } else {
+      root.classList.add(theme)
     }
 
-    root.classList.add(theme)
+    // Listen for system theme changes
+    const handleChange = () => {
+      if (theme === "system") {
+        const newSystemTheme = mediaQuery.matches ? "dark" : "light"
+        root.classList.remove("light", "dark")
+        root.classList.add(newSystemTheme)
+      }
+    }
+
+    mediaQuery.addEventListener("change", handleChange)
+
+    return () => {
+      mediaQuery.removeEventListener("change", handleChange)
+    }
   }, [theme])
+
+  // Save theme to localStorage when changed
+  useEffect(() => {
+    localStorage.setItem(storageKey, theme)
+  }, [theme, storageKey])
 
   const value = {
     theme,

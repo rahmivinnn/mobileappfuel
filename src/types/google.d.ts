@@ -18,12 +18,48 @@ interface GoogleOAuthInitOptions {
   error_callback?: (error: Error) => void;
 }
 
+interface GoogleCredentialResponse {
+  clientId: string;
+  credential: string;
+  select_by: string;
+}
+
+interface PromptMomentNotification {
+  isDisplayMoment: () => boolean;
+  isDisplayed: () => boolean;
+  isNotDisplayed: () => boolean;
+  isSkippedMoment: () => boolean;
+  isDismissedMoment: () => boolean;
+  getNotDisplayedReason: () => string;
+  getSkippedReason: () => string;
+  getDismissedReason: () => string;
+}
+
+interface GoogleCodeClient {
+  requestCode: () => void;
+}
+
 declare global {
   interface Window {
     google: {
       accounts: {
+        id: {
+          initialize: (input: {
+            client_id: string;
+            callback: (response: GoogleCredentialResponse) => void;
+            context?: string;
+            auto_select?: boolean;
+          }) => void;
+          prompt: (callback: (notification: PromptMomentNotification) => void) => void;
+          renderButton: (element: HTMLElement, options: object) => void;
+        },
         oauth2: {
           initTokenClient: (config: GoogleOAuthInitOptions) => GoogleTokenClient;
+          initCodeClient: (config: {
+            client_id: string;
+            scope: string;
+            callback: (response: { code: string }) => void;
+          }) => GoogleCodeClient;
         }
       }
     }

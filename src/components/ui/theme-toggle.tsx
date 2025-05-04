@@ -1,7 +1,7 @@
 
 import React from "react";
-import { Moon, Sun, Sparkles } from "lucide-react";
-import { useTheme } from "next-themes";
+import { Moon, Sun, Laptop } from "lucide-react";
+import { useTheme } from "@/components/ui/theme-provider";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -10,14 +10,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 
 export function ThemeToggle() {
   const { setTheme, theme } = useTheme();
-  const { toast } = useToast();
 
   const handleThemeChange = (newTheme: string) => {
-    setTheme(newTheme);
+    setTheme(newTheme as "light" | "dark" | "system");
     toast({
       title: `${newTheme.charAt(0).toUpperCase() + newTheme.slice(1)} theme activated`,
       description: `The application theme has been set to ${newTheme}`,
@@ -44,7 +43,7 @@ export function ThemeToggle() {
         >
           <Sun className="h-4 w-4 text-yellow-500 group-hover:rotate-90 transition-transform duration-300" />
           <span className="group-hover:text-yellow-500 transition-colors">Light</span>
-          {theme === 'light' && <Sparkles className="h-3 w-3 text-yellow-500 ml-1 animate-pulse" />}
+          {theme === 'light' && <span className="h-2 w-2 rounded-full bg-yellow-500 ml-auto"></span>}
         </DropdownMenuItem>
         <DropdownMenuItem 
           onClick={() => handleThemeChange("dark")} 
@@ -52,15 +51,15 @@ export function ThemeToggle() {
         >
           <Moon className="h-4 w-4 text-green-500 group-hover:rotate-12 transition-transform duration-300" />
           <span className="group-hover:text-green-500 transition-colors">Dark</span>
-          {theme === 'dark' && <Sparkles className="h-3 w-3 text-green-500 ml-1 animate-pulse" />}
+          {theme === 'dark' && <span className="h-2 w-2 rounded-full bg-green-500 ml-auto"></span>}
         </DropdownMenuItem>
         <DropdownMenuItem 
           onClick={() => handleThemeChange("system")} 
           className="cursor-pointer group flex items-center gap-2 hover:bg-muted/50"
         >
-          <span className="h-4 w-4 flex items-center justify-center">💻</span>
-          <span className="group-hover:text-green-500 transition-colors">System</span>
-          {theme === 'system' && <Sparkles className="h-3 w-3 text-green-500 ml-1 animate-pulse" />}
+          <Laptop className="h-4 w-4 text-blue-500 group-hover:scale-110 transition-transform duration-300" />
+          <span className="group-hover:text-blue-500 transition-colors">System</span>
+          {theme === 'system' && <span className="h-2 w-2 rounded-full bg-blue-500 ml-auto"></span>}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -9,10 +9,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from '@/hooks/use-toast';
 import { MAPBOX_STYLE, MAP_STYLES } from '@/config/mapbox';
 import { useGeolocation } from '@/hooks/use-geolocation';
+import { Button } from '@/components/ui/button';
+import { MapPin, AlertCircle } from 'lucide-react';
 
 const MapView: React.FC = () => {
   const navigate = useNavigate();
-  const { location, loading: locationLoading } = useGeolocation();
+  const { location, loading: locationLoading, error: locationError, permissionDenied, refreshLocation } = useGeolocation();
   const [selectedStationId, setSelectedStationId] = useState<string | null>(null);
   const [showTraffic, setShowTraffic] = useState(true);
   const [currentMapStyle, setCurrentMapStyle] = useState(MAPBOX_STYLE);
@@ -62,6 +64,27 @@ const MapView: React.FC = () => {
     <div className="min-h-screen bg-background">
       <Header title="Find Stations" showBack={true} />
 
+      {permissionDenied && (
+        <motion.div
+          className="m-4 p-4 bg-red-500/20 border border-red-500 rounded-lg flex items-center space-x-3"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <AlertCircle className="text-red-500 h-5 w-5 flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm">Location permission denied. Please enable location services for better results.</p>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="border-red-500 text-red-500 hover:bg-red-500/20"
+            onClick={refreshLocation}
+          >
+            Try Again
+          </Button>
+        </motion.div>
+      )}
+
       <motion.div
         className="h-[calc(100vh-8rem)]"
         initial={{ opacity: 0 }}
@@ -81,6 +104,13 @@ const MapView: React.FC = () => {
           onStyleChange={handleStyleChange}
           onTrafficToggle={handleTrafficToggle}
         />
+
+        {locationLoading && (
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black/80 px-4 py-2 rounded-full flex items-center space-x-2">
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            <span className="text-white text-sm">Locating you...</span>
+          </div>
+        )}
       </motion.div>
 
       <AnimatePresence>

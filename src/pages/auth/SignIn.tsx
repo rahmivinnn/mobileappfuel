@@ -27,14 +27,36 @@ const SignIn: React.FC<SignInProps> = ({ onLogin }) => {
 
   // Check if Google API is loaded
   useEffect(() => {
-    const checkGoogleApi = setInterval(() => {
-      if (window.google && window.google.accounts) {
+    // Create script element for Google API
+    const loadGoogleScript = () => {
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.onload = () => {
+        console.log('Google API script loaded successfully');
         setGoogleLoaded(true);
-        clearInterval(checkGoogleApi);
-      }
-    }, 500);
+      };
+      script.onerror = (error) => {
+        console.error('Error loading Google API script:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load Google Sign-In. Please try again later.",
+          variant: "destructive"
+        });
+      };
+      document.body.appendChild(script);
+    };
 
-    return () => clearInterval(checkGoogleApi);
+    loadGoogleScript();
+
+    return () => {
+      // Cleanup any Google API related resources
+      const googleScript = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+      if (googleScript) {
+        googleScript.remove();
+      }
+    };
   }, []);
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -79,17 +101,17 @@ const SignIn: React.FC<SignInProps> = ({ onLogin }) => {
         return;
       }
       
-      // Create token client with web configuration
-      const tokenClient = window.google.accounts.oauth2.initTokenClient({
-        client_id: '849289854634-s2rpf8ulkdaliogemfbu8qeprkom4rtp.apps.googleusercontent.com',
-        scope: 'email profile openid',
-        prompt: 'select_account', // Forces account selection every time
+      console.log("Initializing Google Sign In...");
+
+      // Using Google Identity Services for modern OAuth
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
         callback: (response) => {
-          if (response.access_token) {
-            console.log("Google login successful, access token received");
+          console.log("Google login response received:", response);
+          if (response.credential) {
+            // Use the Auth Context to handle Google login
             const token = "google-auth-token-" + Math.random();
             
-            // Use the Auth Context to handle Google login
             loginWithGoogle(token)
               .then(() => {
                 onLogin(token);
@@ -112,21 +134,24 @@ const SignIn: React.FC<SignInProps> = ({ onLogin }) => {
               });
           } else {
             setIsLoading(false);
+            toast({
+              title: "Login Failed",
+              description: "Google authentication did not return credentials",
+              variant: "destructive"
+            });
           }
         },
-        error_callback: (error) => {
-          console.error('Google Sign In Error:', error);
-          toast({
-            title: "Google Sign-In Error",
-            description: error.message || "Failed to sign in with Google. Please try again.",
-            variant: "destructive"
-          });
-          setIsLoading(false);
-        }
+        context: 'signin',
+        auto_select: false
       });
 
-      // Request token - this opens the Google account selection popup
-      tokenClient.requestAccessToken();
+      // Render the button
+      window.google.accounts.id.prompt((notification) => {
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          console.log("Google One Tap was not displayed or skipped:", notification);
+          document.getElementById('google-login-button')?.click();
+        }
+      });
       
     } catch (error) {
       console.error('Google Sign In Error:', error);
@@ -136,6 +161,50 @@ const SignIn: React.FC<SignInProps> = ({ onLogin }) => {
         variant: "destructive"
       });
       setIsLoading(false);
+    }
+  };
+
+  // Function to trigger manual Google sign-in when button is clicked
+  const handleManualGoogleSignIn = () => {
+    if (!googleLoaded) return;
+    
+    console.log("Manual Google sign-in triggered");
+    setIsLoading(true);
+    
+    try {
+      window.google.accounts.id.prompt((notification) => {
+        if (notification.isNotDisplayed()) {
+          // Fallback to redirect mode
+          window.google.accounts.oauth2.initCodeClient({
+            client_id: GOOGLE_CLIENT_ID,
+            scope: 'email profile',
+            callback: (response) => {
+              if (response.code) {
+                const token = "google-auth-redirect-" + Math.random();
+                loginWithGoogle(token)
+                  .then(() => {
+                    onLogin(token);
+                    navigate('/');
+                  })
+                  .catch(console.error)
+                  .finally(() => setIsLoading(false));
+              } else {
+                setIsLoading(false);
+              }
+            }
+          }).requestCode();
+        } else {
+          setIsLoading(false);
+        }
+      });
+    } catch (error) {
+      console.error("Error triggering Google sign-in:", error);
+      setIsLoading(false);
+      toast({
+        title: "Google Sign-In Error",
+        description: "There was an error with Google authentication",
+        variant: "destructive"
+      });
     }
   };
 
@@ -270,8 +339,9 @@ const SignIn: React.FC<SignInProps> = ({ onLogin }) => {
                   <Button 
                     type="button" 
                     variant="outline" 
+                    id="google-login-button"
                     className={`w-full h-12 rounded-full border-2 border-green-500 bg-transparent text-white hover:bg-green-500/10 font-medium text-base flex items-center justify-center gap-2 transition-all transform active:scale-95 ${!googleLoaded ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    onClick={handleGoogleSignIn}
+                    onClick={handleManualGoogleSignIn}
                     disabled={isLoading || !googleLoaded}
                   >
                     <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

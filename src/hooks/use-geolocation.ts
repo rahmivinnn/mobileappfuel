@@ -24,6 +24,7 @@ export const useGeolocation = () => {
   });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [permissionDenied, setPermissionDenied] = useState(false);
 
   useEffect(() => {
     const getUserLocation = async () => {
@@ -34,21 +35,28 @@ export const useGeolocation = () => {
           throw new Error("Geolocation is not supported by this browser");
         }
         
-        // Request location with high accuracy and short timeout
+        // Request location with high accuracy and longer timeout (15 seconds)
         const position = await new Promise<GeolocationPosition>((resolve, reject) => {
           navigator.geolocation.getCurrentPosition(
             resolve, 
-            reject, 
+            (err) => {
+              // Handle permission denied specifically
+              if (err.code === 1) { // 1 = PERMISSION_DENIED
+                console.warn("Geolocation permission denied");
+                setPermissionDenied(true);
+              }
+              reject(err);
+            }, 
             { 
               enableHighAccuracy: true, 
-              timeout: 5000, 
+              timeout: 15000, 
               maximumAge: 0 
             }
           );
         });
 
         const { latitude, longitude } = position.coords;
-        console.log("Location obtained:", latitude, longitude);
+        console.log("Location obtained successfully:", latitude, longitude);
 
         // Use Mapbox Geocoding API to get location details
         try {
@@ -56,21 +64,26 @@ export const useGeolocation = () => {
             `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${MAPBOX_TOKEN}`
           );
 
+          if (!response.ok) {
+            throw new Error(`Geocoding API Error: ${response.status}`);
+          }
+
           const data = await response.json();
           
           if (!data.features || data.features.length === 0) {
             throw new Error("No location data found");
           }
           
-          const features = data.features[0];
+          const features = data.features;
           
-          const country = features.context?.find((ctx: any) => 
-            ctx.id.startsWith('country')
-          )?.text || 'Malaysia';
-          
-          const city = features.context?.find((ctx: any) => 
-            ctx.id.startsWith('place')
-          )?.text || 'Kuala Lumpur';
+          // Find country in context
+          const countryFeature = features.find((f: any) => f.place_type.includes('country')) || 
+                                features[0].context?.find((ctx: any) => ctx.id.startsWith('country'));
+          const cityFeature = features.find((f: any) => f.place_type.includes('place')) ||
+                              features[0].context?.find((ctx: any) => ctx.id.startsWith('place'));
+
+          const country = countryFeature?.text || countryFeature?.short_code?.toUpperCase() || 'Malaysia';
+          const city = cityFeature?.text || 'Unknown';
 
           console.log("Location details:", { country, city });
 
@@ -103,12 +116,20 @@ export const useGeolocation = () => {
         console.error("Geolocation error:", err);
         setError(err.message || "Failed to get location");
         
-        // Show toast with error
-        toast({
-          title: "Location Error",
-          description: "Could not detect your location. Using default location.",
-          variant: "destructive"
-        });
+        // Show specific message for permission denied
+        if (permissionDenied) {
+          toast({
+            title: "Location Permission Denied",
+            description: "Please enable location services to find nearby stations.",
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Location Error",
+            description: "Could not detect your location. Using default location.",
+            variant: "destructive"
+          });
+        }
         
         // Default to Kuala Lumpur if geolocation fails
         setLocation({
@@ -125,7 +146,18 @@ export const useGeolocation = () => {
     };
 
     getUserLocation();
-  }, []);
+  }, [permissionDenied]);
 
-  return { location, error, loading };
+  // Function to manually retry getting location
+  const refreshLocation = () => {
+    setLoading(true);
+    setError(null);
+    getUserLocation();
+  };
+
+  return { location, error, loading, permissionDenied, refreshLocation };
 };
+
+function getUserLocation() {
+  throw new Error('Function not implemented.');
+}
