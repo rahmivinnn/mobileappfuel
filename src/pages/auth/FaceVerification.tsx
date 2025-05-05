@@ -201,33 +201,17 @@ const FaceVerification: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            {/* Logo circle */}
+            {/* Logo - without circle */}
             <motion.div 
-              className="w-24 h-24 rounded-full border-2 border-green-500 flex items-center justify-center mb-4"
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, duration: 0.5, type: "spring" }}
-            >
-              <div className="text-green-500 w-16 h-16">
-                <img 
-                  src="/lovable-uploads/e8f2ceee-d89c-4a88-b6f9-d1ced940180c.png" 
-                  alt="FuelFriendly Logo" 
-                  className="w-full h-full"
-                />
-              </div>
-            </motion.div>
-            
-            {/* Brand name */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.5 }}
-              className="text-green-500"
+              className="mb-4"
             >
               <img 
-                src="/lovable-uploads/2b80eff8-6efd-4f15-9213-ed9fe4e0cba9.png" 
-                alt="FUELFRIENDLY" 
-                className="h-6 filter brightness-0 invert sepia hue-rotate-99 saturate-[100%]"
+                src="/lovable-uploads/af30f547-2e68-4706-8f5d-4a84088b6f19.png" 
+                alt="FuelFriendly Logo" 
+                className="h-40"
               />
             </motion.div>
           </motion.div>
