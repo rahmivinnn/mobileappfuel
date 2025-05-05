@@ -49,8 +49,8 @@ const Index = () => {
 
   // Calculate actual distances based on user location or default to Bandung
   const stationsWithDistance = allStations.map(station => {
-    const userLat = location?.lat || BANDUNG_COORDINATES.lat;
-    const userLng = location?.lng || BANDUNG_COORDINATES.lng;
+    const userLat = location?.coordinates?.lat || BANDUNG_COORDINATES.lat;
+    const userLng = location?.coordinates?.lng || BANDUNG_COORDINATES.lng;
     const distance = getDistance(
       userLat, 
       userLng, 
