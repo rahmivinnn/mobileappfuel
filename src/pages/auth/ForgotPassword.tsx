@@ -6,7 +6,6 @@ import { Hexagon, ArrowLeft, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const ForgotPassword: React.FC = () => {
   const navigate = useNavigate();
@@ -14,7 +13,10 @@ const ForgotPassword: React.FC = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Twilio credentials - in a production app, these should be stored securely
+  const twilioApiKey = 'SK4473f756b7d91b57e760f7b7103b0054';
+  const twilioAuthToken = 'c5530bf620dd9272236a8ef94ea9fedf';
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -26,17 +28,26 @@ const ForgotPassword: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setErrorMessage(null);
     
-    // Simulate API call
+    // Simulate Twilio API call to send OTP to email
     setTimeout(() => {
       setIsLoading(false);
       
-      // Show Twilio token error directly below the button
-      setErrorMessage("Error: The Twilio token is incorrect or has expired. Please contact support.");
+      // Success toast
+      toast({
+        title: "Success",
+        description: "A verification code has been sent to your email.",
+        variant: "default"
+      });
       
-      // We're deliberately NOT navigating to the OTP verification screen since we're showing an error
-    }, 1000);
+      // Navigate to OTP verification page
+      navigate('/verify-otp', { 
+        state: { 
+          email, 
+          isSignUp: false 
+        } 
+      });
+    }, 1500);
   };
 
   return (
@@ -95,6 +106,7 @@ const ForgotPassword: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full rounded-lg border-gray-300 focus:ring-green-500 focus:border-green-500 px-4 py-3"
+                required
               />
             </div>
             
@@ -112,15 +124,6 @@ const ForgotPassword: React.FC = () => {
                 'Send Reset Code'
               )}
             </Button>
-            
-            {/* Error message display */}
-            {errorMessage && (
-              <Alert variant="destructive" className="mt-4 border-red-500">
-                <AlertDescription className="text-sm text-red-600 dark:text-red-400">
-                  {errorMessage}
-                </AlertDescription>
-              </Alert>
-            )}
           </form>
           
           <div className="mt-6 text-center">
