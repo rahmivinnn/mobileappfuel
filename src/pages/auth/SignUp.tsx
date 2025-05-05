@@ -49,7 +49,8 @@ const SignUp: React.FC<SignUpProps> = ({ onLogin }) => {
       const token = "mock-auth-token-" + Math.random();
       onLogin(token);
       setIsLoading(false);
-      navigate('/home');
+      // Redirect to face verification instead of home
+      navigate('/face-verification');
     }, 1500);
   };
   
@@ -61,7 +62,8 @@ const SignUp: React.FC<SignUpProps> = ({ onLogin }) => {
       const token = "google-auth-token-" + Math.random();
       onLogin(token);
       setIsLoading(false);
-      navigate('/home');
+      // Redirect to face verification instead of home
+      navigate('/face-verification');
     }, 1500);
   };
 

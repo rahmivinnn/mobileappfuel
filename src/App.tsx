@@ -31,6 +31,7 @@ import MapView from './pages/MapView';
 import Welcome from './pages/auth/Welcome';
 import SignIn from './pages/auth/SignIn';
 import SignUp from './pages/auth/SignUp';
+import FaceVerification from './pages/auth/FaceVerification';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import VerifyOtp from './pages/auth/VerifyOtp';
 import ResetPassword from './pages/auth/ResetPassword';
@@ -72,6 +73,7 @@ function AppRoutes() {
         <Route path="/welcome" element={<PageTransition><Welcome /></PageTransition>} />
         <Route path="/signin" element={<PageTransition><SignIn onLogin={handleLogin} /></PageTransition>} />
         <Route path="/signup" element={<PageTransition><SignUp onLogin={handleLogin} /></PageTransition>} />
+        <Route path="/face-verification" element={<PageTransition><FaceVerification /></PageTransition>} />
         <Route path="/forgot-password" element={<PageTransition><ForgotPassword /></PageTransition>} />
         <Route path="/verify-otp" element={<PageTransition><VerifyOtp /></PageTransition>} />
         <Route path="/reset-password" element={<PageTransition><ResetPassword /></PageTransition>} />
