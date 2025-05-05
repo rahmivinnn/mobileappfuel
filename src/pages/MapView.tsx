@@ -6,11 +6,13 @@ import Header from '@/components/layout/Header';
 import BottomNav from '@/components/layout/BottomNav';
 import { allStations } from '@/data/dummyData';
 import { motion, AnimatePresence } from 'framer-motion';
-import { toast } from '@/hooks/use-toast';
 import { MAPBOX_STYLE, MAP_STYLES } from '@/config/mapbox';
 import { useGeolocation } from '@/hooks/use-geolocation';
 import { Button } from '@/components/ui/button';
 import { MapPin, AlertCircle } from 'lucide-react';
+
+// Bandung coordinates
+const BANDUNG_COORDINATES = [-6.9175, 107.6191];
 
 const MapView: React.FC = () => {
   const navigate = useNavigate();
@@ -35,29 +37,17 @@ const MapView: React.FC = () => {
   const handleMarkerClick = (index: number) => {
     const stationId = allStations[index].id;
     setSelectedStationId(stationId);
-    toast({
-      title: "Station Selected",
-      description: `${allStations[index].name} has been selected`,
-    });
     navigate(`/station/${stationId}`);
   };
 
   // Handle map style change
   const handleStyleChange = (style: string) => {
     setCurrentMapStyle(style);
-    toast({
-      title: "Map Style Changed",
-      description: `Map style updated to ${Object.keys(MAP_STYLES).find(key => MAP_STYLES[key as keyof typeof MAP_STYLES] === style)?.replace(/_/g, ' ') || 'new style'}`
-    });
   };
 
   // Handle traffic toggle
   const handleTrafficToggle = (show: boolean) => {
     setShowTraffic(show);
-    toast({
-      title: show ? "Traffic Enabled" : "Traffic Disabled",
-      description: show ? "Now showing real-time traffic conditions" : "Traffic layer has been hidden"
-    });
   };
 
   return (
@@ -94,7 +84,7 @@ const MapView: React.FC = () => {
         <Map
           className="w-full h-full"
           zoom={13}
-          center={location ? location.coordinates : undefined}
+          center={BANDUNG_COORDINATES}
           markers={markers}
           onMarkerClick={handleMarkerClick}
           showBackButton={true}

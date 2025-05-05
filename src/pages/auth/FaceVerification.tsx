@@ -1,8 +1,8 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { toast } from '@/hooks/use-toast';
 import { ArrowLeft, Camera, Shield, Check, ArrowUp, ArrowDown, ArrowRight, Smile, EyeOff, AlertCircle } from 'lucide-react';
 
 const FaceVerification: React.FC = () => {
@@ -154,31 +154,14 @@ const FaceVerification: React.FC = () => {
       }
     } catch (err) {
       console.error("Error accessing camera:", err);
-      toast({
-        title: "Camera access unavailable",
-        description: "Please allow camera access to continue with verification",
-        variant: "destructive"
-      });
       setCameraError(true);
       
       // If camera access fails, give user option to retry
       if (retryCount < 3) {
         setTimeout(() => {
           setRetryCount(prev => prev + 1);
-          toast({
-            title: "Trying again",
-            description: "Attempting to access camera...",
-            variant: "default"
-          });
           startCamera();
         }, 2000);
-      } else {
-        // After 3 retries, show fallback option
-        toast({
-          title: "Camera access failed",
-          description: "Please check your camera permissions and try again",
-          variant: "destructive"
-        });
       }
     }
   };
@@ -191,11 +174,6 @@ const FaceVerification: React.FC = () => {
     // This simulates detecting if a face is in the frame after 2 seconds
     setTimeout(() => {
       setFaceInFrame(true);
-      toast({
-        title: "Face detected",
-        description: "Please follow the instructions on screen",
-        variant: "default"
-      });
       
       // Start countdown after face is detected
       startCountdown();
@@ -494,37 +472,17 @@ const FaceVerification: React.FC = () => {
     setInstructions(randomChallenges[index].instruction);
     setVerificationStep(index + 1);
     
-    // Show detailed instructions first
-    toast({
-      title: randomChallenges[index].instruction,
-      description: randomChallenges[index].detailedInstruction
-    });
-    
     // Capture frame after a brief moment for user to follow instruction
     setTimeout(() => {
       const capturedImage = captureFrame();
       if (capturedImage) {
         console.log(`Captured frame for pose: ${randomChallenges[index].instruction}`);
-        
-        // Show verification message
-        toast({
-          title: "Processing",
-          description: randomChallenges[index].verificationText
-        });
-        
-        // Here you would send the image to your verification service
       } else if (cameraError) {
         console.log(`Simulating capture for pose: ${randomChallenges[index].instruction}`);
       }
       
       // Move to the next pose after a delay
       setTimeout(() => {
-        // Progress to next challenge with a success indicator
-        toast({
-          title: "Step complete",
-          description: `${index + 1}/${randomChallenges.length} verification steps completed`
-        });
-        
         processPose(index + 1);
       }, 1500);
       
@@ -536,10 +494,6 @@ const FaceVerification: React.FC = () => {
     stopCamera();
     setIsSubmitting(false);
     setIsCompleted(true);
-    toast({
-      title: "Verification successful",
-      description: "Your identity has been verified successfully."
-    });
     
     // Navigate after a delay
     setTimeout(() => {
@@ -551,11 +505,6 @@ const FaceVerification: React.FC = () => {
   const failVerification = () => {
     stopCamera();
     setIsSubmitting(false);
-    toast({
-      title: "Verification failed",
-      description: "Liveness check failed. Please try again.",
-      variant: "destructive"
-    });
   };
   
   // Allow user to skip verification

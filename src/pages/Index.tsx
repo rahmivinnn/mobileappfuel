@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, Filter, Bell, User } from 'lucide-react';
 import BottomNav from '@/components/layout/BottomNav';
@@ -8,16 +9,12 @@ import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { useToast } from "@/hooks/use-toast";
 import { allStations } from "@/data/dummyData";
 import { MAPBOX_STYLE, MAP_STYLES } from '@/config/mapbox';
 import { useGeolocation } from '@/hooks/use-geolocation';
 
-const trafficConditions = {
-  light: ['Jalan Ampang', 'Jalan Tun Razak', 'Jalan Raja Chulan'],
-  moderate: ['Jalan Sultan Ismail', 'Jalan Bukit Bintang'],
-  heavy: ['SMART Tunnel', 'Jalan Kuching', 'Federal Highway']
-};
+// Bandung coordinates
+const BANDUNG_COORDINATES = [-6.9175, 107.6191];
 
 const Index = () => {
   const { location } = useGeolocation();
@@ -31,7 +28,6 @@ const Index = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const stationListRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [startX, setStartX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -44,24 +40,6 @@ const Index = () => {
     .slice(0, 10);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setLastUpdated(new Date());
-      const roads = [...trafficConditions.light, ...trafficConditions.moderate, ...trafficConditions.heavy];
-      const randomRoad = roads[Math.floor(Math.random() * roads.length)];
-      const conditions = ["light", "moderate", "heavy"];
-      const randomCondition = conditions[Math.floor(Math.random() * conditions.length)];
-
-      toast({
-        title: "Real-time Traffic Update",
-        description: `${randomCondition.charAt(0).toUpperCase() + randomCondition.slice(1)} traffic detected on ${randomRoad}.`,
-        duration: 5000,
-      });
-    }, 15000);
-
-    return () => clearInterval(timer);
-  }, [toast]);
-
-  useEffect(() => {
     const timer = setTimeout(() => {
       setMapVisible(true);
     }, 500);
@@ -69,24 +47,12 @@ const Index = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  useEffect(() => {
-    toast({
-      title: "Traffic Update",
-      description: "Heavy traffic detected on I-240. Consider alternative routes.",
-      duration: 5000,
-    });
-  }, [toast]);
-
   const handleSeeAll = () => {
     navigate('/map');
   };
 
   const handleNotificationClick = () => {
-    toast({
-      title: "Notifications",
-      description: "Viewing all notifications",
-      duration: 3000,
-    });
+    // Notification click handler (no toast)
   };
 
   const handleStationScroll = () => {
@@ -196,26 +162,14 @@ const Index = () => {
             className="h-56 w-full rounded-lg overflow-hidden"
             interactive={true}
             showTraffic={showTraffic}
-            center={location ? location.coordinates : undefined}
+            center={BANDUNG_COORDINATES}
             zoom={13}
             mapStyle={currentMapStyle}
             onStyleChange={(style) => {
               setCurrentMapStyle(style);
-              toast({
-                title: "Map Style Changed",
-                description: style === MAP_STYLES.STREETS 
-                  ? "Switched to Street view"
-                  : style === MAP_STYLES.SATELLITE
-                  ? "Switched to Satellite view"
-                  : "Switched to Dark mode view"
-              });
             }}
             onTrafficToggle={(show) => {
               setShowTraffic(show);
-              toast({
-                title: show ? "Traffic Enabled" : "Traffic Disabled",
-                description: show ? "Now showing real-time traffic conditions" : "Traffic layer has been hidden"
-              });
             }}
           />
         </div>
@@ -244,7 +198,7 @@ const Index = () => {
       <div className="px-4 pt-3 pb-20 flex-1 animate-fade-in" style={{ animationDelay: "0.4s" }}>
         <div className="flex justify-between items-center mb-3">
           <h2 className="text-xl font-bold relative group">
-            <span className="transition-all duration-300 dark:text-white text-green-800 group-hover:text-green-500">Fuel Stations nearby</span>
+            <span className="transition-all duration-300 dark:text-white text-green-800 group-hover:text-green-500">Fuel Stations in Bandung</span>
             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-green-500 transition-all duration-500 group-hover:w-full"></span>
           </h2>
           <button
@@ -286,7 +240,7 @@ const Index = () => {
                   <StationCard
                     id={station.id}
                     name={station.name}
-                    address={station.address}
+                    address={`Bandung, Indonesia ${station.address}`}
                     distance={station.distance}
                     price={cheapestFuel ? cheapestFuel.price : "3.29"}
                     rating={station.rating}
