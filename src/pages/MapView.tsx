@@ -9,10 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MAPBOX_STYLE, MAP_STYLES } from '@/config/mapbox';
 import { useGeolocation } from '@/hooks/use-geolocation';
 import { Button } from '@/components/ui/button';
-import { MapPin, AlertCircle, User } from 'lucide-react';
-
-// Bandung coordinates
-const BANDUNG_COORDINATES = { lat: -6.9175, lng: 107.6191 };
+import { MapPin, AlertCircle, User, RefreshCw } from 'lucide-react';
 
 // Helper function for rupiah formatting
 export const formatToRupiah = (number: number | string) => {
@@ -24,13 +21,6 @@ export const formatToRupiah = (number: number | string) => {
     maximumFractionDigits: 0
   }).format(num);
 };
-
-// Sample FuelFriendly agent locations near Bandung
-const fuelAgents = [
-  { lat: -6.9125, lng: 107.6181, name: "Agent John" },
-  { lat: -6.9190, lng: 107.6281, name: "Agent Sarah" },
-  { lat: -6.9075, lng: 107.6091, name: "Agent Mike" }
-];
 
 // Calculate distance between two coordinates in km
 function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
@@ -56,36 +46,37 @@ const MapView: React.FC = () => {
   const [selectedStationId, setSelectedStationId] = useState<string | null>(null);
   const [showTraffic, setShowTraffic] = useState(true);
   const [currentMapStyle, setCurrentMapStyle] = useState(MAPBOX_STYLE);
+  const [stationsWithDistance, setStationsWithDistance] = useState(allStations);
 
   useEffect(() => {
     if (location) {
       console.log("MapView received location:", location);
+      
+      // Recalculate distances based on new location
+      const updatedStations = allStations.map(station => {
+        const distance = getDistance(
+          location.coordinates.lat,
+          location.coordinates.lng,
+          station.position.lat,
+          station.position.lng
+        ).toFixed(1);
+        
+        return {
+          ...station,
+          distance
+        };
+      });
+      
+      setStationsWithDistance(updatedStations);
     }
   }, [location]);
-
-  // Calculate actual distances based on user location or default to Bandung
-  const stationsWithDistance = allStations.map(station => {
-    const userLat = location?.coordinates?.lat || BANDUNG_COORDINATES.lat;
-    const userLng = location?.coordinates?.lng || BANDUNG_COORDINATES.lng;
-    const distance = getDistance(
-      userLat, 
-      userLng, 
-      station.position.lat, 
-      station.position.lng
-    ).toFixed(1);
-    
-    return {
-      ...station,
-      distance
-    };
-  });
 
   // Sort stations by distance
   const sortedStations = [...stationsWithDistance].sort((a, b) => 
     parseFloat(a.distance) - parseFloat(b.distance)
   );
 
-  // Gas station image URL - updated to use the new image
+  // Gas station image URL
   const gasStationIconUrl = "/lovable-uploads/e7264ee5-ed98-4679-91b4-8f12d183784b.png";
 
   // Convert stations to map markers
@@ -95,9 +86,28 @@ const MapView: React.FC = () => {
       lng: station.position.lng
     },
     title: station.name,
-    icon: gasStationIconUrl, // Use new gas station icon
+    icon: gasStationIconUrl,
     label: "Gas Station"
   }));
+
+  // Add FuelFriendly agents as markers - based on current location
+  const fuelAgents = location ? [
+    { 
+      lat: location.coordinates.lat + 0.005, 
+      lng: location.coordinates.lng + 0.005, 
+      name: "Agent John" 
+    },
+    { 
+      lat: location.coordinates.lat - 0.008, 
+      lng: location.coordinates.lng + 0.007, 
+      name: "Agent Sarah" 
+    },
+    { 
+      lat: location.coordinates.lat + 0.007, 
+      lng: location.coordinates.lng - 0.009, 
+      name: "Agent Mike" 
+    }
+  ] : [];
 
   // Add FuelFriendly agents as markers
   const agentMarkers = fuelAgents.map(agent => ({
@@ -106,7 +116,7 @@ const MapView: React.FC = () => {
       lng: agent.lng
     },
     title: agent.name,
-    icon: "/lovable-uploads/1bc06a60-0463-4f47-abde-502bc408852e.png", // Using a placeholder icon
+    icon: "/lovable-uploads/1bc06a60-0463-4f47-abde-502bc408852e.png",
     label: "FuelFriendly Agent",
     isAgent: true
   }));
@@ -140,6 +150,25 @@ const MapView: React.FC = () => {
     <div className="min-h-screen bg-background">
       <Header title="Temukan SPBU" showBack={true} />
 
+      {/* Location indicator */}
+      {location && (
+        <div className="m-4 p-2 bg-green-50 dark:bg-green-900/30 rounded-lg flex items-center justify-between">
+          <div className="flex items-center">
+            <MapPin className="text-green-500 h-4 w-4 mr-2" />
+            <p className="text-sm text-green-800 dark:text-green-300">
+              {location.city}, {location.country}
+            </p>
+          </div>
+          <button 
+            onClick={refreshLocation}
+            className="text-green-600 dark:text-green-400 flex items-center text-xs"
+          >
+            <RefreshCw className="h-3 w-3 mr-1" />
+            Refresh
+          </button>
+        </div>
+      )}
+
       {permissionDenied && (
         <motion.div
           className="m-4 p-4 bg-red-500/20 border border-red-500 rounded-lg flex items-center space-x-3"
@@ -170,7 +199,7 @@ const MapView: React.FC = () => {
         <Map
           className="w-full h-full"
           zoom={13}
-          center={BANDUNG_COORDINATES}
+          center={location?.coordinates}
           markers={allMarkers}
           onMarkerClick={handleMarkerClick}
           showBackButton={true}

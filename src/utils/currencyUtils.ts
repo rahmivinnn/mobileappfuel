@@ -1,10 +1,10 @@
 
 /**
- * Format a number or string to Rupiah (Indonesian currency)
- * @param number The number or string to format
- * @returns Formatted string in Rupiah
+ * Utility functions for currency formatting based on country
  */
-export const formatToRupiah = (number: string | number): string => {
+
+// Format a number to Indonesian Rupiah
+export const formatToRupiah = (number: number | string) => {
   const num = typeof number === 'string' ? parseFloat(number) : number;
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
@@ -14,108 +14,100 @@ export const formatToRupiah = (number: string | number): string => {
   }).format(num);
 };
 
-/**
- * Format a number to currency based on country code
- * @param amount The number to format
- * @param countryCode The ISO country code
- * @returns Formatted string in local currency
- */
-export const formatToCurrency = (amount: number | string, countryCode: string = 'ID'): string => {
-  const num = typeof amount === 'string' ? parseFloat(amount) : amount;
-  
-  // Map country codes to currency codes
-  const countryCurrencyMap: Record<string, string> = {
-    'ID': 'IDR', // Indonesia
-    'MY': 'MYR', // Malaysia
-    'SG': 'SGD', // Singapore
-    'TH': 'THB', // Thailand
-    'PH': 'PHP', // Philippines
-    'VN': 'VND', // Vietnam
-    'US': 'USD', // United States
-    'GB': 'GBP', // United Kingdom
-    'AU': 'AUD', // Australia
-    'JP': 'JPY', // Japan
-    'CA': 'CAD', // Canada
-    'DE': 'EUR', // Germany
-    'FR': 'EUR', // France
-    'IT': 'EUR', // Italy
-    'ES': 'EUR', // Spain
-    'BR': 'BRL', // Brazil
-    'MX': 'MXN', // Mexico
-    'IN': 'INR', // India
-    'CN': 'CNY', // China
-    'RU': 'RUB', // Russia
-    'ZA': 'ZAR', // South Africa
-    'AE': 'AED', // UAE
-    'AR': 'ARS', // Argentina
-    'CL': 'CLP', // Chile
-    'CO': 'COP', // Colombia
-    'CR': 'CRC', // Costa Rica
-    'EG': 'EGP', // Egypt
-    'HK': 'HKD', // Hong Kong
-    'IL': 'ILS', // Israel
-    'KR': 'KRW', // South Korea
-    'NZ': 'NZD', // New Zealand
-    'NO': 'NOK', // Norway
-    'SE': 'SEK', // Sweden
-    'CH': 'CHF', // Switzerland
-    'TR': 'TRY', // Turkey
-  };
-  
-  // Map country codes to locales
-  const countryLocaleMap: Record<string, string> = {
-    'ID': 'id-ID',
-    'MY': 'ms-MY',
-    'SG': 'en-SG',
-    'TH': 'th-TH',
-    'PH': 'fil-PH',
-    'VN': 'vi-VN',
-    'US': 'en-US',
-    'GB': 'en-GB',
-    'AU': 'en-AU',
-    'JP': 'ja-JP',
-    'CA': 'en-CA',
-    'DE': 'de-DE',
-    'FR': 'fr-FR',
-    'IT': 'it-IT',
-    'ES': 'es-ES',
-    'BR': 'pt-BR',
-    'MX': 'es-MX',
-    'IN': 'hi-IN',
-    'CN': 'zh-CN',
-    'RU': 'ru-RU',
-    'ZA': 'en-ZA',
-    'AE': 'ar-AE',
-    'AR': 'es-AR',
-    'CL': 'es-CL',
-    'CO': 'es-CO',
-    'CR': 'es-CR',
-    'EG': 'ar-EG',
-    'HK': 'zh-HK',
-    'IL': 'he-IL',
-    'KR': 'ko-KR',
-    'NZ': 'en-NZ',
-    'NO': 'no-NO',
-    'SE': 'sv-SE',
-    'CH': 'de-CH',
-    'TR': 'tr-TR',
-  };
-  
-  // Determine decimal places for currencies
-  const zeroDecimalCurrencies = ['JPY', 'KRW', 'VND', 'IDR', 'CLP', 'COP'];
-  const currency = countryCurrencyMap[countryCode] || 'USD';
-  const locale = countryLocaleMap[countryCode] || 'en-US';
-  
-  try {
-    return new Intl.NumberFormat(locale, {
+// Currency mappings for different countries
+const currencyFormats: Record<string, { formatter: (price: number) => string, symbol: string, code: string }> = {
+  'ID': {
+    formatter: (price) => new Intl.NumberFormat('id-ID', {
       style: 'currency',
-      currency: currency,
-      minimumFractionDigits: zeroDecimalCurrencies.includes(currency) ? 0 : 2,
-      maximumFractionDigits: zeroDecimalCurrencies.includes(currency) ? 0 : 2
-    }).format(num);
-  } catch (error) {
-    // Fallback if Intl is not supported or has issues
-    console.error("Error formatting currency:", error);
-    return `${currency} ${num.toLocaleString()}`;
+      currency: 'IDR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(price),
+    symbol: 'Rp',
+    code: 'IDR'
+  },
+  'MY': {
+    formatter: (price) => new Intl.NumberFormat('ms-MY', {
+      style: 'currency',
+      currency: 'MYR',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(price),
+    symbol: 'RM',
+    code: 'MYR'
+  },
+  'SG': {
+    formatter: (price) => new Intl.NumberFormat('en-SG', {
+      style: 'currency',
+      currency: 'SGD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(price),
+    symbol: 'S$',
+    code: 'SGD'
+  },
+  'TH': {
+    formatter: (price) => new Intl.NumberFormat('th-TH', {
+      style: 'currency',
+      currency: 'THB',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(price),
+    symbol: '฿',
+    code: 'THB'
+  },
+  'PH': {
+    formatter: (price) => new Intl.NumberFormat('en-PH', {
+      style: 'currency',
+      currency: 'PHP',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(price),
+    symbol: '₱',
+    code: 'PHP'
+  },
+  'VN': {
+    formatter: (price) => new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(price),
+    symbol: '₫',
+    code: 'VND'
+  },
+  'US': {
+    formatter: (price) => new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(price),
+    symbol: '$',
+    code: 'USD'
+  },
+  // Add other countries as needed
+};
+
+// Format price according to country code
+export const formatToCurrency = (price: string | number, countryCode: string = 'ID'): string => {
+  const numericPrice = typeof price === 'string' ? parseFloat(price) : price;
+  
+  // If we have a specific formatter for this country, use it
+  if (currencyFormats[countryCode]) {
+    return currencyFormats[countryCode].formatter(numericPrice);
   }
+  
+  // Default to IDR if country code not found
+  return formatToRupiah(numericPrice);
+};
+
+// Get currency symbol for a country
+export const getCurrencySymbol = (countryCode: string = 'ID'): string => {
+  return currencyFormats[countryCode]?.symbol || 'Rp';
+};
+
+// Get currency code for a country
+export const getCurrencyCode = (countryCode: string = 'ID'): string => {
+  return currencyFormats[countryCode]?.code || 'IDR';
 };

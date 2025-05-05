@@ -15,15 +15,6 @@ import { useGeolocation } from '@/hooks/use-geolocation';
 import StationListItem from '@/components/ui/StationListItem';
 import { formatToRupiah } from './MapView';
 
-// Bandung coordinates
-const BANDUNG_COORDINATES = { lat: -6.9175, lng: 107.6191 };
-
-// Sample FuelFriendly agent locations near Bandung
-const fuelAgents = [
-  { lat: -6.9125, lng: 107.6181, name: "Agent John" },
-  { lat: -6.9190, lng: 107.6281, name: "Agent Sarah" }
-];
-
 // Calculate distance between two coordinates in km using Haversine formula
 function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
   const R = 6371; // Radius of the earth in km
@@ -43,7 +34,7 @@ function deg2rad(deg: number) {
 }
 
 const Index = () => {
-  const { location } = useGeolocation();
+  const { location, refreshLocation } = useGeolocation();
   const [searchQuery, setSearchQuery] = useState('');
   const isMobile = useIsMobile();
   const [showTraffic, setShowTraffic] = useState(true);
@@ -52,23 +43,35 @@ const Index = () => {
   const [scrollPosition, setScrollPosition] = useState(0);
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
   const navigate = useNavigate();
-
-  // Calculate actual distances based on user location or default to Bandung
-  const stationsWithDistance = allStations.map(station => {
-    const userLat = location?.coordinates?.lat || BANDUNG_COORDINATES.lat;
-    const userLng = location?.coordinates?.lng || BANDUNG_COORDINATES.lng;
-    const distance = getDistance(
-      userLat, 
-      userLng, 
-      station.position.lat, 
-      station.position.lng
-    ).toFixed(1);
-    
-    return {
-      ...station,
-      distance
-    };
-  });
+  
+  // Track location changes to update map and stations
+  const [mapCenter, setMapCenter] = useState({ lat: 0, lng: 0 });
+  const [stationsWithDistance, setStationsWithDistance] = useState(allStations);
+  
+  // Update map center and calculate distances when location changes
+  useEffect(() => {
+    if (location && location.coordinates) {
+      console.log("Location updated in Index:", location);
+      setMapCenter(location.coordinates);
+      
+      // Recalculate distances based on new location
+      const updatedStations = allStations.map(station => {
+        const distance = getDistance(
+          location.coordinates.lat,
+          location.coordinates.lng,
+          station.position.lat,
+          station.position.lng
+        ).toFixed(1);
+        
+        return {
+          ...station,
+          distance
+        };
+      });
+      
+      setStationsWithDistance(updatedStations);
+    }
+  }, [location]);
 
   // Filter and sort stations by distance
   const filteredStations = stationsWithDistance
@@ -90,7 +93,7 @@ const Index = () => {
     navigate('/map');
   };
 
-  // Gas station image URL - updated to use the new image
+  // Gas station image URL
   const gasStationIconUrl = "/lovable-uploads/e7264ee5-ed98-4679-91b4-8f12d183784b.png";
 
   // Convert stations to map markers - limit to nearest 5
@@ -100,9 +103,23 @@ const Index = () => {
       lng: station.position.lng
     },
     title: station.name,
-    icon: gasStationIconUrl, // Use new gas station icon
+    icon: gasStationIconUrl,
     label: "Gas Station"
   }));
+
+  // Add FuelFriendly agents as markers - adjusted based on current location
+  const fuelAgents = location ? [
+    { 
+      lat: location.coordinates.lat + 0.005, 
+      lng: location.coordinates.lng + 0.005, 
+      name: "Agent John" 
+    },
+    { 
+      lat: location.coordinates.lat - 0.008, 
+      lng: location.coordinates.lng + 0.007, 
+      name: "Agent Sarah" 
+    }
+  ] : [];
 
   // Add FuelFriendly agents as markers
   const agentMarkers = fuelAgents.map(agent => ({
@@ -155,11 +172,32 @@ const Index = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <button className="h-12 w-12 flex items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
+          <button 
+            className="h-12 w-12 flex items-center justify-center rounded-full bg-green-100 dark:bg-green-900"
+            onClick={() => refreshLocation()}
+          >
             <Filter className="h-5 w-5 text-green-500" />
           </button>
         </div>
       </div>
+
+      {/* Location Indicator */}
+      {location && (
+        <div className="px-4 py-2 bg-green-50 dark:bg-green-900/30 flex items-center justify-between">
+          <div className="flex items-center">
+            <MapPin className="h-4 w-4 text-green-500 mr-2" />
+            <span className="text-sm text-green-800 dark:text-green-300">
+              {location.city}, {location.country}
+            </span>
+          </div>
+          <button 
+            onClick={() => refreshLocation()}
+            className="text-xs text-green-600 dark:text-green-400 underline"
+          >
+            Refresh
+          </button>
+        </div>
+      )}
 
       {/* Map Section */}
       <div className="px-4 py-2 relative">
@@ -168,7 +206,7 @@ const Index = () => {
             className="h-56 w-full rounded-2xl overflow-hidden"
             interactive={true}
             showTraffic={showTraffic}
-            center={BANDUNG_COORDINATES}
+            center={location?.coordinates || { lat: 0, lng: 0 }}
             zoom={13}
             mapStyle={currentMapStyle}
             markers={allMarkers}
@@ -190,7 +228,7 @@ const Index = () => {
       {/* Stations List */}
       <div className="px-4 pt-4">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-          Nearest Gas Stations in Bandung
+          {location ? `Nearest Gas Stations in ${location.city}` : 'Loading Gas Stations...'}
         </h2>
 
         <div className="space-y-4">
@@ -206,7 +244,7 @@ const Index = () => {
                 key={station.id}
                 id={station.id}
                 name={station.name}
-                address={`${station.address}, Bandung`}
+                address={`${station.address}, ${location?.city || 'Unknown Location'}`}
                 distance={station.distance}
                 price={cheapestFuel ? cheapestFuel.price : "3.29"}
                 rating={station.rating}
