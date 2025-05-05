@@ -5,9 +5,11 @@ import { motion } from 'framer-motion';
 import { Hexagon, ArrowLeft, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
 
 const ForgotPassword: React.FC = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -33,9 +35,19 @@ const ForgotPassword: React.FC = () => {
             isSignUp: false
           } 
         });
+        
+        // Show success toast instead of alert
+        toast({
+          title: "Reset code sent",
+          description: "Please check your email for the verification code",
+        });
       } else {
         setIsLoading(false);
-        alert('Please enter your email address');
+        toast({
+          title: "Email required",
+          description: "Please enter your email address",
+          variant: "destructive"
+        });
       }
     }, 1000);
   };
@@ -69,16 +81,12 @@ const ForgotPassword: React.FC = () => {
         <div className="w-full max-w-md mx-auto">
           <div className="flex items-center justify-between mb-6">
             <Link 
-              to="/sign-in" 
+              to="/signin" 
               className="h-10 w-10 rounded-full flex items-center justify-center border border-gray-200 dark:border-gray-800"
             >
               <ArrowLeft size={20} />
             </Link>
-            <img 
-              src="/lovable-uploads/f01d03f8-3174-4828-bdcd-196b636f0b6f.png" 
-              alt="FuelFriendly Logo" 
-              className="h-12 w-12 object-contain dark:filter-none filter brightness-0 mx-auto"
-            />
+            {/* Logo removed as requested */}
             <div className="w-10"></div>
           </div>
           
@@ -122,7 +130,7 @@ const ForgotPassword: React.FC = () => {
           <div className="mt-6 text-center">
             <p className="text-gray-600 dark:text-gray-400 text-sm">
               Remember your password?{' '}
-              <Link to="/sign-in" className="text-green-500 font-semibold hover:underline">
+              <Link to="/signin" className="text-green-500 font-semibold hover:underline">
                 Sign In
               </Link>
             </p>
