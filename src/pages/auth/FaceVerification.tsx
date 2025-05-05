@@ -1,30 +1,145 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, Scan, Shield, Check } from 'lucide-react';
+import { ArrowLeft, Camera, Shield, Check } from 'lucide-react';
 
 const FaceVerification: React.FC = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [cameraActive, setCameraActive] = useState(false);
+  const [captureCount, setCaptureCount] = useState(0);
+  const [instructions, setInstructions] = useState('Get ready for face verification');
   
-  const handleStartVerification = () => {
-    setIsSubmitting(true);
-    // Simulate verification process
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setIsCompleted(true);
-      toast({
-        title: "Verification submitted",
-        description: "Your verification request has been submitted successfully."
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  
+  // Start camera when requested
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+          facingMode: "user"
+        } 
       });
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        setCameraActive(true);
+        setInstructions('Position your face in the frame');
+        
+        // Start the verification sequence after camera is initialized
+        setTimeout(() => startVerificationSequence(), 2000);
+      }
+    } catch (err) {
+      console.error("Error accessing camera:", err);
+      toast({
+        title: "Camera access denied",
+        description: "Please allow camera access to verify your identity",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  // Stop camera stream
+  const stopCamera = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
+      tracks.forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+      setCameraActive(false);
+    }
+  };
+  
+  // Clean up on unmount
+  useEffect(() => {
+    return () => {
+      stopCamera();
+    };
+  }, []);
+  
+  // Capture frame from video
+  const captureFrame = () => {
+    if (videoRef.current && canvasRef.current) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      const context = canvas.getContext('2d');
+      
+      if (context) {
+        // Set canvas dimensions to match video
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        // Draw video frame to canvas
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // Here you would normally send this image to a backend for processing
+        // For demo purposes, we'll just simulate progress
+        setCaptureCount(prev => prev + 1);
+        
+        // Return the data URL of the captured frame
+        return canvas.toDataURL('image/jpeg');
+      }
+    }
+    return null;
+  };
+  
+  // Verification sequence with multiple poses
+  const startVerificationSequence = () => {
+    const poses = [
+      { instruction: 'Look straight at the camera', delay: 3000 },
+      { instruction: 'Slowly turn your head to the right', delay: 3000 },
+      { instruction: 'Now turn your head to the left', delay: 3000 },
+      { instruction: 'Blink a few times', delay: 3000 }
+    ];
+    
+    setIsSubmitting(true);
+    
+    // Process each pose with delays
+    poses.forEach((pose, index) => {
       setTimeout(() => {
-        navigate('/home');
-      }, 2000);
-    }, 1500);
+        setInstructions(pose.instruction);
+        
+        // Capture frame after a brief moment
+        setTimeout(() => {
+          const capturedImage = captureFrame();
+          if (capturedImage) {
+            console.log(`Captured frame for pose: ${pose.instruction}`);
+            // Here you would send the image to your verification service
+          }
+          
+          // If this is the last pose, complete the verification
+          if (index === poses.length - 1) {
+            completeVerification();
+          }
+        }, 2000);
+      }, pose.delay * index);
+    });
+  };
+  
+  const completeVerification = () => {
+    stopCamera();
+    setIsSubmitting(false);
+    setIsCompleted(true);
+    toast({
+      title: "Verification submitted",
+      description: "Your verification request has been submitted successfully."
+    });
+    
+    // Navigate after a delay
+    setTimeout(() => {
+      navigate('/');
+    }, 3000);
+  };
+  
+  const skipVerification = () => {
+    stopCamera();
+    navigate('/');
   };
 
   return (
@@ -107,7 +222,7 @@ const FaceVerification: React.FC = () => {
                   Your verification request has been received. We'll verify your identity within 24 hours.
                 </p>
                 <Button 
-                  onClick={() => navigate('/home')}
+                  onClick={() => navigate('/')}
                   className="w-full h-12 rounded-full bg-green-500 hover:bg-green-600 text-white font-medium"
                 >
                   Continue to App
@@ -117,53 +232,81 @@ const FaceVerification: React.FC = () => {
               <>
                 <div className="flex items-center justify-center mb-4">
                   <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center">
-                    <Scan className="h-8 w-8 text-green-500" />
+                    <Camera className="h-8 w-8 text-green-500" />
                   </div>
                 </div>
                 <h2 className="text-xl font-bold text-white text-center mb-2">Face Verification</h2>
-                <p className="text-gray-300 text-center mb-6">
-                  For security purposes, we need to verify your identity. This helps ensure the safety of all our users.
+                <p className="text-gray-300 text-center mb-4">
+                  {cameraActive ? instructions : 'For security purposes, we need to verify your identity using your camera.'}
                 </p>
                 
-                <div className="space-y-4 mb-6">
-                  <div className="flex items-start p-3 bg-gray-700/50 rounded-lg">
-                    <Shield className="h-6 w-6 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <h3 className="text-sm font-medium text-white">Verification Process</h3>
-                      <p className="text-xs text-gray-300">We'll verify your identity within 24 hours after submission.</p>
+                {cameraActive && (
+                  <div className="relative mb-6">
+                    <div className="relative">
+                      <video 
+                        ref={videoRef} 
+                        autoPlay 
+                        playsInline 
+                        muted 
+                        className="w-full rounded-lg border-2 border-green-500"
+                      />
+                      <div className="absolute inset-0 border-4 border-green-500 rounded-lg opacity-50 pointer-events-none"></div>
+                      {captureCount > 0 && (
+                        <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full w-8 h-8 flex items-center justify-center">
+                          {captureCount}/4
+                        </div>
+                      )}
                     </div>
+                    <canvas ref={canvasRef} className="hidden" />
                   </div>
-                  
-                  <div className="flex items-start p-3 bg-gray-700/50 rounded-lg">
-                    <Scan className="h-6 w-6 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <h3 className="text-sm font-medium text-white">Secure & Private</h3>
-                      <p className="text-xs text-gray-300">Your data is encrypted and will only be used for verification.</p>
-                    </div>
-                  </div>
-                </div>
+                )}
                 
-                <Button 
-                  onClick={handleStartVerification}
-                  disabled={isSubmitting}
-                  className="w-full h-12 rounded-full bg-green-500 hover:bg-green-600 text-white font-medium flex items-center justify-center"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <span className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
-                      Processing...
-                    </>
-                  ) : (
-                    "Start Verification"
-                  )}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => navigate('/home')}
-                  className="w-full mt-3 h-12 rounded-full border-2 border-gray-600 bg-transparent text-gray-300 hover:bg-gray-700 font-medium"
-                >
-                  Skip for Now
-                </Button>
+                {!cameraActive && !isSubmitting && (
+                  <div className="space-y-4 mb-6">
+                    <div className="flex items-start p-3 bg-gray-700/50 rounded-lg">
+                      <Shield className="h-6 w-6 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <h3 className="text-sm font-medium text-white">Live Verification</h3>
+                        <p className="text-xs text-gray-300">We'll guide you through a series of facial movements to verify your identity.</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start p-3 bg-gray-700/50 rounded-lg">
+                      <Camera className="h-6 w-6 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <h3 className="text-sm font-medium text-white">Camera Required</h3>
+                        <p className="text-xs text-gray-300">Please allow camera access when prompted. This is secure and private.</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {!cameraActive && !isSubmitting && (
+                  <Button 
+                    onClick={startCamera}
+                    className="w-full h-12 rounded-full bg-green-500 hover:bg-green-600 text-white font-medium"
+                  >
+                    Start Live Verification
+                  </Button>
+                )}
+                
+                {isSubmitting && (
+                  <div className="flex items-center justify-center mt-4">
+                    <div className="animate-spin h-5 w-5 border-2 border-green-500 border-t-transparent rounded-full mr-2"></div>
+                    <span className="text-gray-300">Processing...</span>
+                  </div>
+                )}
+                
+                {!isSubmitting && (
+                  <Button
+                    variant="outline"
+                    onClick={skipVerification}
+                    className="w-full mt-3 h-12 rounded-full border-2 border-gray-600 bg-transparent text-gray-300 hover:bg-gray-700 font-medium"
+                  >
+                    Skip for Now
+                  </Button>
+                )}
+                
                 <p className="text-xs text-gray-400 text-center mt-4">
                   Skipping verification will limit some app features
                 </p>
