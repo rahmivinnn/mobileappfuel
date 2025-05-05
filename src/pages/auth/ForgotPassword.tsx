@@ -6,6 +6,7 @@ import { Hexagon, ArrowLeft, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const ForgotPassword: React.FC = () => {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ const ForgotPassword: React.FC = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -24,17 +26,14 @@ const ForgotPassword: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrorMessage(null);
     
     // Simulate API call
     setTimeout(() => {
       setIsLoading(false);
       
-      // Show Twilio token error toast
-      toast({
-        title: "Error: Invalid Twilio Token",
-        description: "The Twilio token is incorrect or has expired. Please contact support.",
-        variant: "destructive"
-      });
+      // Show Twilio token error directly below the button
+      setErrorMessage("Error: The Twilio token is incorrect or has expired. Please contact support.");
       
       // We're deliberately NOT navigating to the OTP verification screen since we're showing an error
     }, 1000);
@@ -113,6 +112,15 @@ const ForgotPassword: React.FC = () => {
                 'Send Reset Code'
               )}
             </Button>
+            
+            {/* Error message display */}
+            {errorMessage && (
+              <Alert variant="destructive" className="mt-4 border-red-500">
+                <AlertDescription className="text-sm text-red-600 dark:text-red-400">
+                  {errorMessage}
+                </AlertDescription>
+              </Alert>
+            )}
           </form>
           
           <div className="mt-6 text-center">
