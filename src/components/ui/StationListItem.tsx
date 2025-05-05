@@ -40,7 +40,7 @@ const StationListItem: React.FC<StationListItemProps> = ({
   // Use gas station image if the provided URL fails to load
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     setImageError(true);
-    e.currentTarget.src = "/lovable-uploads/e7264ee5-ed98-4679-91b4-8f12d183784b.png";
+    e.currentTarget.src = "/lovable-uploads/f01d03f8-3174-4828-bdcd-196b636f0b6f.png";
   };
 
   return (
@@ -64,7 +64,7 @@ const StationListItem: React.FC<StationListItemProps> = ({
           ) : (
             <div className="flex items-center justify-center w-full h-full bg-green-100">
               <img 
-                src="/lovable-uploads/e7264ee5-ed98-4679-91b4-8f12d183784b.png"
+                src="/lovable-uploads/f01d03f8-3174-4828-bdcd-196b636f0b6f.png"
                 alt="Gas Station"
                 className="w-full h-full object-cover"
               />

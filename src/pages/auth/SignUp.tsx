@@ -7,51 +7,84 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from '@/hooks/use-toast';
 import { ArrowLeft } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 interface SignUpProps {
   onLogin: (token: string) => void;
 }
 
+// List of countries in English
+const countries = [
+  { code: 'ID', name: 'Indonesia' },
+  { code: 'MY', name: 'Malaysia' },
+  { code: 'SG', name: 'Singapore' },
+  { code: 'TH', name: 'Thailand' },
+  { code: 'PH', name: 'Philippines' },
+  { code: 'VN', name: 'Vietnam' },
+  { code: 'US', name: 'United States' },
+  { code: 'GB', name: 'United Kingdom' },
+  { code: 'AU', name: 'Australia' },
+  { code: 'JP', name: 'Japan' },
+  // Add more countries as needed
+].sort((a, b) => a.name.localeCompare(b.name));
+
+// Form schema
+const formSchema = z.object({
+  name: z.string().min(2, { message: 'Name must be at least 2 characters' }),
+  email: z.string().email({ message: 'Please enter a valid email address' }),
+  password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
+  country: z.string().min(1, { message: 'Please select a country' }),
+  agreeTerms: z.boolean().refine(val => val === true, {
+    message: 'You must agree to the terms and conditions',
+  })
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
 const SignUp: React.FC<SignUpProps> = ({ onLogin }) => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [agreeTerms, setAgreeTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!name || !email || !password) {
-      toast({
-        title: "Validation Error",
-        description: "Please fill in all fields",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    if (!agreeTerms) {
-      toast({
-        title: "Terms Agreement",
-        description: "Please agree to our terms and conditions",
-        variant: "destructive"
-      });
-      return;
-    }
-    
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+      country: 'ID', // Default to Indonesia
+      agreeTerms: false,
+    },
+  });
+
+  const handleSignUp = async (values: FormValues) => {
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      
+      // Store country in localStorage for map and station filtering
+      localStorage.setItem('userCountry', values.country);
+      localStorage.setItem('userCountryName', countries.find(c => c.code === values.country)?.name || 'Indonesia');
+      
       // Mock successful registration
       const token = "mock-auth-token-" + Math.random();
       onLogin(token);
-      setIsLoading(false);
       // Redirect to face verification instead of home
       navigate('/face-verification');
-    }, 1500);
+    } catch (error) {
+      toast({
+        title: "Registration Error",
+        description: "An error occurred during registration",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   const handleGoogleSignUp = () => {
@@ -62,6 +95,9 @@ const SignUp: React.FC<SignUpProps> = ({ onLogin }) => {
       const token = "google-auth-token-" + Math.random();
       onLogin(token);
       setIsLoading(false);
+      // Set default country if signing up with Google
+      localStorage.setItem('userCountry', 'ID');
+      localStorage.setItem('userCountryName', 'Indonesia');
       // Redirect to face verification instead of home
       navigate('/face-verification');
     }, 1500);
@@ -141,82 +177,143 @@ const SignUp: React.FC<SignUpProps> = ({ onLogin }) => {
             <p className="text-gray-400">Sign up to get started</p>
           </div>
 
-          <form onSubmit={handleSignUp} className="space-y-6">
-            <div>
-              <Input
-                type="text"
-                placeholder="Full Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="h-12 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 rounded-lg"
-                required
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSignUp)} className="space-y-6">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        type="text"
+                        placeholder="Full Name"
+                        className="h-12 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 rounded-lg"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage className="text-red-400 text-sm" />
+                  </FormItem>
+                )}
               />
-            </div>
-            <div>
-              <Input
-                type="email"
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="h-12 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 rounded-lg"
-                required
+              
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        type="email"
+                        placeholder="Email address"
+                        className="h-12 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 rounded-lg"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage className="text-red-400 text-sm" />
+                  </FormItem>
+                )}
               />
-            </div>
-            <div>
-              <Input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="h-12 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 rounded-lg"
-                required
+              
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="Password"
+                        className="h-12 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 rounded-lg"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage className="text-red-400 text-sm" />
+                  </FormItem>
+                )}
               />
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="terms" 
-                checked={agreeTerms} 
-                onCheckedChange={(checked) => setAgreeTerms(checked as boolean)} 
-                className="border-green-500 data-[state=checked]:bg-green-500 data-[state=checked]:text-white"
+              
+              <FormField
+                control={form.control}
+                name="country"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        defaultValue={field.value}
+                      >
+                        <SelectTrigger className="h-12 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 rounded-lg">
+                          <SelectValue placeholder="Select your country" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-800 border-gray-700 text-white">
+                          {countries.map((country) => (
+                            <SelectItem key={country.code} value={country.code} className="hover:bg-gray-700">
+                              {country.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage className="text-red-400 text-sm" />
+                  </FormItem>
+                )}
               />
-              <label htmlFor="terms" className="text-sm text-gray-400">
-                I agree to the <Link to="#" className="text-green-500 hover:underline">Terms of Service</Link> and <Link to="#" className="text-green-500 hover:underline">Privacy Policy</Link>
-              </label>
-            </div>
-            
-            <Button 
-              type="submit" 
-              className="w-full h-12 rounded-full bg-green-500 hover:bg-green-600 text-white font-medium text-base"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Creating account...' : 'Sign Up'}
-            </Button>
-            
-            <div className="flex items-center my-4">
-              <div className="flex-1 h-px bg-gray-800"></div>
-              <span className="px-4 text-sm text-gray-500">Or</span>
-              <div className="flex-1 h-px bg-gray-800"></div>
-            </div>
+              
+              <FormField
+                control={form.control}
+                name="agreeTerms"
+                render={({ field }) => (
+                  <FormItem className="flex items-center space-x-2">
+                    <FormControl>
+                      <Checkbox 
+                        id="terms" 
+                        checked={field.value} 
+                        onCheckedChange={field.onChange}
+                        className="border-green-500 data-[state=checked]:bg-green-500 data-[state=checked]:text-white"
+                      />
+                    </FormControl>
+                    <label htmlFor="terms" className="text-sm text-gray-400">
+                      I agree to the <Link to="#" className="text-green-500 hover:underline">Terms of Service</Link> and <Link to="#" className="text-green-500 hover:underline">Privacy Policy</Link>
+                    </label>
+                    <FormMessage className="text-red-400 text-sm" />
+                  </FormItem>
+                )}
+              />
+              
+              <Button 
+                type="submit" 
+                className="w-full h-12 rounded-full bg-green-500 hover:bg-green-600 text-white font-medium text-base"
+                disabled={isLoading}
+              >
+                {isLoading ? 'Creating account...' : 'Sign Up'}
+              </Button>
+            </form>
+          </Form>
 
-            <Button 
-              type="button" 
-              variant="outline" 
-              className="w-full h-12 rounded-full border-2 border-green-500 bg-transparent text-white hover:bg-green-500/10 font-medium text-base flex items-center justify-center gap-2"
-              onClick={handleGoogleSignUp}
-              disabled={isLoading}
-            >
-              <svg viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
-                <g transform="matrix(1, 0, 0, 1, 27.009001, -39.238998)">
-                  <path fill="#4285F4" d="M -3.264 51.509 C -3.264 50.719 -3.334 49.969 -3.454 49.239 L -14.754 49.239 L -14.754 53.749 L -8.284 53.749 C -8.574 55.229 -9.424 56.479 -10.684 57.329 L -10.684 60.329 L -6.824 60.329 C -4.564 58.239 -3.264 55.159 -3.264 51.509 Z"/>
-                  <path fill="#34A853" d="M -14.754 63.239 C -11.514 63.239 -8.804 62.159 -6.824 60.329 L -10.684 57.329 C -11.764 58.049 -13.134 58.489 -14.754 58.489 C -17.884 58.489 -20.534 56.379 -21.484 53.529 L -25.464 53.529 L -25.464 56.619 C -23.494 60.539 -19.444 63.239 -14.754 63.239 Z"/>
-                  <path fill="#FBBC05" d="M -21.484 53.529 C -21.734 52.809 -21.864 52.039 -21.864 51.239 C -21.864 50.439 -21.724 49.669 -21.484 48.949 L -21.484 45.859 L -25.464 45.859 C -26.284 47.479 -26.754 49.299 -26.754 51.239 C -26.754 53.179 -26.284 54.999 -25.464 56.619 L -21.484 53.529 Z"/>
-                  <path fill="#EA4335" d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 42.369 C -8.804 40.429 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z"/>
-                </g>
-              </svg>
-              Continue with Google
-            </Button>
-          </form>
+          <div className="flex items-center my-4">
+            <div className="flex-1 h-px bg-gray-800"></div>
+            <span className="px-4 text-sm text-gray-500">Or</span>
+            <div className="flex-1 h-px bg-gray-800"></div>
+          </div>
+
+          <Button 
+            type="button" 
+            variant="outline" 
+            className="w-full h-12 rounded-full border-2 border-green-500 bg-transparent text-white hover:bg-green-500/10 font-medium text-base flex items-center justify-center gap-2"
+            onClick={handleGoogleSignUp}
+            disabled={isLoading}
+          >
+            <svg viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+              <g transform="matrix(1, 0, 0, 1, 27.009001, -39.238998)">
+                <path fill="#4285F4" d="M -3.264 51.509 C -3.264 50.719 -3.334 49.969 -3.454 49.239 L -14.754 49.239 L -14.754 53.749 L -8.284 53.749 C -8.574 55.229 -9.424 56.479 -10.684 57.329 L -10.684 60.329 L -6.824 60.329 C -4.564 58.239 -3.264 55.159 -3.264 51.509 Z"/>
+                <path fill="#34A853" d="M -14.754 63.239 C -11.514 63.239 -8.804 62.159 -6.824 60.329 L -10.684 57.329 C -11.764 58.049 -13.134 58.489 -14.754 58.489 C -17.884 58.489 -20.534 56.379 -21.484 53.529 L -25.464 53.529 L -25.464 56.619 C -23.494 60.539 -19.444 63.239 -14.754 63.239 Z"/>
+                <path fill="#FBBC05" d="M -21.484 53.529 C -21.734 52.809 -21.864 52.039 -21.864 51.239 C -21.864 50.439 -21.724 49.669 -21.484 48.949 L -21.484 45.859 L -25.464 45.859 C -26.284 47.479 -26.754 49.299 -26.754 51.239 C -26.754 53.179 -26.284 54.999 -25.464 56.619 L -21.484 53.529 Z"/>
+                <path fill="#EA4335" d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 42.369 C -8.804 40.429 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z"/>
+              </g>
+            </svg>
+            Continue with Google
+          </Button>
 
           <div className="text-center mt-8">
             <p className="text-gray-400 text-sm">
