@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Star, Banknote, Fuel } from 'lucide-react';
+import { MapPin, Star, Banknote, Fuel, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { formatToRupiah } from '@/pages/MapView';
 
@@ -34,8 +34,12 @@ const StationListItem: React.FC<StationListItemProps> = ({
     navigate(`/station/${id}`);
   };
 
+  // Improved image handling
+  const [imageError, setImageError] = React.useState(false);
+
   // Use fallback image if the provided URL fails to load
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    setImageError(true);
     e.currentTarget.src = "/lovable-uploads/8ed0bc34-d448-42c8-804a-8dda4e3e6840.png";
   };
 
@@ -50,7 +54,7 @@ const StationListItem: React.FC<StationListItemProps> = ({
     >
       <div className="flex p-2 gap-3">
         <div className="w-24 h-24 rounded-xl overflow-hidden bg-gray-200 flex items-center justify-center">
-          {imageUrl ? (
+          {!imageError && imageUrl ? (
             <img 
               src={imageUrl} 
               alt={name} 

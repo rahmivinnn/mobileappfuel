@@ -18,6 +18,12 @@ import { formatToRupiah } from './MapView';
 // Bandung coordinates
 const BANDUNG_COORDINATES = { lat: -6.9175, lng: 107.6191 };
 
+// Sample FuelFriendly agent locations near Bandung
+const fuelAgents = [
+  { lat: -6.9125, lng: 107.6181, name: "Agent John" },
+  { lat: -6.9190, lng: 107.6281, name: "Agent Sarah" }
+];
+
 // Calculate distance between two coordinates in km using Haversine formula
 function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
   const R = 6371; // Radius of the earth in km
@@ -95,6 +101,21 @@ const Index = () => {
     label: "Gas Station"
   }));
 
+  // Add FuelFriendly agents as markers
+  const agentMarkers = fuelAgents.map(agent => ({
+    position: {
+      lat: agent.lat,
+      lng: agent.lng
+    },
+    title: agent.name,
+    icon: "/lovable-uploads/1bc06a60-0463-4f47-abde-502bc408852e.png",
+    label: "FuelFriendly Agent",
+    isAgent: true
+  }));
+
+  // Combine regular markers with agent markers
+  const allMarkers = [...markers, ...agentMarkers];
+
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 pb-20">
       {/* Header */}
@@ -147,10 +168,15 @@ const Index = () => {
             center={BANDUNG_COORDINATES}
             zoom={13}
             mapStyle={currentMapStyle}
-            markers={markers}
+            markers={allMarkers}
             onStyleChange={(style) => setCurrentMapStyle(style)}
             onTrafficToggle={(show) => setShowTraffic(show)}
-            onMarkerClick={(index) => navigate(`/station/${filteredStations[index].id}`)}
+            onMarkerClick={(index) => {
+              // Only navigate to station details if it's a gas station marker
+              if (index < markers.length) {
+                navigate(`/station/${filteredStations[index].id}`);
+              }
+            }}
           />
         </div>
       </div>

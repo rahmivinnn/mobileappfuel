@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { MAPBOX_TOKEN, MAP_STYLES } from '@/config/mapbox';
-import { Map as MapIcon, Layers, Car, Target } from 'lucide-react';
+import { Map as MapIcon, Layers, Car, Target, User } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 // Set Mapbox token
@@ -16,6 +17,7 @@ interface MapProps extends React.HTMLAttributes<HTMLDivElement> {
     title?: string;
     icon?: string;
     label?: string;
+    isAgent?: boolean;
   }>;
   interactive?: boolean;
   directions?: boolean;
@@ -186,59 +188,116 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
           el.onclick = () => onMarkerClick(index);
         }
 
-        // Create marker HTML with label
-        el.innerHTML = `
-          <div style="position: relative; width: 100%; height: 100%;">
-            <div style="
-              position: absolute;
-              bottom: 0;
-              left: 50%;
-              transform: translateX(-50%);
-              width: 30px;
-              height: 30px;
-              background-color: #FF4136;
-              border-radius: 50% 50% 50% 0;
-              transform: translateX(-50%) rotate(-45deg);
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-              animation: bounce 1s ease-in-out infinite alternate;
-            ">
+        // Create marker HTML with label - different for gas stations and agents
+        if (marker.isAgent) {
+          // FuelFriendly Agent marker
+          el.innerHTML = `
+            <div style="position: relative; width: 100%; height: 100%;">
               <div style="
-                width: 20px;
-                height: 20px;
-                background-color: white;
-                border-radius: 50%;
-                transform: rotate(45deg);
+                position: absolute;
+                bottom: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 30px;
+                height: 30px;
+                background-color: #3B82F6;
+                border-radius: 50% 50% 50% 0;
+                transform: translateX(-50%) rotate(-45deg);
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                animation: bounce 1s ease-in-out infinite alternate;
               ">
-                ${marker.icon ? 
-                  `<img src="${marker.icon}" style="width: 14px; height: 14px; border-radius: 50%;">` : 
-                  `<div style="width: 10px; height: 10px; background: #FF4136; border-radius: 50%;"></div>`
-                }
+                <div style="
+                  width: 20px;
+                  height: 20px;
+                  background-color: white;
+                  border-radius: 50%;
+                  transform: rotate(45deg);
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                ">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user">
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                </div>
               </div>
+              ${marker.label ? 
+                `<div style="
+                  position: absolute;
+                  white-space: nowrap;
+                  bottom: -20px;
+                  left: 50%;
+                  transform: translateX(-50%);
+                  background-color: rgba(59,130,246,0.8);
+                  color: white;
+                  padding: 2px 5px;
+                  border-radius: 4px;
+                  font-size: 10px;
+                  font-family: Arial, sans-serif;
+                ">${marker.label}</div>` : 
+                ''
+              }
             </div>
-            ${marker.label ? 
-              `<div style="
+          `;
+        } else {
+          // Regular gas station marker
+          el.innerHTML = `
+            <div style="position: relative; width: 100%; height: 100%;">
+              <div style="
                 position: absolute;
-                white-space: nowrap;
-                bottom: -20px;
+                bottom: 0;
                 left: 50%;
                 transform: translateX(-50%);
-                background-color: rgba(0,0,0,0.6);
-                color: white;
-                padding: 2px 5px;
-                border-radius: 4px;
-                font-size: 10px;
-                font-family: Arial, sans-serif;
-              ">${marker.label}</div>` : 
-              ''
-            }
-          </div>
-        `;
+                width: 30px;
+                height: 30px;
+                background-color: #FF4136;
+                border-radius: 50% 50% 50% 0;
+                transform: translateX(-50%) rotate(-45deg);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                animation: bounce 1s ease-in-out infinite alternate;
+              ">
+                <div style="
+                  width: 20px;
+                  height: 20px;
+                  background-color: white;
+                  border-radius: 50%;
+                  transform: rotate(45deg);
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                ">
+                  ${marker.icon ? 
+                    `<img src="${marker.icon}" style="width: 14px; height: 14px; border-radius: 50%;">` : 
+                    `<div style="width: 10px; height: 10px; background: #FF4136; border-radius: 50%;"></div>`
+                  }
+                </div>
+              </div>
+              ${marker.label ? 
+                `<div style="
+                  position: absolute;
+                  white-space: nowrap;
+                  bottom: -20px;
+                  left: 50%;
+                  transform: translateX(-50%);
+                  background-color: rgba(0,0,0,0.6);
+                  color: white;
+                  padding: 2px 5px;
+                  border-radius: 4px;
+                  font-size: 10px;
+                  font-family: Arial, sans-serif;
+                ">${marker.label}</div>` : 
+                ''
+              }
+            </div>
+          `;
+        }
 
         // Add keyframes for bounce animation
         if (!document.querySelector('#bounce-animation')) {

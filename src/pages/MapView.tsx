@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Map from '@/components/ui/Map';
@@ -9,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MAPBOX_STYLE, MAP_STYLES } from '@/config/mapbox';
 import { useGeolocation } from '@/hooks/use-geolocation';
 import { Button } from '@/components/ui/button';
-import { MapPin, AlertCircle } from 'lucide-react';
+import { MapPin, AlertCircle, User } from 'lucide-react';
 
 // Bandung coordinates
 const BANDUNG_COORDINATES = { lat: -6.9175, lng: 107.6191 };
@@ -24,6 +23,13 @@ export const formatToRupiah = (number: number | string) => {
     maximumFractionDigits: 0
   }).format(num);
 };
+
+// Sample FuelFriendly agent locations near Bandung
+const fuelAgents = [
+  { lat: -6.9125, lng: 107.6181, name: "Agent John" },
+  { lat: -6.9190, lng: 107.6281, name: "Agent Sarah" },
+  { lat: -6.9075, lng: 107.6091, name: "Agent Mike" }
+];
 
 // Calculate distance between two coordinates in km
 function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
@@ -86,13 +92,34 @@ const MapView: React.FC = () => {
     },
     title: station.name,
     icon: station.imageUrl,
-    label: "SPBU"
+    label: "Gas Station"
   }));
 
+  // Add FuelFriendly agents as markers
+  const agentMarkers = fuelAgents.map(agent => ({
+    position: {
+      lat: agent.lat,
+      lng: agent.lng
+    },
+    title: agent.name,
+    icon: "/lovable-uploads/1bc06a60-0463-4f47-abde-502bc408852e.png", // Using a placeholder icon
+    label: "FuelFriendly Agent",
+    isAgent: true
+  }));
+
+  // Combine regular markers with agent markers
+  const allMarkers = [...markers, ...agentMarkers];
+
   const handleMarkerClick = (index: number) => {
-    const stationId = sortedStations[index].id;
-    setSelectedStationId(stationId);
-    navigate(`/station/${stationId}`);
+    // Only navigate to station details if it's a gas station marker
+    if (index < markers.length) {
+      const stationId = sortedStations[index].id;
+      setSelectedStationId(stationId);
+      navigate(`/station/${stationId}`);
+    } else {
+      // Handle agent marker click if needed
+      console.log("Agent clicked:", agentMarkers[index - markers.length].title);
+    }
   };
 
   // Handle map style change
@@ -140,7 +167,7 @@ const MapView: React.FC = () => {
           className="w-full h-full"
           zoom={13}
           center={BANDUNG_COORDINATES}
-          markers={markers}
+          markers={allMarkers}
           onMarkerClick={handleMarkerClick}
           showBackButton={true}
           interactive={true}
