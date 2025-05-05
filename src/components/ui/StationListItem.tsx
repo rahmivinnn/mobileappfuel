@@ -1,8 +1,9 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Star, Banknote, Fuel, User } from 'lucide-react';
+import { MapPin, Star, Banknote, Fuel, User, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { formatToCurrency } from '@/utils/currencyUtils';
 
 interface StationListItemProps {
   id: string;
@@ -14,39 +15,8 @@ interface StationListItemProps {
   reviewCount?: number;
   imageUrl: string;
   delay?: number;
-}
-
-// Currency mappings for different countries
-const currencyFormats: Record<string, (price: string | number) => string> = {
-  'ID': (price) => {
-    const num = typeof price === 'string' ? parseFloat(price) : price;
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(num);
-  },
-  'MY': (price) => `RM ${Number(price).toFixed(2)}`,
-  'SG': (price) => `S$ ${Number(price).toFixed(2)}`,
-  'TH': (price) => `฿ ${Number(price).toFixed(2)}`,
-  'PH': (price) => `₱ ${Number(price).toFixed(2)}`,
-  'VN': (price) => `₫ ${Number(price).toLocaleString()}`,
-  'US': (price) => `$ ${Number(price).toFixed(2)}`,
-  'GB': (price) => `£ ${Number(price).toFixed(2)}`,
-  'AU': (price) => `A$ ${Number(price).toFixed(2)}`,
-  'JP': (price) => `¥ ${Number(price).toLocaleString()}`,
-  'CA': (price) => `C$ ${Number(price).toFixed(2)}`,
-  'DE': (price) => `€ ${Number(price).toFixed(2)}`,
-  'FR': (price) => `€ ${Number(price).toFixed(2)}`,
-  'IT': (price) => `€ ${Number(price).toFixed(2)}`,
-  'ES': (price) => `€ ${Number(price).toFixed(2)}`,
-  'BR': (price) => `R$ ${Number(price).toFixed(2)}`,
-  'MX': (price) => `MX$ ${Number(price).toFixed(2)}`,
-  'IN': (price) => `₹ ${Number(price).toFixed(2)}`,
-  'CN': (price) => `¥ ${Number(price).toLocaleString()}`,
-  'RU': (price) => `₽ ${Number(price).toLocaleString()}`,
-  'ZA': (price) => `R ${Number(price).toFixed(2)}`,
+  isOpen?: boolean;
+  openStatus?: string;
 }
 
 const StationListItem: React.FC<StationListItemProps> = ({
@@ -58,7 +28,9 @@ const StationListItem: React.FC<StationListItemProps> = ({
   rating,
   reviewCount = 24,
   imageUrl,
-  delay = 0
+  delay = 0,
+  isOpen = true,
+  openStatus
 }) => {
   const navigate = useNavigate();
 
@@ -78,11 +50,22 @@ const StationListItem: React.FC<StationListItemProps> = ({
   // Get user's country from localStorage to determine currency format
   const userCountry = localStorage.getItem('userCountry') || 'ID';
   
-  // Format price according to country currency
-  const formatPrice = (price: string | number): string => {
-    const formatter = currencyFormats[userCountry] || currencyFormats['ID']; // Default to IDR
-    return formatter(price);
+  // Get translated labels based on the user's country/language
+  // For now, using English universally, but could be expanded for localization
+  const getLabels = () => {
+    const labels = {
+      fuelPrice: "Fuel Price",
+      distance: "Distance",
+      reviews: "Reviews",
+      status: "Status",
+      select: "Select"
+    };
+    
+    return labels;
   };
+  
+  const labels = getLabels();
+  const displayStatus = openStatus || (isOpen ? "Open" : "Closed");
 
   return (
     <motion.div
@@ -117,19 +100,27 @@ const StationListItem: React.FC<StationListItemProps> = ({
           
           <div className="flex items-center text-green-500 mt-2 gap-2">
             <Banknote className="h-4 w-4" />
-            <p className="text-sm">Fuel Price</p>
-            <p className="text-right flex-1 font-bold">{formatPrice(price)}</p>
+            <p className="text-sm">{labels.fuelPrice}</p>
+            <p className="text-right flex-1 font-bold">{formatToCurrency(price, userCountry)}</p>
           </div>
           
           <div className="flex items-center text-orange-500 mt-1 gap-2">
             <MapPin className="h-4 w-4" />
-            <p className="text-sm">Distance</p>
+            <p className="text-sm">{labels.distance}</p>
             <p className="text-right flex-1">{distance} km</p>
+          </div>
+          
+          <div className="flex items-center text-blue-500 mt-1 gap-2">
+            <Clock className="h-4 w-4" />
+            <p className="text-sm">{labels.status}</p>
+            <p className={`text-right flex-1 ${isOpen ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+              {displayStatus}
+            </p>
           </div>
           
           <div className="flex items-center text-yellow-500 mt-1 gap-2">
             <Star className="h-4 w-4" />
-            <p className="text-sm">Reviews</p>
+            <p className="text-sm">{labels.reviews}</p>
             <p className="text-right flex-1">{rating} ({reviewCount} Reviews)</p>
           </div>
         </div>
@@ -139,7 +130,7 @@ const StationListItem: React.FC<StationListItemProps> = ({
         onClick={handleClick}
         className="w-full bg-green-500 text-white py-3 font-medium hover:bg-green-600 transition-colors"
       >
-        Select {name}
+        {labels.select} {name}
       </button>
     </motion.div>
   );

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -44,13 +43,18 @@ function AppRoutes() {
   const handleLogin = (token: string) => {
     console.log("User logged in with token:", token);
     localStorage.setItem("auth-token", token);
-    navigate('/'); // Ensure navigation to home on login
+    // Navigate to face verification for new users, or home for returning users
+    if (localStorage.getItem('user-faces-verified') === 'true') {
+      navigate('/');
+    } else {
+      navigate('/face-verification');
+    }
   };
 
   const handleLogout = () => {
     console.log("User logged out");
     localStorage.removeItem("auth-token");
-    navigate("/signin");
+    navigate("/welcome");
   };
 
   return (
@@ -87,11 +91,40 @@ function AppRoutes() {
 
 function App() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isLoading, setIsLoading] = useState(true);
+
+  // Check if user is visiting app for the first time
+  useEffect(() => {
+    const isFirstVisit = !localStorage.getItem('visited');
+    if (isFirstVisit) {
+      localStorage.setItem('visited', 'true');
+      // Default to Indonesia if not set
+      if (!localStorage.getItem('userCountry')) {
+        localStorage.setItem('userCountry', 'ID');
+        localStorage.setItem('userCountryName', 'Indonesia');
+      }
+    }
+  }, []);
 
   const handleSplashScreenFinish = useCallback(() => {
     setIsLoading(false);
-    navigate('/welcome'); // Changed from '/signin' to '/welcome' to show the welcome screen first
+    
+    // Check if user is already logged in
+    const token = localStorage.getItem('auth-token');
+    
+    if (token) {
+      // If there's a token, the user is logged in
+      // Check if they need to complete face verification
+      if (!localStorage.getItem('user-faces-verified')) {
+        navigate('/face-verification');
+      } else {
+        navigate('/');
+      }
+    } else {
+      // Otherwise show welcome screen
+      navigate('/welcome');
+    }
   }, [navigate]);
 
   return (

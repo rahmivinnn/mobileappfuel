@@ -1,9 +1,9 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Star, MapPin, Banknote, Fuel } from 'lucide-react';
+import { Star, MapPin, Banknote, Fuel, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { formatToRupiah } from '@/pages/MapView';
+import { formatToRupiah } from '@/utils/currencyUtils';
 
 interface StationCardProps {
   id: string;
@@ -41,6 +41,20 @@ const currencyFormats: Record<string, (price: string | number) => string> = {
   'CN': (price) => `¥ ${Number(price).toLocaleString()}`,
   'RU': (price) => `₽ ${Number(price).toLocaleString()}`,
   'ZA': (price) => `R ${Number(price).toFixed(2)}`,
+  'AE': (price) => `AED ${Number(price).toFixed(2)}`,
+  'AR': (price) => `AR$ ${Number(price).toFixed(2)}`,
+  'CL': (price) => `CLP ${Number(price).toLocaleString()}`,
+  'CO': (price) => `COP ${Number(price).toLocaleString()}`,
+  'CR': (price) => `₡ ${Number(price).toLocaleString()}`,
+  'EG': (price) => `E£ ${Number(price).toFixed(2)}`,
+  'HK': (price) => `HK$ ${Number(price).toFixed(2)}`,
+  'IL': (price) => `₪ ${Number(price).toFixed(2)}`,
+  'KR': (price) => `₩ ${Number(price).toLocaleString()}`,
+  'NZ': (price) => `NZ$ ${Number(price).toFixed(2)}`,
+  'NO': (price) => `kr ${Number(price).toFixed(2)}`,
+  'SE': (price) => `kr ${Number(price).toFixed(2)}`,
+  'CH': (price) => `CHF ${Number(price).toFixed(2)}`,
+  'TR': (price) => `₺ ${Number(price).toFixed(2)}`
 }
 
 const StationCard: React.FC<StationCardProps> = ({
@@ -58,7 +72,7 @@ const StationCard: React.FC<StationCardProps> = ({
   const navigate = useNavigate();
   // Use the provided image or default to fuel pump image
   const displayImage = imageUrl || image || "/lovable-uploads/f01d03f8-3174-4828-bdcd-196b636f0b6f.png";
-  const displayStatus = openStatus || (isOpen ? "Buka" : "Tutup");
+  const displayStatus = openStatus || (isOpen ? "Open" : "Closed");
 
   // Get the lowest price from the first fuel type if price is not provided
   const displayPrice = price || "10000";  // Default price if not provided
@@ -80,6 +94,22 @@ const StationCard: React.FC<StationCardProps> = ({
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     e.currentTarget.src = "/lovable-uploads/f01d03f8-3174-4828-bdcd-196b636f0b6f.png";
   };
+
+  // Determine language based on country for labels
+  const getLabels = () => {
+    const labels = {
+      fuelPrice: "Fuel Price",
+      distance: "Distance",
+      select: "Select Station"
+    };
+    
+    // Add language localization if needed
+    // For now we'll use English for all countries
+    
+    return labels;
+  };
+  
+  const labels = getLabels();
 
   return (
     <motion.div
@@ -103,14 +133,22 @@ const StationCard: React.FC<StationCardProps> = ({
         <div className="flex flex-col gap-2">
           <div className="flex items-center">
             <Banknote className="h-4 w-4 text-green-500 mr-2" />
-            <span className="text-sm text-green-700 dark:text-green-400">Harga BBM</span>
+            <span className="text-sm text-green-700 dark:text-green-400">{labels.fuelPrice}</span>
             <span className="ml-auto font-bold text-gray-900 dark:text-white">{formatPrice(displayPrice)}</span>
           </div>
 
           <div className="flex items-center">
             <MapPin className="h-4 w-4 text-orange-500 mr-2" />
-            <span className="text-sm text-gray-600 dark:text-gray-400">Jarak</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400">{labels.distance}</span>
             <span className="ml-auto text-gray-700 dark:text-gray-300">{distance} km</span>
+          </div>
+          
+          <div className="flex items-center">
+            <Clock className="h-4 w-4 text-blue-500 mr-2" />
+            <span className="text-sm text-gray-600 dark:text-gray-400">Status</span>
+            <span className={`ml-auto ${isOpen ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+              {displayStatus}
+            </span>
           </div>
         </div>
         
@@ -129,7 +167,7 @@ const StationCard: React.FC<StationCardProps> = ({
       <button
         className="mt-auto w-full bg-green-500 text-white py-2 font-medium hover:bg-green-600 transition-colors"
       >
-        Pilih SPBU
+        {labels.select}
       </button>
     </motion.div>
   );
