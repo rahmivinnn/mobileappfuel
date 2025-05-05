@@ -90,8 +90,8 @@ const Index = () => {
     navigate('/map');
   };
 
-  // Gas station image URL
-  const gasStationIconUrl = "/lovable-uploads/af30f547-2e68-4706-8f5d-4a84088b6f19.png";
+  // Gas station image URL - updated to use the new image
+  const gasStationIconUrl = "/lovable-uploads/e7264ee5-ed98-4679-91b4-8f12d183784b.png";
 
   // Convert stations to map markers - limit to nearest 5
   const markers = filteredStations.slice(0, 5).map(station => ({
@@ -100,7 +100,7 @@ const Index = () => {
       lng: station.position.lng
     },
     title: station.name,
-    icon: gasStationIconUrl, // Use consistent gas station icon
+    icon: gasStationIconUrl, // Use new gas station icon
     label: "Gas Station"
   }));
 
