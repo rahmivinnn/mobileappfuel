@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Filter, Bell, User, Home, ShoppingBag, MapPin, Settings } from 'lucide-react';
+import { Search, Filter, Bell, User, Home, ShoppingBag, MapPin, Settings, Fuel } from 'lucide-react';
 import BottomNav from '@/components/layout/BottomNav';
 import StationCard from '@/components/ui/StationCard';
 import Map from '@/components/ui/Map';
@@ -18,6 +18,24 @@ import { formatToRupiah } from './MapView';
 // Bandung coordinates
 const BANDUNG_COORDINATES = { lat: -6.9175, lng: 107.6191 };
 
+// Calculate distance between two coordinates in km using Haversine formula
+function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 6371; // Radius of the earth in km
+  const dLat = deg2rad(lat2 - lat1);
+  const dLon = deg2rad(lon2 - lon1);
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2); 
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+  const d = R * c; // Distance in km
+  return d;
+}
+
+function deg2rad(deg: number) {
+  return deg * (Math.PI/180);
+}
+
 const Index = () => {
   const { location } = useGeolocation();
   const [searchQuery, setSearchQuery] = useState('');
@@ -29,7 +47,25 @@ const Index = () => {
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
   const navigate = useNavigate();
 
-  const filteredStations = allStations
+  // Calculate actual distances based on user location or default to Bandung
+  const stationsWithDistance = allStations.map(station => {
+    const userLat = location?.lat || BANDUNG_COORDINATES.lat;
+    const userLng = location?.lng || BANDUNG_COORDINATES.lng;
+    const distance = getDistance(
+      userLat, 
+      userLng, 
+      station.position.lat, 
+      station.position.lng
+    ).toFixed(1);
+    
+    return {
+      ...station,
+      distance
+    };
+  });
+
+  // Filter and sort stations by distance
+  const filteredStations = stationsWithDistance
     .filter(station =>
       station.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       station.address.toLowerCase().includes(searchQuery.toLowerCase())
@@ -48,7 +84,7 @@ const Index = () => {
     navigate('/map');
   };
 
-  // Convert stations to map markers
+  // Convert stations to map markers - limit to nearest 5
   const markers = filteredStations.slice(0, 5).map(station => ({
     position: {
       lat: station.position.lat,
@@ -56,7 +92,7 @@ const Index = () => {
     },
     title: station.name,
     icon: station.imageUrl,
-    label: "Fuel station"
+    label: "SPBU"
   }));
 
   return (
@@ -89,7 +125,7 @@ const Index = () => {
             </div>
             <input
               type="text"
-              placeholder="Search for fuel and gr..."
+              placeholder="Cari SPBU terdekat..."
               className="h-12 w-full rounded-full bg-gray-100 dark:bg-gray-800 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -122,11 +158,11 @@ const Index = () => {
       {/* Stations List */}
       <div className="px-4 pt-4">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-          Fuel Station nearby
+          SPBU Terdekat di Bandung
         </h2>
 
         <div className="space-y-4">
-          {filteredStations.map((station, index) => {
+          {filteredStations.slice(0, 8).map((station, index) => {
             const cheapestFuel = station.fuels && station.fuels.length > 0
               ? station.fuels.reduce((min, fuel) =>
                   parseFloat(fuel.price) < parseFloat(min.price) ? fuel : min,

@@ -1,7 +1,7 @@
 
-// Generate 100 random stations around Memphis, TN
+// Generate 100 random stations around Bandung, Indonesia
 
-// Helper function to generate random coordinates around Memphis
+// Helper function to generate random coordinates around Bandung
 function generateRandomCoordinates(baseLat: number, baseLng: number, radiusInKm: number) {
   const earthRadius = 6371; // Earth radius in kilometers
   const degreesToRadians = Math.PI / 180;
@@ -20,88 +20,82 @@ function generateRandomCoordinates(baseLat: number, baseLng: number, radiusInKm:
   return { lat, lng };
 }
 
-// Memphis coordinates
-const memphisLat = 35.1495;
-const memphisLng = -90.0490;
+// Bandung coordinates
+const bandungLat = -6.9175;
+const bandungLng = 107.6191;
 
-// Gas station brand names in Memphis
+// Gas station brand names in Indonesia
 const stationBrands = [
+  'Pertamina', 
   'Shell', 
-  'ExxonMobil', 
-  'Chevron', 
   'BP', 
-  'Marathon', 
-  'CITGO', 
-  'Valero', 
-  'QuikTrip', 
-  'Mobil', 
-  'RaceTrac',
-  'Circle K',
-  'Pilot',
-  'Flying J',
-  'Love\'s',
-  'Murphy USA',
-  'Phillips 66'
+  'Total', 
+  'Vivo', 
+  'Petronas',
+  'SPBU',
+  'MyPertamina',
+  'Bright',
+  'Exxon Mobil'
 ];
 
-// Memphis area neighborhoods and areas
-const memphisAreas = [
-  'Downtown',
-  'Midtown',
-  'East Memphis',
-  'South Memphis',
-  'Germantown',
-  'Cordova',
-  'Bartlett',
-  'Collierville',
-  'Millington',
-  'Arlington',
-  'Lakeland',
-  'Raleigh',
-  'Frayser',
-  'Whitehaven',
-  'Hickory Hill',
-  'Berclair',
-  'Cooper-Young',
-  'Binghampton',
-  'Mud Island',
-  'Harbor Town'
+// Bandung area neighborhoods and areas
+const bandungAreas = [
+  'Dago',
+  'Setiabudi',
+  'Lembang',
+  'Pasteur',
+  'Cipaganti',
+  'Antapani',
+  'Cibiru',
+  'Buahbatu',
+  'Kebon Kawung',
+  'Pasir Koja',
+  'Cicendo',
+  'Ujung Berung',
+  'Batununggal',
+  'Cimahi',
+  'Cibaduyut',
+  'Ciumbuleuit',
+  'Sukajadi',
+  'Cibeunying',
+  'Arcamanik',
+  'Margacinta'
 ];
 
-// Memphis streets
-const memphisStreets = [
-  'Poplar Ave',
-  'Union Ave',
-  'Sam Cooper Blvd',
-  'Summer Ave',
-  'Park Ave',
-  'Walnut Grove Rd',
-  'Winchester Rd',
-  'Lamar Ave',
-  'Airways Blvd',
-  'Jackson Ave',
-  'Elvis Presley Blvd',
-  'Getwell Rd',
-  'Highland St',
-  'Central Ave',
-  'Madison Ave',
-  'Shelby Dr',
-  'Germantown Pkwy',
-  'Mt Moriah Rd',
-  'Macon Rd',
-  'Austin Peay Hwy'
+// Bandung streets
+const bandungStreets = [
+  'Jl. Asia Afrika',
+  'Jl. Braga',
+  'Jl. Dago',
+  'Jl. Ir. H. Juanda',
+  'Jl. Merdeka',
+  'Jl. Pasirkaliki',
+  'Jl. Gatot Subroto',
+  'Jl. Pasteur',
+  'Jl. Soekarno-Hatta',
+  'Jl. Dipatiukur',
+  'Jl. Cihampelas',
+  'Jl. Riau',
+  'Jl. Buah Batu',
+  'Jl. Ahmad Yani',
+  'Jl. Supratman',
+  'Jl. Laswi',
+  'Jl. Pajajaran',
+  'Jl. Setiabudi',
+  'Jl. Terusan Jakarta',
+  'Jl. Sudirman'
 ];
 
-// Fuel types available in Memphis area
+// Fuel types available in Indonesia
 export const fuelTypes = [
-  { id: 'regular', name: 'Regular Unleaded', price: 3.29 },
-  { id: 'midgrade', name: 'Midgrade Unleaded', price: 3.59 },
-  { id: 'premium', name: 'Premium Unleaded', price: 3.89 },
-  { id: 'diesel', name: 'Diesel', price: 3.69 },
-  { id: 'e85', name: 'E85 Flex Fuel', price: 2.99 }
+  { id: 'pertalite', name: 'Pertalite', price: 10000 },
+  { id: 'pertamax', name: 'Pertamax', price: 13500 },
+  { id: 'pertamaxturbo', name: 'Pertamax Turbo', price: 15000 },
+  { id: 'solar', name: 'Solar', price: 6800 },
+  { id: 'dexlite', name: 'Dexlite', price: 13150 }
 ];
 
-// Generate random station images
+// Generate station images
 const stationImages = [
   '/lovable-uploads/00333baa-ca73-4e51-8f20-49acab199b5b.png',
   '/lovable-uploads/049ef9d2-46de-4e78-bee2-10fa706d9425.png',
@@ -113,10 +107,10 @@ const stationImages = [
 
 // Generate 100 random gas stations
 export const allStations = Array.from({ length: 100 }, (_, i) => {
-  const coords = generateRandomCoordinates(memphisLat, memphisLng, 15);
+  const coords = generateRandomCoordinates(bandungLat, bandungLng, 10);
   const brandName = stationBrands[Math.floor(Math.random() * stationBrands.length)];
-  const area = memphisAreas[Math.floor(Math.random() * memphisAreas.length)];
-  const street = memphisStreets[Math.floor(Math.random() * memphisStreets.length)];
+  const area = bandungAreas[Math.floor(Math.random() * bandungAreas.length)];
+  const street = bandungStreets[Math.floor(Math.random() * bandungStreets.length)];
   const distance = (Math.random() * 15).toFixed(1);
   const rating = (3 + Math.random() * 2).toFixed(1);
   const reviewCount = Math.floor(Math.random() * 100) + 5;
@@ -126,13 +120,13 @@ export const allStations = Array.from({ length: 100 }, (_, i) => {
   // Generate random available fuel types and prices
   const availableFuels = fuelTypes.filter(() => Math.random() > 0.3).map(fuel => ({
     ...fuel,
-    price: (fuel.price + (Math.random() * 0.4 - 0.2)).toFixed(2) // Add random price variation
+    price: (fuel.price + (Math.random() * 500 - 250)).toFixed(0) // Add random price variation in Indonesian Rupiah
   }));
   
   return {
     id: (i + 1).toString(),
     name: `${brandName} ${area}`,
-    address: `${1000 + Math.floor(Math.random() * 8000)} ${street}, Memphis, TN`,
+    address: `${street}, ${area}, Bandung`,
     distance,
     rating: parseFloat(rating),
     reviewCount,
@@ -151,7 +145,7 @@ export const allStations = Array.from({ length: 100 }, (_, i) => {
 });
 
 // Generate 100 random order history items
-const orderStatuses = ['completed', 'in-transit', 'processing', 'cancelled'];
+const orderStatuses = ['selesai', 'dalam pengiriman', 'diproses', 'dibatalkan'];
 
 export const orderHistory = Array.from({ length: 100 }, (_, i) => {
   const station = allStations[Math.floor(Math.random() * allStations.length)];
@@ -167,25 +161,25 @@ export const orderHistory = Array.from({ length: 100 }, (_, i) => {
     stationName: station.name,
     fuelType: fuel.name,
     quantity,
-    totalPrice: (fuel.price * quantity).toFixed(2),
+    totalPrice: (fuel.price * quantity).toFixed(0),
     orderDate: orderDate.toISOString(),
     status,
     items: [
-      { name: `${quantity} Gallons ${fuel.name}`, quantity: '1x', price: parseFloat((fuel.price * quantity).toFixed(2)) },
-      ...(Math.random() > 0.7 ? [{ name: 'Snacks', quantity: '2x', price: 4.50 }] : [])
+      { name: `${quantity} Liter ${fuel.name}`, quantity: '1x', price: parseFloat((fuel.price * quantity).toFixed(0)) },
+      ...(Math.random() > 0.7 ? [{ name: 'Cemilan', quantity: '2x', price: 25000 }] : [])
     ],
     driver: Math.random() > 0.5 ? {
-      name: 'Mike Johnson',
-      location: 'Memphis, TN',
+      name: 'Budi Santoso',
+      location: 'Bandung, Jawa Barat',
       image: '/lovable-uploads/a3df03b1-a154-407f-b8fe-e5dd6f0bade3.png',
       rating: 4.8,
-      phone: '+1 (555) 123-4567'
+      phone: '+62 812-3456-7890'
     } : {
-      name: 'Sarah Miller',
-      location: 'Memphis, TN',
+      name: 'Dewi Pratiwi',
+      location: 'Bandung, Jawa Barat',
       image: '/lovable-uploads/c3b29f6b-a689-4ac3-a338-4194cbee5e0c.png',
       rating: 4.9,
-      phone: '+1 (555) 987-6543'
+      phone: '+62 857-1234-5678'
     }
   };
 });

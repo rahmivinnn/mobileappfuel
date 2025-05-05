@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Star, MapPin, Banknote } from 'lucide-react';
+import { Star, MapPin, Banknote, Fuel } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { formatToRupiah } from '@/pages/MapView';
 
@@ -32,14 +32,19 @@ const StationCard: React.FC<StationCardProps> = ({
 }) => {
   const navigate = useNavigate();
   // Use the provided image
-  const displayImage = imageUrl || "/lovable-uploads/8ed0bc34-d448-42c8-804a-8dda4e3e6840.png";
-  const displayStatus = openStatus || (isOpen ? "Open" : "Closed");
+  const displayImage = imageUrl || image || "/lovable-uploads/8ed0bc34-d448-42c8-804a-8dda4e3e6840.png";
+  const displayStatus = openStatus || (isOpen ? "Buka" : "Tutup");
 
   // Get the lowest price from the first fuel type if price is not provided
-  const displayPrice = price || "3.29";  // Default price if not provided
+  const displayPrice = price || "10000";  // Default price if not provided
 
   const handleStationClick = () => {
     navigate(`/station/${id}`);
+  };
+
+  // Handle image error
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    e.currentTarget.src = "/lovable-uploads/8ed0bc34-d448-42c8-804a-8dda4e3e6840.png";
   };
 
   return (
@@ -64,22 +69,33 @@ const StationCard: React.FC<StationCardProps> = ({
         <div className="flex flex-col gap-2">
           <div className="flex items-center">
             <Banknote className="h-4 w-4 text-green-500 mr-2" />
-            <span className="text-sm text-green-700 dark:text-green-400">fuel Price</span>
+            <span className="text-sm text-green-700 dark:text-green-400">Harga BBM</span>
             <span className="ml-auto font-bold text-gray-900 dark:text-white">{formatToRupiah(displayPrice)}</span>
           </div>
 
           <div className="flex items-center">
             <MapPin className="h-4 w-4 text-orange-500 mr-2" />
-            <span className="text-sm text-gray-600 dark:text-gray-400">Distance</span>
-            <span className="ml-auto text-gray-700 dark:text-gray-300">{distance} miles</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400">Jarak</span>
+            <span className="ml-auto text-gray-700 dark:text-gray-300">{distance} km</span>
           </div>
         </div>
+        
+        {displayImage && (
+          <div className="mt-3 h-24 rounded-lg overflow-hidden bg-gray-100">
+            <img 
+              src={displayImage} 
+              alt={name} 
+              className="w-full h-full object-cover"
+              onError={handleImageError}
+            />
+          </div>
+        )}
       </div>
 
       <button
         className="mt-auto w-full bg-green-500 text-white py-2 font-medium hover:bg-green-600 transition-colors"
       >
-        Select Station
+        Pilih SPBU
       </button>
     </motion.div>
   );

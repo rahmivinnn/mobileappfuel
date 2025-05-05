@@ -22,8 +22,26 @@ export const formatToRupiah = (number: number | string) => {
     currency: 'IDR',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
-  }).format(num * 15000); // Converting to approximate IDR
+  }).format(num);
 };
+
+// Calculate distance between two coordinates in km
+function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 6371; // Radius of the earth in km
+  const dLat = deg2rad(lat2 - lat1);
+  const dLon = deg2rad(lon2 - lon1);
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2); 
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+  const d = R * c; // Distance in km
+  return d;
+}
+
+function deg2rad(deg: number) {
+  return deg * (Math.PI/180);
+}
 
 const MapView: React.FC = () => {
   const navigate = useNavigate();
@@ -38,19 +56,41 @@ const MapView: React.FC = () => {
     }
   }, [location]);
 
+  // Calculate actual distances based on user location or default to Bandung
+  const stationsWithDistance = allStations.map(station => {
+    const userLat = location?.lat || BANDUNG_COORDINATES.lat;
+    const userLng = location?.lng || BANDUNG_COORDINATES.lng;
+    const distance = getDistance(
+      userLat, 
+      userLng, 
+      station.position.lat, 
+      station.position.lng
+    ).toFixed(1);
+    
+    return {
+      ...station,
+      distance
+    };
+  });
+
+  // Sort stations by distance
+  const sortedStations = [...stationsWithDistance].sort((a, b) => 
+    parseFloat(a.distance) - parseFloat(b.distance)
+  );
+
   // Convert stations to map markers
-  const markers = allStations.map(station => ({
+  const markers = sortedStations.slice(0, 10).map(station => ({
     position: {
       lat: station.position.lat,
       lng: station.position.lng
     },
     title: station.name,
     icon: station.imageUrl,
-    label: "Fuel station"
+    label: "SPBU"
   }));
 
   const handleMarkerClick = (index: number) => {
-    const stationId = allStations[index].id;
+    const stationId = sortedStations[index].id;
     setSelectedStationId(stationId);
     navigate(`/station/${stationId}`);
   };
@@ -67,7 +107,7 @@ const MapView: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header title="Find Stations" showBack={true} />
+      <Header title="Temukan SPBU" showBack={true} />
 
       {permissionDenied && (
         <motion.div
@@ -77,7 +117,7 @@ const MapView: React.FC = () => {
         >
           <AlertCircle className="text-red-500 h-5 w-5 flex-shrink-0" />
           <div className="flex-1">
-            <p className="text-sm">Location permission denied. Please enable location services for better results.</p>
+            <p className="text-sm">Izin lokasi ditolak. Mohon aktifkan layanan lokasi untuk hasil yang lebih baik.</p>
           </div>
           <Button 
             variant="outline" 
@@ -85,7 +125,7 @@ const MapView: React.FC = () => {
             className="border-red-500 text-red-500 hover:bg-red-500/20"
             onClick={refreshLocation}
           >
-            Try Again
+            Coba Lagi
           </Button>
         </motion.div>
       )}
@@ -113,7 +153,7 @@ const MapView: React.FC = () => {
         {locationLoading && (
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black/80 px-4 py-2 rounded-full flex items-center space-x-2">
             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            <span className="text-white text-sm">Locating you...</span>
+            <span className="text-white text-sm">Mencari lokasi Anda...</span>
           </div>
         )}
       </motion.div>
@@ -130,10 +170,10 @@ const MapView: React.FC = () => {
             <div className="flex justify-between items-center">
               <div>
                 <h3 className="text-black dark:text-white font-semibold">
-                  {allStations.find(s => s.id === selectedStationId)?.name}
+                  {sortedStations.find(s => s.id === selectedStationId)?.name}
                 </h3>
                 <p className="text-gray-600 dark:text-gray-300 text-sm">
-                  {allStations.find(s => s.id === selectedStationId)?.distance} miles away
+                  {sortedStations.find(s => s.id === selectedStationId)?.distance} km jaraknya
                 </p>
               </div>
               <motion.button
@@ -142,7 +182,7 @@ const MapView: React.FC = () => {
                 whileTap={{ scale: 0.95 }}
                 onClick={() => navigate(`/station/${selectedStationId}`)}
               >
-                View Details
+                Lihat Detail
               </motion.button>
             </div>
           </motion.div>
