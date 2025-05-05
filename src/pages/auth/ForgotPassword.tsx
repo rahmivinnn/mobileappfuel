@@ -27,28 +27,16 @@ const ForgotPassword: React.FC = () => {
     
     // Simulate API call
     setTimeout(() => {
-      if (email) {
-        // Navigate to OTP verification screen
-        navigate('/verify-otp', { 
-          state: { 
-            email,
-            isSignUp: false
-          } 
-        });
-        
-        // Show success toast instead of alert
-        toast({
-          title: "Reset code sent",
-          description: "Please check your email for the verification code",
-        });
-      } else {
-        setIsLoading(false);
-        toast({
-          title: "Email required",
-          description: "Please enter your email address",
-          variant: "destructive"
-        });
-      }
+      setIsLoading(false);
+      
+      // Show Twilio token error toast
+      toast({
+        title: "Error: Invalid Twilio Token",
+        description: "The Twilio token is incorrect or has expired. Please contact support.",
+        variant: "destructive"
+      });
+      
+      // We're deliberately NOT navigating to the OTP verification screen since we're showing an error
     }, 1000);
   };
 
