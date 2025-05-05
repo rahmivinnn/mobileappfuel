@@ -14,7 +14,7 @@ import { MAPBOX_STYLE, MAP_STYLES } from '@/config/mapbox';
 import { useGeolocation } from '@/hooks/use-geolocation';
 
 // Bandung coordinates
-const BANDUNG_COORDINATES = [-6.9175, 107.6191];
+const BANDUNG_COORDINATES = { lat: -6.9175, lng: 107.6191 };
 
 const Index = () => {
   const { location } = useGeolocation();

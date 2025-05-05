@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { MapPin, AlertCircle } from 'lucide-react';
 
 // Bandung coordinates
-const BANDUNG_COORDINATES = [-6.9175, 107.6191];
+const BANDUNG_COORDINATES = { lat: -6.9175, lng: 107.6191 };
 
 const MapView: React.FC = () => {
   const navigate = useNavigate();
@@ -29,7 +29,10 @@ const MapView: React.FC = () => {
 
   // Convert stations to map markers
   const markers = allStations.map(station => ({
-    position: station.position,
+    position: {
+      lat: station.position.lat,
+      lng: station.position.lng
+    },
     title: station.name,
     icon: station.imageUrl
   }));
