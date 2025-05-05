@@ -224,7 +224,7 @@ const SignIn: React.FC<SignInProps> = ({ onLogin }) => {
 
       {/* Header */}
       <div className="pt-6 px-6 z-10">
-        <Link to="/" className="inline-flex items-center text-green-500 hover:text-green-400">
+        <Link to="/welcome" className="inline-flex items-center text-green-500 hover:text-green-400">
           <ArrowLeft className="h-5 w-5 mr-1" />
           <span>Back</span>
         </Link>
@@ -373,6 +373,15 @@ const SignIn: React.FC<SignInProps> = ({ onLogin }) => {
               />
             )}
           </motion.form>
+
+          <div className="text-center mt-8">
+            <p className="text-gray-400 text-sm">
+              Don't have an account?{' '}
+              <Link to="/signup" className="text-green-500 hover:text-green-400 font-medium">
+                Sign up now
+              </Link>
+            </p>
+          </div>
         </motion.div>
       </div>
     </div>

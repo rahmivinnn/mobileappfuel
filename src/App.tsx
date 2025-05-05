@@ -91,7 +91,7 @@ function App() {
 
   const handleSplashScreenFinish = useCallback(() => {
     setIsLoading(false);
-    navigate('/signin');
+    navigate('/welcome'); // Changed from '/signin' to '/welcome' to show the welcome screen first
   }, [navigate]);
 
   return (
