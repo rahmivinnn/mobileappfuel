@@ -171,6 +171,9 @@ const Index = () => {
             markers={allMarkers}
             onStyleChange={(style) => setCurrentMapStyle(style)}
             onTrafficToggle={(show) => setShowTraffic(show)}
+            initialPitch={60}
+            initialBearing={30}
+            enable3DBuildings={true}
             onMarkerClick={(index) => {
               // Only navigate to station details if it's a gas station marker
               if (index < markers.length) {

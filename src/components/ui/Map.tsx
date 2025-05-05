@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -27,6 +28,9 @@ interface MapProps extends React.HTMLAttributes<HTMLDivElement> {
   onTrafficToggle?: (show: boolean) => void;
   showBackButton?: boolean;
   onMarkerClick?: (index: number) => void;
+  initialPitch?: number;
+  initialBearing?: number;
+  enable3DBuildings?: boolean;
 }
 
 const Map = React.forwardRef<HTMLDivElement, MapProps>(
@@ -45,6 +49,9 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
       onTrafficToggle,
       showBackButton,
       onMarkerClick,
+      initialPitch = 30,
+      initialBearing = 0,
+      enable3DBuildings = true,
       ...props
     },
     ref
@@ -63,7 +70,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
     const [isLocatingUser, setIsLocatingUser] = useState(false);
     const [showPopup, setShowPopup] = useState(false);
     const [popupInfo, setPopupInfo] = useState<{position: [number, number], title: string, content: string} | null>(null);
-    const [mapRotation, setMapRotation] = useState(0);
+    const [mapRotation, setMapRotation] = useState(initialBearing);
 
     // Initialize map
     useEffect(() => {
@@ -77,8 +84,8 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
         zoom: zoom,
         attributionControl: false,
         interactive: interactive,
-        pitch: 30, // Add slight pitch for 3D effect
-        bearing: 0, // Initial rotation
+        pitch: initialPitch, // Use initialPitch for 3D effect
+        bearing: initialBearing, // Initial rotation based on prop
       });
 
       // Store map instance in ref
@@ -134,29 +141,52 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
           }
         }
         
-        // Add 3D buildings for more immersive view
-        map.addLayer({
-          'id': '3d-buildings',
-          'source': 'composite',
-          'source-layer': 'building',
-          'filter': ['==', 'extrude', 'true'],
-          'type': 'fill-extrusion',
-          'minzoom': 15,
-          'paint': {
-            'fill-extrusion-color': '#aaa',
-            'fill-extrusion-height': ['get', 'height'],
-            'fill-extrusion-base': ['get', 'min_height'],
-            'fill-extrusion-opacity': 0.6
-          }
-        });
+        // Add 3D buildings for more immersive view if enabled
+        if (enable3DBuildings) {
+          try {
+            map.addLayer({
+              'id': '3d-buildings',
+              'source': 'composite',
+              'source-layer': 'building',
+              'filter': ['==', 'extrude', 'true'],
+              'type': 'fill-extrusion',
+              'minzoom': 14,
+              'paint': {
+                'fill-extrusion-color': [
+                  'interpolate',
+                  ['linear'],
+                  ['get', 'height'],
+                  0, '#AAAAAA',
+                  50, '#888888',
+                  100, '#666666',
+                  200, '#444444'
+                ],
+                'fill-extrusion-height': ['get', 'height'],
+                'fill-extrusion-base': ['get', 'min_height'],
+                'fill-extrusion-opacity': 0.7,
+                'fill-extrusion-vertical-gradient': true
+              }
+            });
 
-        // Rotate map slowly for visual effect
-        if (interactive) {
+            // Add light effect for 3D buildings
+            map.setLight({
+              anchor: 'viewport',
+              color: 'white',
+              intensity: 0.4,
+              position: [1, 0, 0.8]
+            });
+          } catch (error) {
+            console.error("Error adding 3D buildings:", error);
+          }
+        }
+
+        // Rotate map slowly for visual effect if interactive and with initial bearing
+        if (interactive && initialBearing !== 0) {
           setTimeout(() => {
             map.easeTo({
-              bearing: 45,
+              bearing: initialBearing,
               duration: 6000,
-              pitch: 50,
+              pitch: initialPitch,
               essential: true
             });
           }, 1000);
