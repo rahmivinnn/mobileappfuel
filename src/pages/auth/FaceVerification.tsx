@@ -212,7 +212,7 @@ const FaceVerification: React.FC = () => {
               <img 
                 src="/lovable-uploads/44c35d38-14ee-46b9-8302-0944a264f34e.png" 
                 alt="FuelFriendly Logo" 
-                className="w-16 h-16 brightness-0 invert sepia hue-rotate-99 saturate-[100%]"
+                className="w-16 h-16 text-green-500"
               />
             </motion.div>
             
@@ -225,7 +225,7 @@ const FaceVerification: React.FC = () => {
               <img 
                 src="/lovable-uploads/2b80eff8-6efd-4f15-9213-ed9fe4e0cba9.png" 
                 alt="FUELFRIENDLY" 
-                className="h-6 brightness-0 invert sepia hue-rotate-99 saturate-[100%]"
+                className="h-6 text-green-500"
               />
             </motion.div>
           </motion.div>
