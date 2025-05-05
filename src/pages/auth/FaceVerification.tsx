@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -698,33 +697,80 @@ const FaceVerification: React.FC = () => {
                         className="w-full rounded-lg border-2 border-green-500"
                       />
                       
-                      {/* Face guide overlay */}
+                      {/* Enhanced face guide overlay: concentric circles */}
                       {showGuides && !showCountdown && !processingImage && currentPoseIndex === -1 && (
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-3/4 h-4/5 border-2 border-dashed border-green-500 rounded-full opacity-70"></div>
+                          {/* Outer circle */}
+                          <div className="w-4/5 h-4/5 border-2 border-dashed border-green-500 rounded-full opacity-70 animate-pulse"></div>
+                          {/* Middle circle */}
+                          <div className="absolute w-3/4 h-3/4 border-2 border-dashed border-green-500 rounded-full opacity-50"></div>
+                          {/* Inner circle */}
+                          <div className="absolute w-2/3 h-2/3 border-2 border-dotted border-green-500 rounded-full opacity-80"></div>
+                          {/* Center point */}
+                          <div className="absolute w-2 h-2 bg-green-500 rounded-full"></div>
+                          
+                          {/* Position guidelines */}
+                          <div className="absolute top-1/2 left-1/4 w-1 h-1 bg-green-500 rounded-full"></div>
+                          <div className="absolute top-1/2 right-1/4 w-1 h-1 bg-green-500 rounded-full"></div>
+                          <div className="absolute top-1/3 left-1/2 w-1 h-1 bg-green-500 rounded-full"></div>
+                          <div className="absolute bottom-1/3 left-1/2 w-1 h-1 bg-green-500 rounded-full"></div>
+                          
+                          {/* Text instruction */}
+                          <div className="absolute bottom-8 left-0 right-0 text-center">
+                            <p className="text-white text-sm font-medium bg-black/50 py-1 px-3 rounded-full inline-block">
+                              Position your face in the circles
+                            </p>
+                          </div>
                         </div>
                       )}
                       
-                      {/* Countdown overlay */}
+                      {/* Countdown overlay with circular progress */}
                       {showCountdown && (
                         <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-                          <div className="text-5xl text-green-500 font-bold animate-pulse">
-                            {countdown}
+                          <div className="relative">
+                            {/* Circular countdown animation */}
+                            <svg className="w-24 h-24" viewBox="0 0 100 100">
+                              <circle 
+                                cx="50" cy="50" r="45" 
+                                fill="none" 
+                                stroke="#374151" 
+                                strokeWidth="8"
+                              />
+                              <circle 
+                                cx="50" cy="50" r="45" 
+                                fill="none" 
+                                stroke="#10B981" 
+                                strokeWidth="8"
+                                strokeDasharray="283"
+                                strokeDashoffset={283 - (283 * (countdown / 3))}
+                                transform="rotate(-90 50 50)"
+                                strokeLinecap="round"
+                              />
+                            </svg>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <span className="text-5xl text-white font-bold">{countdown}</span>
+                            </div>
                           </div>
                         </div>
                       )}
                       
-                      {/* Processing overlay */}
+                      {/* Processing overlay with animation */}
                       {processingImage && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm">
                           <div className="text-center">
-                            <div className="animate-spin h-10 w-10 border-4 border-green-500 border-t-transparent rounded-full mx-auto mb-2"></div>
-                            <div className="text-white">Processing...</div>
+                            <div className="w-16 h-16 relative mx-auto mb-3">
+                              <div className="animate-spin absolute inset-0 h-full w-full border-4 border-t-transparent border-green-500 rounded-full"></div>
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <Camera className="h-6 w-6 text-green-500" />
+                              </div>
+                            </div>
+                            <div className="text-white text-lg font-medium">Processing...</div>
+                            <div className="text-gray-300 text-sm mt-1">Please don't move</div>
                           </div>
                         </div>
                       )}
                       
-                      {/* Brightness warning */}
+                      {/* Brightness warning with icon */}
                       {brightness !== 'good' && (
                         <div className="absolute top-2 left-0 right-0 flex items-center justify-center">
                           <div className="bg-black/70 px-3 py-1 rounded-full flex items-center">
@@ -736,27 +782,105 @@ const FaceVerification: React.FC = () => {
                         </div>
                       )}
                       
-                      {/* Challenge instruction overlay */}
+                      {/* Enhanced challenge instruction overlay with animation */}
                       {currentPoseIndex >= 0 && currentPoseIndex < randomChallenges.length && (
-                        <div className="absolute top-4 left-0 right-0 flex items-center justify-center">
-                          <div className="bg-black/80 px-4 py-2 rounded-full flex items-center gap-2 border border-green-500/30">
-                            {randomChallenges[currentPoseIndex].icon}
-                            <span className="text-white font-medium">{instructions}</span>
+                        <div className="absolute inset-0 flex flex-col items-center">
+                          {/* Instruction header */}
+                          <div className="absolute top-4 left-0 right-0 flex items-center justify-center">
+                            <div className="bg-black/80 px-4 py-2 rounded-full flex items-center gap-2 border border-green-500/30 animate-pulse-slow">
+                              {randomChallenges[currentPoseIndex].icon}
+                              <span className="text-white font-medium">{instructions}</span>
+                            </div>
+                          </div>
+                          
+                          {/* Visual guide for head movement */}
+                          {randomChallenges[currentPoseIndex]?.instruction.includes('right') && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              {/* Right arrow guide */}
+                              <div className="absolute right-4 flex flex-col items-center">
+                                <div className="h-24 w-12 border-2 border-green-500 rounded-lg border-dashed opacity-70 animate-pulse"></div>
+                                <ArrowRight className="h-8 w-8 text-green-500 mt-2 animate-bounce-subtle" />
+                                <span className="text-white text-xs mt-1">Turn right</span>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Visual guide for head movement */}
+                          {randomChallenges[currentPoseIndex]?.instruction.includes('left') && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              {/* Left arrow guide */}
+                              <div className="absolute left-4 flex flex-col items-center">
+                                <div className="h-24 w-12 border-2 border-green-500 rounded-lg border-dashed opacity-70 animate-pulse"></div>
+                                <ArrowLeft className="h-8 w-8 text-green-500 mt-2 animate-bounce-subtle" />
+                                <span className="text-white text-xs mt-1">Turn left</span>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Visual guide for head movement */}
+                          {randomChallenges[currentPoseIndex]?.instruction.includes('up') && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              {/* Up arrow guide */}
+                              <div className="absolute top-4 flex flex-col items-center">
+                                <ArrowUp className="h-8 w-8 text-green-500 mb-2 animate-bounce-subtle" />
+                                <div className="h-12 w-24 border-2 border-green-500 rounded-lg border-dashed opacity-70 animate-pulse"></div>
+                                <span className="text-white text-xs mt-1">Look up</span>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Visual guide for head movement */}
+                          {randomChallenges[currentPoseIndex]?.instruction.includes('down') && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              {/* Down arrow guide */}
+                              <div className="absolute bottom-16 flex flex-col items-center">
+                                <span className="text-white text-xs mb-1">Look down</span>
+                                <div className="h-12 w-24 border-2 border-green-500 rounded-lg border-dashed opacity-70 animate-pulse"></div>
+                                <ArrowDown className="h-8 w-8 text-green-500 mt-2 animate-bounce-subtle" />
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Blink guide */}
+                          {randomChallenges[currentPoseIndex]?.instruction.includes('Blink') && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="flex flex-col items-center">
+                                <EyeOff className="h-10 w-10 text-green-500 animate-pulse" />
+                                <span className="text-white text-xs mt-2">Blink slowly</span>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Smile guide */}
+                          {randomChallenges[currentPoseIndex]?.instruction.includes('Smile') && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="flex flex-col items-center">
+                                <Smile className="h-10 w-10 text-green-500 animate-pulse" />
+                                <span className="text-white text-xs mt-2">Smile naturally</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* Enhanced capture counter with visual progress */}
+                      {captureCount > 0 && (
+                        <div className="absolute top-2 right-2">
+                          <div className="bg-black/60 backdrop-blur-sm rounded-full p-1 flex items-center">
+                            <div className="text-xs text-white font-medium mr-1">
+                              {captureCount}/{randomChallenges.length}
+                            </div>
+                            <div className="h-5 w-5 bg-green-500/20 rounded-full flex items-center justify-center">
+                              <Camera className="h-3 w-3 text-green-500" />
+                            </div>
                           </div>
                         </div>
                       )}
                       
-                      {/* Capture counter */}
-                      {captureCount > 0 && (
-                        <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full w-8 h-8 flex items-center justify-center">
-                          {captureCount}/{randomChallenges.length}
-                        </div>
-                      )}
-                      
-                      {/* Progress steps */}
+                      {/* Progress steps with enhanced visuals */}
                       {randomChallenges.length > 0 && (
-                        <div className="absolute bottom-6 left-4 right-4">
-                          <div className="flex items-center justify-between mb-2">
+                        <div className="absolute bottom-4 left-4 right-4 bg-black/50 rounded-lg p-2">
+                          <div className="flex items-center justify-between mb-1.5">
                             <span className="text-xs text-white">Step {verificationStep} of {randomChallenges.length}</span>
                             <span className="text-xs text-white">Liveness: {livenessScore}%</span>
                           </div>
@@ -765,6 +889,16 @@ const FaceVerification: React.FC = () => {
                               className="bg-green-500 h-full transition-all duration-300"
                               style={{ width: `${((verificationStep) / randomChallenges.length) * 100}%` }}
                             />
+                          </div>
+                          
+                          {/* Step indicators */}
+                          <div className="flex justify-between mt-2">
+                            {Array.from({ length: randomChallenges.length }).map((_, idx) => (
+                              <div 
+                                key={idx} 
+                                className={`w-2.5 h-2.5 rounded-full ${idx < verificationStep ? 'bg-green-500' : 'bg-gray-600'}`}
+                              />
+                            ))}
                           </div>
                         </div>
                       )}
@@ -850,4 +984,3 @@ const FaceVerification: React.FC = () => {
 };
 
 export default FaceVerification;
-
