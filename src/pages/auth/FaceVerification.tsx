@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -209,11 +208,13 @@ const FaceVerification: React.FC = () => {
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, duration: 0.5, type: "spring" }}
             >
-              <img 
-                src="/lovable-uploads/44c35d38-14ee-46b9-8302-0944a264f34e.png" 
-                alt="FuelFriendly Logo" 
-                className="w-16 h-16 text-green-500"
-              />
+              <div className="text-green-500 w-16 h-16">
+                <img 
+                  src="/lovable-uploads/e8f2ceee-d89c-4a88-b6f9-d1ced940180c.png" 
+                  alt="FuelFriendly Logo" 
+                  className="w-full h-full"
+                />
+              </div>
             </motion.div>
             
             {/* Brand name */}
@@ -221,11 +222,12 @@ const FaceVerification: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.5 }}
+              className="text-green-500"
             >
               <img 
                 src="/lovable-uploads/2b80eff8-6efd-4f15-9213-ed9fe4e0cba9.png" 
                 alt="FUELFRIENDLY" 
-                className="h-6 text-green-500"
+                className="h-6 filter brightness-0 invert sepia hue-rotate-99 saturate-[100%]"
               />
             </motion.div>
           </motion.div>
