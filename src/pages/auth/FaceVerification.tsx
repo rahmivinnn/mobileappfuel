@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, FaceRecognition, Shield, Check } from 'lucide-react';
+import { ArrowLeft, Scan, Shield, Check } from 'lucide-react';
 
 const FaceVerification: React.FC = () => {
   const navigate = useNavigate();
@@ -117,7 +117,7 @@ const FaceVerification: React.FC = () => {
               <>
                 <div className="flex items-center justify-center mb-4">
                   <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center">
-                    <FaceRecognition className="h-8 w-8 text-green-500" />
+                    <Scan className="h-8 w-8 text-green-500" />
                   </div>
                 </div>
                 <h2 className="text-xl font-bold text-white text-center mb-2">Face Verification</h2>
@@ -135,7 +135,7 @@ const FaceVerification: React.FC = () => {
                   </div>
                   
                   <div className="flex items-start p-3 bg-gray-700/50 rounded-lg">
-                    <FaceRecognition className="h-6 w-6 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                    <Scan className="h-6 w-6 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
                     <div>
                       <h3 className="text-sm font-medium text-white">Secure & Private</h3>
                       <p className="text-xs text-gray-300">Your data is encrypted and will only be used for verification.</p>
