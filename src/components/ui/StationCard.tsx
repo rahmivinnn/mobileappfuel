@@ -31,8 +31,8 @@ const StationCard: React.FC<StationCardProps> = ({
   isOpen = true
 }) => {
   const navigate = useNavigate();
-  // Use the provided image
-  const displayImage = imageUrl || image || "/lovable-uploads/8ed0bc34-d448-42c8-804a-8dda4e3e6840.png";
+  // Use the provided image or default to fuel pump icon
+  const displayImage = imageUrl || image || "/lovable-uploads/af30f547-2e68-4706-8f5d-4a84088b6f19.png";
   const displayStatus = openStatus || (isOpen ? "Buka" : "Tutup");
 
   // Get the lowest price from the first fuel type if price is not provided
@@ -44,7 +44,7 @@ const StationCard: React.FC<StationCardProps> = ({
 
   // Handle image error
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    e.currentTarget.src = "/lovable-uploads/8ed0bc34-d448-42c8-804a-8dda4e3e6840.png";
+    e.currentTarget.src = "/lovable-uploads/af30f547-2e68-4706-8f5d-4a84088b6f19.png";
   };
 
   return (

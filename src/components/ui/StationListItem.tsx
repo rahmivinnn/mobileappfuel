@@ -37,10 +37,10 @@ const StationListItem: React.FC<StationListItemProps> = ({
   // Improved image handling
   const [imageError, setImageError] = React.useState(false);
 
-  // Use fallback image if the provided URL fails to load
+  // Use gas station image if the provided URL fails to load
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     setImageError(true);
-    e.currentTarget.src = "/lovable-uploads/8ed0bc34-d448-42c8-804a-8dda4e3e6840.png";
+    e.currentTarget.src = "/lovable-uploads/af30f547-2e68-4706-8f5d-4a84088b6f19.png";
   };
 
   return (

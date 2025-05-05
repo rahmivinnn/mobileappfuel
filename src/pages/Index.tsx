@@ -90,6 +90,9 @@ const Index = () => {
     navigate('/map');
   };
 
+  // Gas station image URL
+  const gasStationIconUrl = "/lovable-uploads/af30f547-2e68-4706-8f5d-4a84088b6f19.png";
+
   // Convert stations to map markers - limit to nearest 5
   const markers = filteredStations.slice(0, 5).map(station => ({
     position: {
@@ -97,7 +100,7 @@ const Index = () => {
       lng: station.position.lng
     },
     title: station.name,
-    icon: station.imageUrl,
+    icon: gasStationIconUrl, // Use consistent gas station icon
     label: "Gas Station"
   }));
 
