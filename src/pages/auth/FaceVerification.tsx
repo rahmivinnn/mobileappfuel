@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, Camera, Shield, Check } from 'lucide-react';
+import { ArrowLeft, Camera, Shield, Check, ArrowUp, ArrowDown, ArrowRight } from 'lucide-react';
 
 const FaceVerification: React.FC = () => {
   const navigate = useNavigate();
@@ -13,9 +13,38 @@ const FaceVerification: React.FC = () => {
   const [cameraActive, setCameraActive] = useState(false);
   const [captureCount, setCaptureCount] = useState(0);
   const [instructions, setInstructions] = useState('Get ready for face verification');
+  const [currentPoseIndex, setCurrentPoseIndex] = useState(-1);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  
+  const poses = [
+    { 
+      instruction: 'Look straight at the camera', 
+      delay: 3000,
+      icon: <Camera className="h-5 w-5 text-green-500" />
+    },
+    { 
+      instruction: 'Turn your head to the right', 
+      delay: 3000,
+      icon: <ArrowRight className="h-5 w-5 text-green-500" /> 
+    },
+    { 
+      instruction: 'Turn your head to the left', 
+      delay: 3000,
+      icon: <ArrowLeft className="h-5 w-5 text-green-500" /> 
+    },
+    { 
+      instruction: 'Look up slightly', 
+      delay: 3000,
+      icon: <ArrowUp className="h-5 w-5 text-green-500" />
+    },
+    { 
+      instruction: 'Look down slightly', 
+      delay: 3000,
+      icon: <ArrowDown className="h-5 w-5 text-green-500" />
+    }
+  ];
   
   // Start camera when requested
   const startCamera = async () => {
@@ -91,35 +120,36 @@ const FaceVerification: React.FC = () => {
   
   // Verification sequence with multiple poses
   const startVerificationSequence = () => {
-    const poses = [
-      { instruction: 'Look straight at the camera', delay: 3000 },
-      { instruction: 'Slowly turn your head to the right', delay: 3000 },
-      { instruction: 'Now turn your head to the left', delay: 3000 },
-      { instruction: 'Blink a few times', delay: 3000 }
-    ];
-    
     setIsSubmitting(true);
+    setCurrentPoseIndex(0);
     
-    // Process each pose with delays
-    poses.forEach((pose, index) => {
+    processPose(0);
+  };
+  
+  // Process each pose with time delays
+  const processPose = (index: number) => {
+    if (index >= poses.length) {
+      completeVerification();
+      return;
+    }
+    
+    setCurrentPoseIndex(index);
+    setInstructions(poses[index].instruction);
+    
+    // Capture frame after a brief moment
+    setTimeout(() => {
+      const capturedImage = captureFrame();
+      if (capturedImage) {
+        console.log(`Captured frame for pose: ${poses[index].instruction}`);
+        // Here you would send the image to your verification service
+      }
+      
+      // Move to the next pose after delay
       setTimeout(() => {
-        setInstructions(pose.instruction);
-        
-        // Capture frame after a brief moment
-        setTimeout(() => {
-          const capturedImage = captureFrame();
-          if (capturedImage) {
-            console.log(`Captured frame for pose: ${pose.instruction}`);
-            // Here you would send the image to your verification service
-          }
-          
-          // If this is the last pose, complete the verification
-          if (index === poses.length - 1) {
-            completeVerification();
-          }
-        }, 2000);
-      }, pose.delay * index);
-    });
+        processPose(index + 1);
+      }, 1000);
+      
+    }, poses[index].delay);
   };
   
   const completeVerification = () => {
@@ -127,8 +157,8 @@ const FaceVerification: React.FC = () => {
     setIsSubmitting(false);
     setIsCompleted(true);
     toast({
-      title: "Verification submitted",
-      description: "Your verification request has been submitted successfully."
+      title: "Verification successful",
+      description: "Your identity has been verified successfully."
     });
     
     // Navigate after a delay
@@ -144,20 +174,6 @@ const FaceVerification: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-black flex flex-col relative overflow-hidden">
-      {/* Top green wave */}
-      <div className="absolute top-0 left-0 w-full h-1/4 bg-green-500 rounded-b-[50%] z-0" />
-      
-      {/* Bottom green section with hexagon pattern */}
-      <div className="absolute bottom-0 left-0 w-full h-1/4 bg-green-500 z-0">
-        <div className="absolute bottom-0 left-0 w-full h-full opacity-30">
-          <img 
-            src="/lovable-uploads/0c368b73-df56-4e77-94c3-14691cdc22b7.png" 
-            alt="Hexagon Pattern" 
-            className="w-full h-full object-cover"
-          />
-        </div>
-      </div>
-      
       {/* Header */}
       <div className="pt-6 px-6 z-10">
         <Link to="/signup" className="inline-flex items-center text-green-500 hover:text-green-400">
@@ -186,7 +202,7 @@ const FaceVerification: React.FC = () => {
               <img 
                 src="/lovable-uploads/44c35d38-14ee-46b9-8302-0944a264f34e.png" 
                 alt="FuelFriendly Logo" 
-                className="w-16 h-16"
+                className="w-16 h-16 brightness-0 invert sepia hue-rotate-60 saturate-[80%]"
               />
             </motion.div>
             
@@ -199,7 +215,7 @@ const FaceVerification: React.FC = () => {
               <img 
                 src="/lovable-uploads/2b80eff8-6efd-4f15-9213-ed9fe4e0cba9.png" 
                 alt="FUELFRIENDLY" 
-                className="h-6"
+                className="h-6 brightness-0 invert sepia hue-rotate-60 saturate-[80%]"
               />
             </motion.div>
           </motion.div>
@@ -217,9 +233,9 @@ const FaceVerification: React.FC = () => {
                 <div className="w-20 h-20 rounded-full bg-green-500/20 flex items-center justify-center mb-4">
                   <Check className="h-10 w-10 text-green-500" />
                 </div>
-                <h2 className="text-xl font-bold text-white mb-2">Verification Submitted</h2>
+                <h2 className="text-xl font-bold text-white mb-2">Verification Successful</h2>
                 <p className="text-gray-300 mb-6">
-                  Your verification request has been received. We'll verify your identity within 24 hours.
+                  Your identity has been verified successfully! You can now access all features of the app.
                 </p>
                 <Button 
                   onClick={() => navigate('/')}
@@ -251,9 +267,31 @@ const FaceVerification: React.FC = () => {
                         className="w-full rounded-lg border-2 border-green-500"
                       />
                       <div className="absolute inset-0 border-4 border-green-500 rounded-lg opacity-50 pointer-events-none"></div>
+                      
+                      {currentPoseIndex >= 0 && currentPoseIndex < poses.length && (
+                        <div className="absolute top-4 left-0 right-0 flex items-center justify-center">
+                          <div className="bg-black/60 px-4 py-2 rounded-full flex items-center gap-2">
+                            {poses[currentPoseIndex].icon}
+                            <span className="text-white">{instructions}</span>
+                          </div>
+                        </div>
+                      )}
+                      
                       {captureCount > 0 && (
                         <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full w-8 h-8 flex items-center justify-center">
-                          {captureCount}/4
+                          {captureCount}/{poses.length}
+                        </div>
+                      )}
+                      
+                      {/* Progress bar */}
+                      {currentPoseIndex >= 0 && (
+                        <div className="absolute bottom-2 left-2 right-2">
+                          <div className="bg-gray-700 h-1.5 rounded-full overflow-hidden">
+                            <div 
+                              className="bg-green-500 h-full transition-all duration-300"
+                              style={{ width: `${((currentPoseIndex + 1) / poses.length) * 100}%` }}
+                            />
+                          </div>
                         </div>
                       )}
                     </div>
