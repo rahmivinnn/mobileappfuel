@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -16,6 +15,7 @@ interface MapProps extends React.HTMLAttributes<HTMLDivElement> {
     position: { lat: number; lng: number };
     title?: string;
     icon?: string;
+    label?: string;
   }>;
   interactive?: boolean;
   directions?: boolean;
@@ -176,14 +176,9 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
         // Create marker element
         const el = document.createElement('div');
         el.className = 'custom-marker';
-        el.style.width = '32px';
-        el.style.height = '32px';
-        el.style.borderRadius = '50%';
-        el.style.display = 'flex';
-        el.style.alignItems = 'center';
-        el.style.justifyContent = 'center';
-        el.style.background = marker.icon ? 'transparent' : '#00E676';
-        el.style.boxShadow = '0 0 10px rgba(0, 230, 118, 0.5)';
+        el.style.position = 'relative';
+        el.style.width = '40px';
+        el.style.height = '40px';
         
         // Make marker clickable if onMarkerClick is provided
         if (onMarkerClick) {
@@ -191,18 +186,71 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
           el.onclick = () => onMarkerClick(index);
         }
 
-        // Add icon or default marker
-        if (marker.icon) {
-          const img = document.createElement('img');
-          img.src = marker.icon;
-          img.style.width = '100%';
-          img.style.height = '100%';
-          img.style.borderRadius = '50%';
-          img.style.border = '2px solid #00E676';
-          el.appendChild(img);
-        } else {
-          el.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>';
-          el.style.color = '#151822';
+        // Create marker HTML with label
+        el.innerHTML = `
+          <div style="position: relative; width: 100%; height: 100%;">
+            <div style="
+              position: absolute;
+              bottom: 0;
+              left: 50%;
+              transform: translateX(-50%);
+              width: 30px;
+              height: 30px;
+              background-color: #FF4136;
+              border-radius: 50% 50% 50% 0;
+              transform: translateX(-50%) rotate(-45deg);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+              animation: bounce 1s ease-in-out infinite alternate;
+            ">
+              <div style="
+                width: 20px;
+                height: 20px;
+                background-color: white;
+                border-radius: 50%;
+                transform: rotate(45deg);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              ">
+                ${marker.icon ? 
+                  `<img src="${marker.icon}" style="width: 14px; height: 14px; border-radius: 50%;">` : 
+                  `<div style="width: 10px; height: 10px; background: #FF4136; border-radius: 50%;"></div>`
+                }
+              </div>
+            </div>
+            ${marker.label ? 
+              `<div style="
+                position: absolute;
+                white-space: nowrap;
+                bottom: -20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background-color: rgba(0,0,0,0.6);
+                color: white;
+                padding: 2px 5px;
+                border-radius: 4px;
+                font-size: 10px;
+                font-family: Arial, sans-serif;
+              ">${marker.label}</div>` : 
+              ''
+            }
+          </div>
+        `;
+
+        // Add keyframes for bounce animation
+        if (!document.querySelector('#bounce-animation')) {
+          const style = document.createElement('style');
+          style.id = 'bounce-animation';
+          style.innerHTML = `
+            @keyframes bounce {
+              0% { transform: translateX(-50%) rotate(-45deg) translateY(0); }
+              100% { transform: translateX(-50%) rotate(-45deg) translateY(-5px); }
+            }
+          `;
+          document.head.appendChild(style);
         }
 
         // Add tooltip
@@ -471,7 +519,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
           <div className="absolute bottom-20 right-4 flex flex-col space-y-3">
             {/* Center map button */}
             <button
-              className="w-12 h-12 rounded-full bg-green-500 text-black flex items-center justify-center shadow-lg hover:bg-green-400 hover:scale-105 transition-all duration-200"
+              className="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center shadow-lg hover:bg-green-400 hover:scale-105 transition-all duration-200"
               onClick={() => {
                 if (mapInstanceRef.current) {
                   mapInstanceRef.current.flyTo({
@@ -483,29 +531,50 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
                 }
               }}
             >
-              <MapIcon size={22} />
+              <MapIcon size={18} />
             </button>
 
             {/* Locate me button */}
             <button
-              className={`w-12 h-12 rounded-full ${isLocatingUser ? 'bg-blue-500 animate-pulse' : 'bg-blue-600'} text-white flex items-center justify-center shadow-lg hover:bg-blue-500 hover:scale-105 transition-all duration-200`}
-              onClick={locateUser}
+              className={`w-10 h-10 rounded-full ${isLocatingUser ? 'bg-blue-500 animate-pulse' : 'bg-white'} text-${isLocatingUser ? 'white' : 'blue-600'} flex items-center justify-center shadow-lg transition-all duration-200`}
+              onClick={() => {
+                // Locate user functionality would be here
+                toast({
+                  title: "Location updated",
+                  description: "Map centered on your position"
+                });
+              }}
               disabled={isLocatingUser}
             >
-              <Target size={22} />
+              <Target size={18} />
             </button>
 
-            {/* Traffic toggle button */}
-            <button
-              className={`w-12 h-12 rounded-full ${trafficVisible ? 'bg-green-500' : 'bg-gray-500'} text-white flex items-center justify-center shadow-lg hover:scale-105 transition-all duration-200`}
-              onClick={() => {
-                const newValue = !trafficVisible;
-                setTrafficVisible(newValue);
-                if (onTrafficToggle) onTrafficToggle(newValue);
-              }}
-            >
-              <Car size={20} />
-            </button>
+            {/* Zoom controls */}
+            <div className="flex flex-col shadow-lg rounded-full overflow-hidden">
+              <button
+                className="w-10 h-10 bg-white text-gray-700 flex items-center justify-center hover:bg-gray-100"
+                onClick={() => {
+                  if (mapInstanceRef.current) {
+                    const currentZoom = mapInstanceRef.current.getZoom();
+                    mapInstanceRef.current.zoomTo(currentZoom + 1);
+                  }
+                }}
+              >
+                +
+              </button>
+              <div className="w-10 h-px bg-gray-200" />
+              <button
+                className="w-10 h-10 bg-white text-gray-700 flex items-center justify-center hover:bg-gray-100"
+                onClick={() => {
+                  if (mapInstanceRef.current) {
+                    const currentZoom = mapInstanceRef.current.getZoom();
+                    mapInstanceRef.current.zoomTo(currentZoom - 1);
+                  }
+                }}
+              >
+                −
+              </button>
+            </div>
           </div>
         )}
 

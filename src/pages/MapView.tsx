@@ -14,6 +14,17 @@ import { MapPin, AlertCircle } from 'lucide-react';
 // Bandung coordinates
 const BANDUNG_COORDINATES = { lat: -6.9175, lng: 107.6191 };
 
+// Helper function for rupiah formatting
+export const formatToRupiah = (number: number | string) => {
+  const num = typeof number === 'string' ? parseFloat(number) : number;
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(num * 15000); // Converting to approximate IDR
+};
+
 const MapView: React.FC = () => {
   const navigate = useNavigate();
   const { location, loading: locationLoading, error: locationError, permissionDenied, refreshLocation } = useGeolocation();
@@ -34,7 +45,8 @@ const MapView: React.FC = () => {
       lng: station.position.lng
     },
     title: station.name,
-    icon: station.imageUrl
+    icon: station.imageUrl,
+    label: "Fuel station"
   }));
 
   const handleMarkerClick = (index: number) => {
@@ -109,7 +121,7 @@ const MapView: React.FC = () => {
       <AnimatePresence>
         {selectedStationId && (
           <motion.div
-            className="absolute bottom-20 left-4 right-4 bg-black/80 backdrop-blur-md rounded-xl p-4 border border-gray-800 shadow-xl"
+            className="absolute bottom-20 left-4 right-4 bg-white dark:bg-black/80 backdrop-blur-md rounded-xl p-4 border border-gray-100 dark:border-gray-800 shadow-xl"
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 50 }}
@@ -117,15 +129,15 @@ const MapView: React.FC = () => {
           >
             <div className="flex justify-between items-center">
               <div>
-                <h3 className="text-white font-semibold">
+                <h3 className="text-black dark:text-white font-semibold">
                   {allStations.find(s => s.id === selectedStationId)?.name}
                 </h3>
-                <p className="text-gray-300 text-sm">
+                <p className="text-gray-600 dark:text-gray-300 text-sm">
                   {allStations.find(s => s.id === selectedStationId)?.distance} miles away
                 </p>
               </div>
               <motion.button
-                className="bg-green-500 text-black px-4 py-2 rounded-lg font-medium"
+                className="bg-green-500 text-white px-4 py-2 rounded-lg font-medium"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => navigate(`/station/${selectedStationId}`)}

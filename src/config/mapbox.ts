@@ -14,10 +14,10 @@ export const MAP_STYLES = {
 // Default map style
 export const MAPBOX_STYLE = MAP_STYLES.STREETS;
 
-// Default map center (Kuala Lumpur coordinates)
+// Default map center (Bandung coordinates)
 export const DEFAULT_CENTER = {
-  lat: 3.1390,
-  lng: 101.6869
+  lat: -6.9175,
+  lng: 107.6191
 };
 
 // Default zoom level
