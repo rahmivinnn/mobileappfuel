@@ -68,19 +68,19 @@ const StationListItem: React.FC<StationListItemProps> = ({
           
           <div className="flex items-center text-green-500 mt-2 gap-2">
             <Banknote className="h-4 w-4" />
-            <p className="text-sm">Harga BBM</p>
+            <p className="text-sm">Fuel Price</p>
             <p className="text-right flex-1 font-bold">{formatToRupiah(price)}</p>
           </div>
           
           <div className="flex items-center text-orange-500 mt-1 gap-2">
             <MapPin className="h-4 w-4" />
-            <p className="text-sm">Jarak</p>
+            <p className="text-sm">Distance</p>
             <p className="text-right flex-1">{distance} km</p>
           </div>
           
           <div className="flex items-center text-yellow-500 mt-1 gap-2">
             <Star className="h-4 w-4" />
-            <p className="text-sm">Ulasan</p>
+            <p className="text-sm">Reviews</p>
             <p className="text-right flex-1">{rating} ({reviewCount} Reviews)</p>
           </div>
         </div>
@@ -90,7 +90,7 @@ const StationListItem: React.FC<StationListItemProps> = ({
         onClick={handleClick}
         className="w-full bg-green-500 text-white py-3 font-medium hover:bg-green-600 transition-colors"
       >
-        Pilih SPBU
+        Select Gas Station
       </button>
     </motion.div>
   );

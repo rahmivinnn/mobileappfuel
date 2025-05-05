@@ -92,7 +92,7 @@ const Index = () => {
     },
     title: station.name,
     icon: station.imageUrl,
-    label: "SPBU"
+    label: "Gas Station"
   }));
 
   return (
@@ -125,7 +125,7 @@ const Index = () => {
             </div>
             <input
               type="text"
-              placeholder="Cari SPBU terdekat..."
+              placeholder="Search for nearest gas stations..."
               className="h-12 w-full rounded-full bg-gray-100 dark:bg-gray-800 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -158,7 +158,7 @@ const Index = () => {
       {/* Stations List */}
       <div className="px-4 pt-4">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-          SPBU Terdekat di Bandung
+          Nearest Gas Stations in Bandung
         </h2>
 
         <div className="space-y-4">
