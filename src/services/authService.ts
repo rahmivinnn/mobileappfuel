@@ -167,8 +167,8 @@ export const authService = {
   updateUserRole: (uid: string, role: UserRole): Promise<void> => {
     // Mock implementation - replace with actual backend call
     return new Promise((resolve) => {
-      setTimeout(() => {
-        const userData = authService.getCurrentUser();
+      setTimeout(async () => {
+        const userData = await authService.getCurrentUser();
         if (userData) {
           userData.role = role;
           authService.storeUser(userData);
