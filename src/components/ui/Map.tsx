@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { MAPBOX_TOKEN, MAP_STYLES } from '@/config/mapbox';
-import { Map as MapIcon, Layers, Car, Target, User } from 'lucide-react';
+import { Map as MapIcon, Layers, Car, Target, User, Info, Locate } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 // Set Mapbox token
@@ -62,12 +62,15 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
     const [trafficVisible, setTrafficVisible] = useState(showTraffic);
     const [isMoving, setIsMoving] = useState(false);
     const [isLocatingUser, setIsLocatingUser] = useState(false);
+    const [showPopup, setShowPopup] = useState(false);
+    const [popupInfo, setPopupInfo] = useState<{position: [number, number], title: string, content: string} | null>(null);
+    const [mapRotation, setMapRotation] = useState(0);
 
     // Initialize map
     useEffect(() => {
       if (!mapContainerRef.current) return;
 
-      // Create map instance
+      // Create map instance with enhanced options
       const map = new mapboxgl.Map({
         container: mapContainerRef.current,
         style: currentMapStyle,
@@ -75,6 +78,8 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
         zoom: zoom,
         attributionControl: false,
         interactive: interactive,
+        pitch: 30, // Add slight pitch for 3D effect
+        bearing: 0, // Initial rotation
       });
 
       // Store map instance in ref
@@ -92,6 +97,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
 
         map.on('moveend', () => {
           setIsMoving(false);
+          setMapRotation(map.getBearing());
         });
 
         // Add traffic layer if needed
@@ -128,6 +134,34 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
             console.error("Error adding traffic layer:", error);
           }
         }
+        
+        // Add 3D buildings for more immersive view
+        map.addLayer({
+          'id': '3d-buildings',
+          'source': 'composite',
+          'source-layer': 'building',
+          'filter': ['==', 'extrude', 'true'],
+          'type': 'fill-extrusion',
+          'minzoom': 15,
+          'paint': {
+            'fill-extrusion-color': '#aaa',
+            'fill-extrusion-height': ['get', 'height'],
+            'fill-extrusion-base': ['get', 'min_height'],
+            'fill-extrusion-opacity': 0.6
+          }
+        });
+
+        // Rotate map slowly for visual effect
+        if (interactive) {
+          setTimeout(() => {
+            map.easeTo({
+              bearing: 45,
+              duration: 6000,
+              pitch: 50,
+              essential: true
+            });
+          }, 1000);
+        }
       });
 
       // Clean up on unmount
@@ -144,7 +178,8 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
           center: [center.lng, center.lat],
           zoom: zoom,
           essential: true,
-          duration: 1000,
+          duration: 2000, // Extended duration for smoother transitions
+          pitch: 30, // Maintain consistent pitch
         });
       }
     }, [center, zoom]);
@@ -165,7 +200,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
       }
     }, [currentMapStyle, onStyleChange]);
 
-    // Add markers to map
+    // Add markers to map with enhanced animations and interactivity
     useEffect(() => {
       if (!mapInstanceRef.current || !mapLoaded || isMoving) return;
 
@@ -185,12 +220,43 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
         // Make marker clickable if onMarkerClick is provided
         if (onMarkerClick) {
           el.style.cursor = 'pointer';
-          el.onclick = () => onMarkerClick(index);
+          el.onclick = () => {
+            // Show toast notification
+            toast({
+              title: marker.title || "Location selected",
+              description: marker.isAgent ? "FuelFriendly Agent is ready to help you" : "Gas station selected",
+              duration: 2000,
+            });
+            
+            // Call the provided click handler
+            onMarkerClick(index);
+          };
         }
+
+        // On hover effect for markers
+        el.onmouseenter = () => {
+          el.style.transform = 'scale(1.1)';
+          el.style.transition = 'transform 0.3s ease';
+          
+          // Show info popup
+          if (marker.title) {
+            setPopupInfo({
+              position: [marker.position.lng, marker.position.lat],
+              title: marker.title,
+              content: marker.isAgent ? "FuelFriendly Agent: Ready to deliver fuel to your location" : "Gas station: Tap to see details and prices"
+            });
+            setShowPopup(true);
+          }
+        };
+        
+        el.onmouseleave = () => {
+          el.style.transform = 'scale(1)';
+          setShowPopup(false);
+        };
 
         // Create marker HTML with label - different for gas stations and agents
         if (marker.isAgent) {
-          // FuelFriendly Agent marker
+          // FuelFriendly Agent marker with enhanced animation
           el.innerHTML = `
             <div style="position: relative; width: 100%; height: 100%;">
               <div style="
@@ -206,8 +272,8 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-                animation: bounce 1s ease-in-out infinite alternate;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.2), 0 0 0 rgba(59,130,246,0.5);
+                animation: bounce 1s ease-in-out infinite alternate, pulse 2s infinite;
               ">
                 <div style="
                   width: 20px;
@@ -232,19 +298,22 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
                   bottom: -20px;
                   left: 50%;
                   transform: translateX(-50%);
-                  background-color: rgba(59,130,246,0.8);
+                  background-color: rgba(59,130,246,0.9);
                   color: white;
-                  padding: 2px 5px;
-                  border-radius: 4px;
+                  padding: 3px 8px;
+                  border-radius: 12px;
                   font-size: 10px;
+                  font-weight: bold;
                   font-family: Arial, sans-serif;
+                  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                  border: 1px solid rgba(255,255,255,0.3);
                 ">${marker.label}</div>` : 
                 ''
               }
             </div>
           `;
         } else {
-          // Regular gas station marker
+          // Regular gas station marker with enhanced animation
           el.innerHTML = `
             <div style="position: relative; width: 100%; height: 100%;">
               <div style="
@@ -260,8 +329,8 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-                animation: bounce 1s ease-in-out infinite alternate;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.2), 0 0 0 rgba(255,65,54,0.5);
+                animation: bounce 1s ease-in-out infinite alternate, glow 2s infinite;
               ">
                 <div style="
                   width: 20px;
@@ -275,7 +344,12 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
                 ">
                   ${marker.icon ? 
                     `<img src="${marker.icon}" style="width: 14px; height: 14px; border-radius: 50%;">` : 
-                    `<div style="width: 10px; height: 10px; background: #FF4136; border-radius: 50%;"></div>`
+                    `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF4136" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-fuel">
+                      <line x1="3" y1="22" x2="15" y2="22"></line>
+                      <line x1="4" y1="9" x2="14" y2="9"></line>
+                      <path d="M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18"></path>
+                      <path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L18 5"></path>
+                    </svg>`
                   }
                 </div>
               </div>
@@ -286,12 +360,15 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
                   bottom: -20px;
                   left: 50%;
                   transform: translateX(-50%);
-                  background-color: rgba(0,0,0,0.6);
+                  background-color: rgba(0,0,0,0.75);
                   color: white;
-                  padding: 2px 5px;
-                  border-radius: 4px;
+                  padding: 3px 8px;
+                  border-radius: 12px;
                   font-size: 10px;
+                  font-weight: bold;
                   font-family: Arial, sans-serif;
+                  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                  border: 1px solid rgba(255,255,255,0.2);
                 ">${marker.label}</div>` : 
                 ''
               }
@@ -299,14 +376,24 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
           `;
         }
 
-        // Add keyframes for bounce animation
-        if (!document.querySelector('#bounce-animation')) {
+        // Add keyframes for animations
+        if (!document.querySelector('#map-animations')) {
           const style = document.createElement('style');
-          style.id = 'bounce-animation';
+          style.id = 'map-animations';
           style.innerHTML = `
             @keyframes bounce {
               0% { transform: translateX(-50%) rotate(-45deg) translateY(0); }
-              100% { transform: translateX(-50%) rotate(-45deg) translateY(-5px); }
+              100% { transform: translateX(-50%) rotate(-45deg) translateY(-8px); }
+            }
+            @keyframes pulse {
+              0% { box-shadow: 0 4px 8px rgba(0,0,0,0.2), 0 0 0 0 rgba(59,130,246,0.7); }
+              70% { box-shadow: 0 4px 8px rgba(0,0,0,0.2), 0 0 0 10px rgba(59,130,246,0); }
+              100% { box-shadow: 0 4px 8px rgba(0,0,0,0.2), 0 0 0 0 rgba(59,130,246,0); }
+            }
+            @keyframes glow {
+              0% { box-shadow: 0 4px 8px rgba(0,0,0,0.2), 0 0 0 0 rgba(255,65,54,0.7); }
+              70% { box-shadow: 0 4px 8px rgba(0,0,0,0.2), 0 0 0 10px rgba(255,65,54,0); }
+              100% { box-shadow: 0 4px 8px rgba(0,0,0,0.2), 0 0 0 0 rgba(255,65,54,0); }
             }
           `;
           document.head.appendChild(style);
@@ -317,7 +404,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
           el.title = marker.title;
         }
 
-        // Create and add marker to map
+        // Create and add marker to map with animation
         const mapboxMarker = new mapboxgl.Marker({
           element: el,
           anchor: 'bottom',
@@ -360,7 +447,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
           }
         });
 
-        // Add glow effect layer
+        // Add glow effect layer with animation
         map.addLayer({
           id: 'route-glow',
           type: 'line',
@@ -373,11 +460,12 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
             'line-color': '#9b87f5',
             'line-width': 12,
             'line-opacity': 0.2,
-            'line-blur': 8
+            'line-blur': 8,
+            'line-dasharray': [2, 1]
           }
         });
 
-        // Add main route layer
+        // Add animated main route layer
         map.addLayer({
           id: 'route',
           type: 'line',
@@ -393,6 +481,16 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
             'line-dasharray': [0, 2, 1]
           }
         });
+
+        // Animate line dash pattern for movement effect
+        let dashOffset = 0;
+        const animateDash = () => {
+          dashOffset = (dashOffset + 1) % 100;
+          map.setPaintProperty('route', 'line-dasharray', [0, dashOffset / 10, 1, 0]);
+          requestAnimationFrame(animateDash);
+        };
+
+        animateDash();
       } catch (error) {
         console.error('Error adding route:', error);
       }
@@ -411,7 +509,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
       };
     }, [directions, showRoute, markers, isMoving]);
 
-    // Function to locate user
+    // Function to locate user with enhanced animation
     const locateUser = () => {
       if (!mapInstanceRef.current) return;
 
@@ -428,54 +526,75 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
           const map = mapInstanceRef.current;
 
           if (map) {
-            // Fly to user location
+            // Fly to user location with enhanced camera movement
             map.flyTo({
               center: [longitude, latitude],
               zoom: 16,
+              pitch: 60, // Enhanced pitch for dramatic effect
+              bearing: 0, // Reset bearing
               essential: true,
-              duration: 2000
+              duration: 2500,
+              easing: (t) => {
+                return t * (2 - t); // Ease out quadratic
+              }
             });
 
             // Add or update user location marker
             if (userMarkerRef.current) {
               userMarkerRef.current.setLngLat([longitude, latitude]);
             } else {
-              // Create user marker element
+              // Create user marker element with enhanced visuals
               const el = document.createElement('div');
               el.className = 'user-location-marker';
               el.innerHTML = `
                 <div style="
+                  position: relative;
                   width: 24px; 
-                  height: 24px; 
-                  background-color: #3498db; 
-                  border: 3px solid white; 
-                  border-radius: 50%; 
-                  box-shadow: 0 0 0 2px rgba(0,0,0,0.1), 0 0 10px rgba(52,152,219,0.7);
-                ">
-                </div>
-                <div style="
-                  position: absolute;
-                  top: 0;
-                  left: 0;
-                  width: 24px;
                   height: 24px;
-                  background: rgba(52,152,219,0.3);
-                  border-radius: 50%;
-                  animation: pulse 2s ease-out infinite;
-                  transform: scale(1);
-                  opacity: 1;
                 ">
+                  <div style="
+                    width: 24px; 
+                    height: 24px; 
+                    background-color: #3498db; 
+                    border: 3px solid white; 
+                    border-radius: 50%; 
+                    box-shadow: 0 0 0 2px rgba(0,0,0,0.1), 0 0 10px rgba(52,152,219,0.7);
+                    position: relative;
+                    z-index: 2;
+                  "></div>
+                  <div style="
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 50%;
+                    background: rgba(52,152,219,0.4);
+                    animation: pulse-user 2s ease-out infinite;
+                    z-index: 1;
+                  "></div>
+                  <div style="
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 50%;
+                    background: rgba(52,152,219,0.2);
+                    animation: pulse-user 2s ease-out 0.5s infinite;
+                    z-index: 0;
+                  "></div>
                 </div>
               `;
               
               // Add keyframes for pulse animation
-              if (!document.querySelector('#pulse-animation')) {
+              if (!document.querySelector('#pulse-user-animation')) {
                 const style = document.createElement('style');
-                style.id = 'pulse-animation';
+                style.id = 'pulse-user-animation';
                 style.innerHTML = `
-                  @keyframes pulse {
+                  @keyframes pulse-user {
                     0% { transform: scale(1); opacity: 1; }
-                    100% { transform: scale(3); opacity: 0; }
+                    100% { transform: scale(4); opacity: 0; }
                   }
                 `;
                 document.head.appendChild(style);
@@ -493,6 +612,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
             toast({
               title: "Location found",
               description: "Map updated to your current location",
+              variant: "success",
             });
           }
           setIsLocatingUser(false);
@@ -512,6 +632,38 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
           maximumAge: 0 
         }
       );
+    };
+
+    // Function to toggle map tilt/pitch
+    const toggleTilt = () => {
+      if (!mapInstanceRef.current) return;
+      
+      const currentPitch = mapInstanceRef.current.getPitch();
+      const newPitch = currentPitch > 30 ? 0 : 60;
+      
+      mapInstanceRef.current.easeTo({
+        pitch: newPitch,
+        duration: 1000,
+      });
+      
+      toast({
+        title: newPitch > 0 ? "3D View Enabled" : "2D View Enabled",
+        description: newPitch > 0 ? "Showing terrain and buildings in 3D" : "Switched to flat map view",
+      });
+    };
+
+    // Function to rotate map
+    const rotateMap = () => {
+      if (!mapInstanceRef.current) return;
+      
+      const newRotation = (mapRotation + 45) % 360;
+      
+      mapInstanceRef.current.easeTo({
+        bearing: newRotation,
+        duration: 1000,
+      });
+      
+      setMapRotation(newRotation);
     };
 
     // Map style options
@@ -536,6 +688,22 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
             transition: 'opacity 0.5s ease-out'
           }}
         />
+
+        {/* Info popup for markers */}
+        {showPopup && popupInfo && mapLoaded && (
+          <div 
+            className="absolute z-20 bg-black/80 backdrop-blur-md text-white p-3 rounded-lg shadow-lg border border-white/20 max-w-[200px]"
+            style={{
+              left: '50%',
+              bottom: '100px',
+              transform: 'translateX(-50%)',
+              animation: 'fade-in 0.3s ease-out'
+            }}
+          >
+            <h3 className="font-bold text-sm">{popupInfo.title}</h3>
+            <p className="text-xs mt-1">{popupInfo.content}</p>
+          </div>
+        )}
 
         {/* Custom attribution */}
         {mapLoaded && (
@@ -563,6 +731,14 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
                     onClick={() => {
                       setCurrentMapStyle(style.value);
                       if (onStyleChange) onStyleChange(style.value);
+                      
+                      // Show toast notification
+                      toast({
+                        title: `Map style changed to ${style.name}`,
+                        description: style.name === 'Satellite' ? "Showing satellite imagery" : 
+                                     style.name === 'Dark' ? "Switching to night mode" :
+                                     "Standard street map view",
+                      });
                     }}
                   >
                     {style.name}
@@ -584,8 +760,14 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
                   mapInstanceRef.current.flyTo({
                     center: [center.lng, center.lat],
                     zoom: zoom,
+                    pitch: 30,
                     essential: true,
                     duration: 1500
+                  });
+                  
+                  toast({
+                    title: "Map reset",
+                    description: "Returning to default view"
                   });
                 }
               }}
@@ -596,26 +778,42 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
             {/* Locate me button */}
             <button
               className={`w-10 h-10 rounded-full ${isLocatingUser ? 'bg-blue-500 animate-pulse' : 'bg-white'} text-${isLocatingUser ? 'white' : 'blue-600'} flex items-center justify-center shadow-lg transition-all duration-200`}
-              onClick={() => {
-                // Locate user functionality would be here
-                toast({
-                  title: "Location updated",
-                  description: "Map centered on your position"
-                });
-              }}
+              onClick={locateUser}
               disabled={isLocatingUser}
             >
-              <Target size={18} />
+              <Locate size={18} />
+            </button>
+            
+            {/* Toggle 3D view button */}
+            <button
+              className="w-10 h-10 rounded-full bg-purple-500 text-white flex items-center justify-center shadow-lg hover:bg-purple-400 hover:scale-105 transition-all duration-200"
+              onClick={toggleTilt}
+            >
+              <Layers size={18} />
+            </button>
+            
+            {/* Rotate map button */}
+            <button
+              className="w-10 h-10 rounded-full bg-orange-500 text-white flex items-center justify-center shadow-lg hover:bg-orange-400 hover:scale-105 transition-all duration-200"
+              onClick={rotateMap}
+              style={{ transform: `rotate(${mapRotation}deg)`, transition: 'transform 0.3s ease' }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+              </svg>
             </button>
 
             {/* Zoom controls */}
             <div className="flex flex-col shadow-lg rounded-full overflow-hidden">
               <button
-                className="w-10 h-10 bg-white text-gray-700 flex items-center justify-center hover:bg-gray-100"
+                className="w-10 h-10 bg-white text-gray-700 flex items-center justify-center hover:bg-gray-100 active:bg-gray-200"
                 onClick={() => {
                   if (mapInstanceRef.current) {
                     const currentZoom = mapInstanceRef.current.getZoom();
-                    mapInstanceRef.current.zoomTo(currentZoom + 1);
+                    mapInstanceRef.current.easeTo({
+                      zoom: currentZoom + 1,
+                      duration: 300
+                    });
                   }
                 }}
               >
@@ -623,11 +821,14 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
               </button>
               <div className="w-10 h-px bg-gray-200" />
               <button
-                className="w-10 h-10 bg-white text-gray-700 flex items-center justify-center hover:bg-gray-100"
+                className="w-10 h-10 bg-white text-gray-700 flex items-center justify-center hover:bg-gray-100 active:bg-gray-200"
                 onClick={() => {
                   if (mapInstanceRef.current) {
                     const currentZoom = mapInstanceRef.current.getZoom();
-                    mapInstanceRef.current.zoomTo(currentZoom - 1);
+                    mapInstanceRef.current.easeTo({
+                      zoom: currentZoom - 1,
+                      duration: 300
+                    });
                   }
                 }}
               >
@@ -640,7 +841,10 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
         {/* Loading indicator */}
         {!mapLoaded && (
           <div className="absolute inset-0 bg-[#151822] flex items-center justify-center z-20">
-            <div className="w-12 h-12 border-4 border-[#9b87f5] border-t-transparent rounded-full animate-spin" />
+            <div className="flex flex-col items-center">
+              <div className="w-12 h-12 border-4 border-[#9b87f5] border-t-transparent rounded-full animate-spin mb-4" />
+              <p className="text-white text-sm">Loading interactive map...</p>
+            </div>
           </div>
         )}
       </div>
