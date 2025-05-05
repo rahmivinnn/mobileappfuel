@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -612,7 +611,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
             toast({
               title: "Location found",
               description: "Map updated to your current location",
-              variant: "success",
+              variant: "default",
             });
           }
           setIsLocatingUser(false);

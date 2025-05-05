@@ -94,7 +94,7 @@ const StationListItem: React.FC<StationListItemProps> = ({
         onClick={handleClick}
         className="w-full bg-green-500 text-white py-3 font-medium hover:bg-green-600 transition-colors"
       >
-        Select Gas Station
+        Select {name}
       </button>
     </motion.div>
   );
