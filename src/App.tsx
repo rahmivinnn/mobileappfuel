@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -110,21 +111,9 @@ function App() {
   const handleSplashScreenFinish = useCallback(() => {
     setIsLoading(false);
     
-    // Check if user is already logged in
-    const token = localStorage.getItem('auth-token');
-    
-    if (token) {
-      // If there's a token, the user is logged in
-      // Check if they need to complete face verification
-      if (!localStorage.getItem('user-faces-verified')) {
-        navigate('/face-verification');
-      } else {
-        navigate('/');
-      }
-    } else {
-      // Otherwise show welcome screen
-      navigate('/welcome');
-    }
+    // Perbaikan alur aplikasi: selalu arahkan ke welcome screen
+    // jika ada token, baru cek apakah perlu face verification
+    navigate('/welcome');
   }, [navigate]);
 
   return (
