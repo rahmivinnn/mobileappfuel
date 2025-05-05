@@ -25,13 +25,37 @@ const ForgotPassword: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!email || !email.includes('@')) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setIsLoading(true);
     
-    // Simulate Twilio API call to send OTP to email
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      // Generate a random 6-digit OTP
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // Construct the Twilio API URL for sending email
+      const twilioEmailUrl = 'https://api.twilio.com/2010-04-01/Accounts/ACCOUNT_SID/Messages.json';
+      
+      // Store OTP in sessionStorage (for demo purposes only - in production use more secure methods)
+      sessionStorage.setItem('verification_otp', otp);
+      sessionStorage.setItem('verification_email', email);
+      
+      console.log(`Sending OTP: ${otp} to email: ${email}`);
+      console.log(`Using Twilio credentials - API Key: ${twilioApiKey.substring(0, 5)}...`);
+      
+      // In a real implementation, you would make an API call to your backend
+      // which would then use Twilio to send the email with OTP
+      // For demo purposes, we're simulating success
       
       // Success toast
       toast({
@@ -47,7 +71,16 @@ const ForgotPassword: React.FC = () => {
           isSignUp: false 
         } 
       });
-    }, 1500);
+    } catch (error) {
+      console.error('Error sending OTP:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send verification code. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
