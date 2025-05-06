@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -30,7 +31,7 @@ interface MapProps extends React.HTMLAttributes<HTMLDivElement> {
   initialPitch?: number;
   initialBearing?: number;
   enable3DBuildings?: boolean;
-  hideStyleControls?: boolean; // New prop to hide style controls
+  hideStyleControls?: boolean; // Prop to hide style controls
 }
 
 const Map = React.forwardRef<HTMLDivElement, MapProps>(
@@ -287,43 +288,17 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
           setShowPopup(false);
         };
 
-        // Create marker HTML with label - different for gas stations and agents
+        // Create marker HTML with simpler icon-based approach
         if (marker.isAgent) {
-          // FuelFriendly Agent marker with enhanced animation
+          // FuelFriendly Agent marker as simple icon
+          const agentIconUrl = "/lovable-uploads/1bc06a60-0463-4f47-abde-502bc408852e.png";
           el.innerHTML = `
-            <div style="position: relative; width: 100%; height: 100%;">
-              <div style="
-                position: absolute;
-                bottom: 0;
-                left: 50%;
-                transform: translateX(-50%);
-                width: 30px;
-                height: 30px;
-                background-color: #3B82F6;
-                border-radius: 50% 50% 50% 0;
-                transform: translateX(-50%) rotate(-45deg);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                box-shadow: 0 4px 8px rgba(0,0,0,0.2), 0 0 0 rgba(59,130,246,0.5);
-                animation: bounce 1s ease-in-out infinite alternate, pulse 2s infinite;
-              ">
-                <div style="
-                  width: 20px;
-                  height: 20px;
-                  background-color: white;
-                  border-radius: 50%;
-                  transform: rotate(45deg);
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                ">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user">
-                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                  </svg>
-                </div>
-              </div>
+            <div style="width: 32px; height: 32px; position: relative; transform: translateY(-16px);">
+              <img 
+                src="${agentIconUrl}" 
+                style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));" 
+                alt="Agent"
+              />
               ${marker.label ? 
                 `<div style="
                   position: absolute;
@@ -346,46 +321,17 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
             </div>
           `;
         } else {
-          // Gas station marker with new image
+          // Gas station marker with simplified icon approach
           const markerImageUrl = marker.icon || gasStationIconUrl;
           
           el.innerHTML = `
-            <div style="position: relative; width: 100%; height: 100%;">
-              <div style="
-                position: absolute;
-                bottom: 0;
-                left: 50%;
-                transform: translateX(-50%);
-                width: 30px;
-                height: 30px;
-                background-color: #FF4136;
-                border-radius: 50% 50% 50% 0;
-                transform: translateX(-50%) rotate(-45deg);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                box-shadow: 0 4px 8px rgba(0,0,0,0.2), 0 0 0 rgba(255,65,54,0.5);
-                animation: bounce 1s ease-in-out infinite alternate, glow 2s infinite;
-              ">
-                <div style="
-                  width: 20px;
-                  height: 20px;
-                  background-color: white;
-                  border-radius: 50%;
-                  transform: rotate(45deg);
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  overflow: hidden;
-                ">
-                  <img 
-                    src="${markerImageUrl}"
-                    alt="Gas Station"
-                    style="width: 30px; height: 30px; object-fit: cover;"
-                    onerror="this.onerror=null; this.src='/lovable-uploads/e7264ee5-ed98-4679-91b4-8f12d183784b.png';"
-                  />
-                </div>
-              </div>
+            <div style="width: 32px; height: 32px; position: relative; transform: translateY(-16px);">
+              <img 
+                src="${markerImageUrl}" 
+                style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));" 
+                alt="Gas Station"
+                onerror="this.onerror=null; this.src='/lovable-uploads/e7264ee5-ed98-4679-91b4-8f12d183784b.png';"
+              />
               ${marker.label ? 
                 `<div style="
                   position: absolute;
@@ -407,29 +353,6 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
               }
             </div>
           `;
-        }
-
-        // Add keyframes for animations
-        if (!document.querySelector('#map-animations')) {
-          const style = document.createElement('style');
-          style.id = 'map-animations';
-          style.innerHTML = `
-            @keyframes bounce {
-              0% { transform: translateX(-50%) rotate(-45deg) translateY(0); }
-              100% { transform: translateX(-50%) rotate(-45deg) translateY(-8px); }
-            }
-            @keyframes pulse {
-              0% { box-shadow: 0 4px 8px rgba(0,0,0,0.2), 0 0 0 0 rgba(59,130,246,0.7); }
-              70% { box-shadow: 0 4px 8px rgba(0,0,0,0.2), 0 0 0 10px rgba(59,130,246,0); }
-              100% { box-shadow: 0 4px 8px rgba(0,0,0,0.2), 0 0 0 0 rgba(59,130,246,0); }
-            }
-            @keyframes glow {
-              0% { box-shadow: 0 4px 8px rgba(0,0,0,0.2), 0 0 0 0 rgba(255,65,54,0.7); }
-              70% { box-shadow: 0 4px 8px rgba(0,0,0,0.2), 0 0 0 10px rgba(255,65,54,0); }
-              100% { box-shadow: 0 4px 8px rgba(0,0,0,0.2), 0 0 0 0 rgba(255,65,54,0); }
-            }
-          `;
-          document.head.appendChild(style);
         }
 
         // Add tooltip

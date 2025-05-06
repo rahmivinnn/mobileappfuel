@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, Filter, Bell, User, Home, ShoppingBag, MapPin, Settings, Fuel, RefreshCw, AlertCircle, Layers, Globe } from 'lucide-react';
+import { Search, Filter, Bell, User, Home, ShoppingBag, MapPin, Settings, Fuel, RefreshCw, AlertCircle, Layers, Globe, Satellite, Moon } from 'lucide-react';
 import Map from '@/components/ui/Map';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
@@ -286,7 +286,7 @@ const Index = () => {
         </button>
       </div>
 
-      {/* Map Style Selector - Updated to match design */}
+      {/* Map Style Selector - Updated with icons */}
       <div className="px-4 pt-2">
         <div className="flex justify-between items-center">
           <div className="flex gap-1">
@@ -296,21 +296,17 @@ const Index = () => {
               className={`rounded-full flex items-center gap-1 px-3 py-1 ${currentMapStyle === MAP_STYLES.STREETS ? "bg-green-500 hover:bg-green-600" : "border-gray-300"}`}
               onClick={() => handleMapStyleChange(MAP_STYLES.STREETS)}
             >
-              <div className={`w-4 h-4 rounded-full flex items-center justify-center ${currentMapStyle === MAP_STYLES.STREETS ? "bg-white" : "bg-green-500"}`}>
-                <Globe className={`h-2.5 w-2.5 ${currentMapStyle === MAP_STYLES.STREETS ? "text-green-500" : "text-white"}`} />
-              </div>
+              <Globe className={`h-3.5 w-3.5 ${currentMapStyle === MAP_STYLES.STREETS ? "text-white" : "text-gray-600 dark:text-gray-400"}`} />
               <span className="text-xs font-medium">Streets</span>
             </Button>
             
             <Button 
               size="sm"
               variant={currentMapStyle === MAP_STYLES.SATELLITE ? "default" : "outline"}
-              className={`rounded-full flex items-center gap-1 px-3 py-1 ${currentMapStyle === MAP_STYLES.SATELLITE ? "bg-black text-white hover:bg-gray-800" : "border-gray-300"}`}
+              className={`rounded-full flex items-center gap-1 px-3 py-1 ${currentMapStyle === MAP_STYLES.SATELLITE ? "bg-blue-600 text-white hover:bg-blue-700" : "border-gray-300"}`}
               onClick={() => handleMapStyleChange(MAP_STYLES.SATELLITE)}
             >
-              <div className={`w-4 h-4 rounded-full flex items-center justify-center ${currentMapStyle === MAP_STYLES.SATELLITE ? "bg-white" : "bg-black"}`}>
-                <Globe className={`h-2.5 w-2.5 ${currentMapStyle === MAP_STYLES.SATELLITE ? "text-black" : "text-white"}`} />
-              </div>
+              <Satellite className={`h-3.5 w-3.5 ${currentMapStyle === MAP_STYLES.SATELLITE ? "text-white" : "text-gray-600 dark:text-gray-400"}`} />
               <span className="text-xs font-medium">Satellite</span>
             </Button>
             
@@ -320,9 +316,7 @@ const Index = () => {
               className={`rounded-full flex items-center gap-1 px-3 py-1 ${currentMapStyle === MAP_STYLES.DARK ? "bg-gray-800 text-white hover:bg-gray-700" : "border-gray-300"}`}
               onClick={() => handleMapStyleChange(MAP_STYLES.DARK)}
             >
-              <div className={`w-4 h-4 rounded-full flex items-center justify-center ${currentMapStyle === MAP_STYLES.DARK ? "bg-white" : "bg-gray-800"}`}>
-                <Globe className={`h-2.5 w-2.5 ${currentMapStyle === MAP_STYLES.DARK ? "text-gray-800" : "text-white"}`} />
-              </div>
+              <Moon className={`h-3.5 w-3.5 ${currentMapStyle === MAP_STYLES.DARK ? "text-white" : "text-gray-600 dark:text-gray-400"}`} />
               <span className="text-xs font-medium">Dark</span>
             </Button>
           </div>
