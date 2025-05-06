@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { ArrowLeft, Camera, Check, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/components/ui/theme-provider';
 
 enum VerificationStep {
   Instructions,
@@ -47,6 +48,8 @@ const FaceVerification: React.FC = () => {
   const [countdown, setCountdown] = useState<number | null>(null);
   const navigate = useNavigate();
   const { verifyFaceLogin } = useAuth();
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark';
   
   // Set up camera stream
   const setupCamera = useCallback(async () => {
@@ -186,10 +189,10 @@ const FaceVerification: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black flex flex-col">
+    <div className={`min-h-screen ${isDarkMode ? 'bg-black' : 'bg-white'} flex flex-col`}>
       {/* Header */}
       <div className="pt-6 px-6 z-10">
-        <Link to="/" className="inline-flex items-center text-green-500 hover:text-green-400">
+        <Link to="/" className={`inline-flex items-center ${isDarkMode ? 'text-green-500 hover:text-green-400' : 'text-green-600 hover:text-green-700'}`}>
           <ArrowLeft className="h-5 w-5 mr-1" />
           <span>Back</span>
         </Link>
@@ -204,16 +207,16 @@ const FaceVerification: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <h1 className="text-2xl font-bold text-white mb-2">Face Verification</h1>
+            <h1 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'} mb-2`}>Face Verification</h1>
             
             {step === VerificationStep.Instructions && (
-              <p className="text-gray-400 mb-6">
+              <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'} mb-6`}>
                 We need to verify your identity. Please make sure you're in a well-lit area with your face clearly visible.
               </p>
             )}
             
             {step === VerificationStep.Camera && (
-              <p className="text-gray-400 mb-6">
+              <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'} mb-6`}>
                 Position your face within the frame.
                 {countdown !== null && countdown > 0 && (
                   <span className="block text-2xl font-bold mt-2">{countdown}</span>
@@ -222,19 +225,19 @@ const FaceVerification: React.FC = () => {
             )}
             
             {step === VerificationStep.Processing && (
-              <p className="text-gray-400 mb-6">
+              <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'} mb-6`}>
                 Processing your image...
               </p>
             )}
             
             {step === VerificationStep.Success && (
-              <p className="text-green-400 mb-6">
+              <p className="text-green-500 mb-6">
                 Verification successful! Redirecting...
               </p>
             )}
             
             {step === VerificationStep.Failure && (
-              <p className="text-red-400 mb-6">
+              <p className="text-red-500 mb-6">
                 {error || "Verification failed. Please try again."}
               </p>
             )}
@@ -281,7 +284,7 @@ const FaceVerification: React.FC = () => {
             {/* Captured image */}
             {imageData && (step === VerificationStep.Processing || step === VerificationStep.Success || step === VerificationStep.Failure) && (
               <motion.div 
-                className="w-64 h-64 mb-8 rounded-full overflow-hidden border-4 border-gray-600"
+                className={`w-64 h-64 mb-8 rounded-full overflow-hidden border-4 ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`}
                 initial={{ scale: 0.8 }}
                 animate={{ scale: 1 }}
                 transition={{ duration: 0.5 }}
@@ -297,12 +300,12 @@ const FaceVerification: React.FC = () => {
             {/* Instructions view */}
             {step === VerificationStep.Instructions && (
               <motion.div 
-                className="w-64 h-64 mb-8 rounded-full overflow-hidden border-4 border-gray-700 flex items-center justify-center bg-gray-800"
+                className={`w-64 h-64 mb-8 rounded-full overflow-hidden border-4 ${isDarkMode ? 'border-gray-700' : 'border-gray-300'} flex items-center justify-center ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}
                 initial={{ scale: 0.8 }}
                 animate={{ scale: 1 }}
                 transition={{ duration: 0.5 }}
               >
-                <Camera className="w-24 h-24 text-gray-500" />
+                <Camera className={`w-24 h-24 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`} />
               </motion.div>
             )}
             
@@ -323,7 +326,7 @@ const FaceVerification: React.FC = () => {
               {step === VerificationStep.Processing && (
                 <Button
                   disabled
-                  className="w-full h-12 rounded-full bg-gray-600 text-white"
+                  className={`w-full h-12 rounded-full ${isDarkMode ? 'bg-gray-600' : 'bg-gray-300'} text-white`}
                 >
                   <div className="mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   Verifying...
@@ -352,7 +355,7 @@ const FaceVerification: React.FC = () => {
                   <Button
                     onClick={handleSkip}
                     variant="outline"
-                    className="w-full h-12 rounded-full text-gray-400 border-gray-700 hover:bg-gray-800"
+                    className={`w-full h-12 rounded-full ${isDarkMode ? 'text-gray-400 border-gray-700 hover:bg-gray-800' : 'text-gray-600 border-gray-300 hover:bg-gray-100'}`}
                   >
                     Skip for Now
                   </Button>
@@ -363,7 +366,7 @@ const FaceVerification: React.FC = () => {
                 <Button
                   onClick={handleSkip}
                   variant="outline"
-                  className="w-full h-12 rounded-full text-gray-400 border-gray-700 hover:bg-gray-800"
+                  className={`w-full h-12 rounded-full ${isDarkMode ? 'text-gray-400 border-gray-700 hover:bg-gray-800' : 'text-gray-600 border-gray-300 hover:bg-gray-100'}`}
                 >
                   Skip for Now
                 </Button>
@@ -372,14 +375,14 @@ const FaceVerification: React.FC = () => {
             
             {step === VerificationStep.Instructions && (
               <motion.div
-                className="mt-6 bg-gray-900 p-4 rounded-lg border border-gray-800"
+                className={`mt-6 p-4 rounded-lg border ${isDarkMode ? 'bg-gray-900 border-gray-800' : 'bg-gray-50 border-gray-200'}`}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.5 }}
               >
                 <div className="flex items-start">
                   <AlertTriangle className="text-yellow-500 w-5 h-5 mr-2 mt-0.5 flex-shrink-0" />
-                  <p className="text-sm text-gray-400 leading-relaxed">
+                  <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'} leading-relaxed`}>
                     We use facial recognition for security purposes only. Your face data is encrypted and stored securely. We never share this data with third parties.
                   </p>
                 </div>
