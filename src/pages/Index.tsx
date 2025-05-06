@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Search, Filter, Bell, User, Home, ShoppingBag, MapPin, Settings, Fuel, RefreshCw, AlertCircle } from 'lucide-react';
 import BottomNav from '@/components/layout/BottomNav';
 import Map from '@/components/ui/Map';
@@ -16,6 +17,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { filterStationsByDistance, DEFAULT_COORDINATES } from '@/services/geocodingService';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
+import LocationSelector from '@/components/ui/LocationSelector';
 
 const Index = () => {
   const { userLocation, refreshUserLocation } = useAuth();
@@ -195,7 +197,10 @@ const Index = () => {
             />
           </div>
 
-          <Bell className="h-6 w-6" />
+          <div className="flex items-center space-x-2">
+            <ThemeToggle />
+            <Bell className="h-6 w-6" />
+          </div>
         </div>
 
         {/* Search */}
@@ -226,11 +231,12 @@ const Index = () => {
 
       {/* Location Indicator */}
       <div className="px-4 py-2 bg-green-50 dark:bg-green-900/30 flex items-center justify-between">
-        <div className="flex items-center">
-          <MapPin className="h-4 w-4 text-green-500 mr-2" />
-          <span className="text-sm text-green-800 dark:text-green-300">
+        <div className="flex items-center gap-2">
+          <MapPin className="h-4 w-4 text-green-500 mr-1" />
+          <span className="text-sm text-green-800 dark:text-green-300 mr-2">
             {isLoadingLocation ? 'Loading location...' : locationLabel}
           </span>
+          <LocationSelector compact={true} />
         </div>
         <button 
           onClick={handleRefreshLocation}

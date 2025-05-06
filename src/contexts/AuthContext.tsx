@@ -28,6 +28,7 @@ interface AuthContextType {
   logout: () => void;
   updateUserRole: (role: UserRole) => Promise<void>;
   verifyFaceLogin: (faceId: string, email?: string) => Promise<boolean>;
+  updateLocation: (city: string, country: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -73,6 +74,47 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  // Function to update user's location
+  const updateLocation = async (city: string, country: string) => {
+    setIsLoading(true);
+    try {
+      // Update localStorage
+      localStorage.setItem('userCity', city);
+      localStorage.setItem('userCountryName', country);
+      
+      // Update user object
+      if (user) {
+        const updatedUser = {
+          ...user,
+          city,
+          country
+        };
+        setUser(updatedUser);
+      }
+      
+      // Fetch new coordinates
+      await fetchUserLocation({
+        ...(user || { uid: '', email: '', role: 'USER' }),
+        city,
+        country
+      });
+      
+      toast({
+        title: "Location updated",
+        description: `Your location has been set to ${city}, ${country}`,
+      });
+    } catch (error) {
+      console.error("Error updating location:", error);
+      toast({
+        title: "Error updating location",
+        description: "Please try again later",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Refresh user location (can be called from other components)
   const refreshUserLocation = async () => {
     await fetchUserLocation(user);
@@ -92,8 +134,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             
             // If user has a country selected, ensure it's set in localStorage
             if (currentUser.country) {
-              localStorage.setItem('userCountry', currentUser.country.code);
-              localStorage.setItem('userCountryName', currentUser.country.name);
+              localStorage.setItem('userCountry', 'ID'); // Default code
+              localStorage.setItem('userCountryName', currentUser.country);
               
               // Fetch coordinates for the user's location
               fetchUserLocation(currentUser);
@@ -174,7 +216,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       const userData = await authService.loginWithFace(faceId);
       if (userData) {
-        localStorage.setItem('auth-token', userData.token);
+        localStorage.setItem('auth-token', userData.token || '');
         setUser(userData);
         navigate('/');
         
@@ -247,6 +289,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     logout,
     updateUserRole,
     verifyFaceLogin,
+    updateLocation
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

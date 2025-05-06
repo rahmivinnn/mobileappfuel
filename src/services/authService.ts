@@ -1,198 +1,94 @@
 
-import { toast } from '@/hooks/use-toast';
+// Define user roles
+export type UserRole = 'USER' | 'AGENT' | 'ADMIN';
 
-// Role-based authentication types
-export type UserRole = 'customer' | 'agent';
-
+// Define country and city type
 export interface CountryCity {
   code: string;
   name: string;
-  city: string;
 }
 
+// Define user data structure
 export interface UserData {
   uid: string;
-  displayName: string | null;
-  email: string | null;
-  photoURL: string | null;
+  email: string;
+  displayName?: string;
+  photoURL?: string;
+  phoneNumber?: string;
   role: UserRole;
-  country?: CountryCity;
-  faceId?: string;
-  needsFaceVerification?: boolean;
+  city?: string;
+  country?: string;
   token?: string;
+  needsFaceVerification?: boolean;
 }
 
-// This is a mock implementation - replace with actual backend integration
-export const authService = {
-  // Store user in localStorage for demo
-  storeUser: (userData: UserData): void => {
-    localStorage.setItem('user-data', JSON.stringify(userData));
-  },
-  
-  // Get current user
-  getCurrentUser: async (): Promise<UserData | null> => {
-    const userData = localStorage.getItem('user-data');
-    return userData ? JSON.parse(userData) : null;
-  },
-  
-  // Check if user is logged in
-  isLoggedIn: (): boolean => {
-    return localStorage.getItem('auth-token') !== null;
-  },
-  
-  // Get user token
-  getToken: (): string | null => {
-    return localStorage.getItem('auth-token');
-  },
-  
-  // Login with email/password
-  loginWithEmailPassword: async (email: string, password: string): Promise<UserData> => {
-    // Mock implementation - replace with actual backend call
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const mockUser: UserData = {
-          uid: 'mock-user-' + Math.random().toString(36).substring(2, 9),
-          displayName: email.split('@')[0],
-          email: email,
-          photoURL: null,
-          role: 'customer', // Default role
-          needsFaceVerification: true // New users need face verification
-        };
-        
-        authService.storeUser(mockUser);
-        resolve(mockUser);
-      }, 1000);
-    });
-  },
-  
-  // Login with Google
-  loginWithGoogle: async (token: string): Promise<UserData> => {
-    // Mock implementation - replace with actual backend call
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // Check if we have a user already stored with this email
-        // In a real app, you'd verify the token with Google and get the email
-        const existingUserData = localStorage.getItem('user-data');
-        let isNewUser = true;
-        let mockUser: UserData;
-        
-        if (existingUserData) {
-          const existing = JSON.parse(existingUserData);
-          if (existing.email === 'user@gmail.com') { // In real app, check actual email from token
-            isNewUser = false;
-            mockUser = existing;
-          }
-        }
-        
-        if (isNewUser) {
-          mockUser = {
-            uid: 'google-user-' + Math.random().toString(36).substring(2, 9),
-            displayName: 'Google User',
-            email: 'user@gmail.com',
-            photoURL: 'https://ui-avatars.com/api/?name=Google+User&background=random',
-            role: 'customer', // Default role
-            needsFaceVerification: true // First time Google users need face verification
-          };
-        }
-        
-        authService.storeUser(mockUser);
-        resolve(mockUser);
-      }, 500);
-    });
-  },
-  
-  // Login with Face
-  loginWithFace: async (faceId: string): Promise<UserData> => {
-    // Mock implementation - replace with actual backend call
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const userData = localStorage.getItem('user-data');
-        if (userData) {
-          const user = JSON.parse(userData);
-          // Check if the face ID matches (in a real app, this would be done by the face API)
-          if (user.faceId === faceId || !user.faceId) {
-            // If no faceId is stored yet, we accept and store the new one (first login)
-            if (!user.faceId) {
-              user.faceId = faceId;
-              authService.storeUser(user);
-            }
-            user.token = 'face-auth-' + Math.random().toString(36).substring(2, 9);
-            resolve(user);
-          } else {
-            reject(new Error("Face verification failed"));
-          }
-        } else {
-          reject(new Error("No user found"));
-        }
-      }, 800);
-    });
-  },
-  
-  // Verify face
-  verifyFace: async (faceId: string, email?: string): Promise<boolean> => {
-    // Mock implementation - replace with actual face verification API call
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // In a real app, this would send the face data to your face verification API
-        // and compare it with stored data or register a new face
-        const successRate = 0.85; // 85% success rate for demo
-        const success = Math.random() < successRate;
-        
-        if (success) {
-          // If successful and we have user data, update the faceId
-          const userData = localStorage.getItem('user-data');
-          if (userData) {
-            const user = JSON.parse(userData);
-            user.faceId = faceId;
-            authService.storeUser(user);
-          }
-        }
-        
-        resolve(success);
-      }, 1200);
-    });
-  },
-  
-  // Logout
-  logout: (): void => {
-    localStorage.removeItem('auth-token');
-    localStorage.removeItem('user-data');
-    toast({
-      title: "Logged out",
-      description: "You have been successfully logged out",
-    });
-  },
-  
-  // Update user role
-  updateUserRole: (uid: string, role: UserRole): Promise<void> => {
-    // Mock implementation - replace with actual backend call
-    return new Promise((resolve) => {
-      setTimeout(async () => {
-        const userData = await authService.getCurrentUser();
-        if (userData) {
-          userData.role = role;
-          authService.storeUser(userData);
-        }
-        resolve();
-      }, 500);
-    });
-  },
-  
-  // Update user country & city
-  updateUserCountry: (uid: string, country: CountryCity): Promise<void> => {
-    return new Promise((resolve) => {
-      setTimeout(async () => {
-        const userData = await authService.getCurrentUser();
-        if (userData) {
-          userData.country = country;
-          authService.storeUser(userData);
-          
-          // Also update localStorage for app-wide access
-          localStorage.setItem('userCountry', country.code);
-          localStorage.setItem('userCountryName', country.name);
-        }
-        resolve();
-      }, 300);
-    });
+// Authentication service
+class AuthService {
+  // Simplified authentication with mock data
+  async getCurrentUser(): Promise<UserData | null> {
+    try {
+      // In a real app, this would validate the token with the backend
+      const token = localStorage.getItem('auth-token');
+      if (!token) return null;
+      
+      // For demo purposes, return a mock user
+      return {
+        uid: 'user123',
+        email: 'user@example.com',
+        displayName: 'Demo User',
+        role: 'USER',
+        city: localStorage.getItem('userCity') || 'Jakarta',
+        country: localStorage.getItem('userCountryName') || 'Indonesia'
+      };
+    } catch (error) {
+      console.error('Error getting current user:', error);
+      return null;
+    }
   }
-};
+
+  async loginWithGoogle(token: string): Promise<UserData> {
+    // Mock implementation - would validate with backend in real app
+    return {
+      uid: 'google123',
+      email: 'google@example.com',
+      displayName: 'Google User',
+      photoURL: '/lovable-uploads/8a188651-80ec-4a90-8d5c-de0df713b6c7.png',
+      role: 'USER',
+      city: localStorage.getItem('userCity') || 'Jakarta',
+      country: localStorage.getItem('userCountryName') || 'Indonesia',
+      token
+    };
+  }
+  
+  async loginWithFace(faceId: string): Promise<UserData> {
+    // Mock implementation - would validate with backend in real app
+    return {
+      uid: 'face123',
+      email: 'face@example.com',
+      displayName: 'Face User',
+      photoURL: '/lovable-uploads/8a188651-80ec-4a90-8d5c-de0df713b6c7.png',
+      role: 'USER',
+      city: localStorage.getItem('userCity') || 'Jakarta',
+      country: localStorage.getItem('userCountryName') || 'Indonesia',
+      token: 'mock-face-token-123'
+    };
+  }
+
+  async verifyFace(faceId: string, email?: string): Promise<boolean> {
+    // Mock implementation - would validate with backend in real app
+    console.log(`Verifying face ${faceId} for email ${email}`);
+    return true;
+  }
+
+  async updateUserRole(uid: string, newRole: UserRole): Promise<void> {
+    // Mock implementation - would update with backend in real app
+    console.log(`Updated role for ${uid} to ${newRole}`);
+  }
+
+  logout(): void {
+    localStorage.removeItem('auth-token');
+    // Clear any other user-related data
+  }
+}
+
+export const authService = new AuthService();
