@@ -3,11 +3,25 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { authService, UserData, UserRole } from '@/services/authService';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
+import { geocodeLocation } from '@/services/geocodingService';
+
+interface LocationData {
+  city: string;
+  country: string;
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
+  isLoading: boolean;
+  error: string | null;
+}
 
 interface AuthContextType {
   user: UserData | null;
   isLoading: boolean;
   isLoggedIn: boolean;
+  userLocation: LocationData | null;
+  refreshUserLocation: () => Promise<void>;
   login: (token: string) => void;
   loginWithGoogle: (token: string) => Promise<void>;
   loginWithFace: (faceId: string) => Promise<void>;
@@ -21,7 +35,48 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [userLocation, setUserLocation] = useState<LocationData | null>(null);
   const navigate = useNavigate();
+
+  // Function to fetch and set user location data
+  const fetchUserLocation = async (user: UserData | null) => {
+    if (!user || !user.city || !user.country) {
+      return null;
+    }
+
+    setUserLocation(prev => prev ? { ...prev, isLoading: true, error: null } : {
+      city: user.city,
+      country: user.country,
+      coordinates: { lat: 0, lng: 0 },
+      isLoading: true,
+      error: null
+    });
+
+    try {
+      const coordinates = await geocodeLocation(user.city, user.country);
+      
+      setUserLocation({
+        city: user.city,
+        country: user.country,
+        coordinates,
+        isLoading: false,
+        error: null
+      });
+
+      // Store coordinates in localStorage for quick access
+      localStorage.setItem('userCoordinates', JSON.stringify(coordinates));
+      return coordinates;
+    } catch (error) {
+      console.error("Error fetching user location:", error);
+      setUserLocation(prev => prev ? { ...prev, isLoading: false, error: String(error) } : null);
+      return null;
+    }
+  };
+
+  // Refresh user location (can be called from other components)
+  const refreshUserLocation = async () => {
+    await fetchUserLocation(user);
+  };
 
   // Check if user is already logged in on mount
   useEffect(() => {
@@ -39,6 +94,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             if (currentUser.country) {
               localStorage.setItem('userCountry', currentUser.country.code);
               localStorage.setItem('userCountryName', currentUser.country.name);
+              
+              // Fetch coordinates for the user's location
+              fetchUserLocation(currentUser);
             }
           }
         }
@@ -88,6 +146,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         navigate('/face-verification');
       } else {
         navigate('/');
+        
+        // Fetch location data for the user
+        if (userData.city && userData.country) {
+          fetchUserLocation(userData);
+        }
       }
       
       toast({
@@ -114,6 +177,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         localStorage.setItem('auth-token', userData.token);
         setUser(userData);
         navigate('/');
+        
+        // Fetch location data for the user
+        if (userData.city && userData.country) {
+          fetchUserLocation(userData);
+        }
         
         toast({
           title: "Face login successful",
@@ -148,6 +216,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const logout = () => {
     authService.logout();
     setUser(null);
+    setUserLocation(null);
+    localStorage.removeItem('userCoordinates');
     navigate('/welcome');
   };
 
@@ -169,6 +239,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     user,
     isLoading,
     isLoggedIn: !!user,
+    userLocation,
+    refreshUserLocation,
     login,
     loginWithGoogle,
     loginWithFace,

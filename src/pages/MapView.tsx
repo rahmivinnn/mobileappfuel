@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Map from '@/components/ui/Map';
@@ -10,6 +9,9 @@ import { MAPBOX_STYLE, MAP_STYLES } from '@/config/mapbox';
 import { useGeolocation } from '@/hooks/use-geolocation';
 import { Button } from '@/components/ui/button';
 import { MapPin, AlertCircle, User, RefreshCw } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { filterStationsByDistance, DEFAULT_COORDINATES } from '@/services/geocodingService';
+import { toast } from '@/hooks/use-toast';
 
 // Helper function for rupiah formatting
 export const formatToRupiah = (number: number | string) => {
@@ -42,34 +44,88 @@ function deg2rad(deg: number) {
 
 const MapView: React.FC = () => {
   const navigate = useNavigate();
+  const { userLocation, refreshUserLocation } = useAuth();
   const { location, loading: locationLoading, error: locationError, permissionDenied, refreshLocation } = useGeolocation();
   const [selectedStationId, setSelectedStationId] = useState<string | null>(null);
   const [showTraffic, setShowTraffic] = useState(true);
   const [currentMapStyle, setCurrentMapStyle] = useState(MAPBOX_STYLE);
   const [stationsWithDistance, setStationsWithDistance] = useState(allStations);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(true);
+  const [mapCenter, setMapCenter] = useState(DEFAULT_COORDINATES);
 
+  // Initialize location based on user profile or device
   useEffect(() => {
-    if (location) {
-      console.log("MapView received location:", location);
+    const initializeLocation = async () => {
+      setIsLoadingLocation(true);
       
-      // Recalculate distances based on new location
-      const updatedStations = allStations.map(station => {
-        const distance = getDistance(
-          location.coordinates.lat,
-          location.coordinates.lng,
-          station.position.lat,
-          station.position.lng
-        ).toFixed(1);
+      // Check if we have user location from registration first
+      if (userLocation && !userLocation.isLoading && userLocation.coordinates) {
+        console.log("MapView: Using user's registered location:", userLocation);
+        setMapCenter(userLocation.coordinates);
         
-        return {
-          ...station,
-          distance
-        };
+        // Filter stations based on user location
+        const filteredStations = filterStationsByDistance(
+          allStations,
+          userLocation.coordinates
+        );
+        setStationsWithDistance(filteredStations);
+        setIsLoadingLocation(false);
+      } 
+      // Fallback to device geolocation if available
+      else if (location && location.coordinates) {
+        console.log("MapView: Using device geolocation:", location);
+        setMapCenter(location.coordinates);
+        
+        // Filter stations based on device location
+        const filteredStations = filterStationsByDistance(
+          allStations,
+          location.coordinates
+        );
+        setStationsWithDistance(filteredStations);
+        setIsLoadingLocation(false);
+      } 
+      // Otherwise, use default location (Jakarta)
+      else {
+        console.log("MapView: Using default location (Jakarta)");
+        setMapCenter(DEFAULT_COORDINATES);
+        
+        // Filter stations based on default location
+        const filteredStations = filterStationsByDistance(
+          allStations,
+          DEFAULT_COORDINATES
+        );
+        setStationsWithDistance(filteredStations);
+        
+        toast({
+          title: "Using default location",
+          description: "We couldn't determine your location. Showing Jakarta, Indonesia.",
+        });
+        
+        setIsLoadingLocation(false);
+      }
+    };
+    
+    initializeLocation();
+  }, [userLocation, location]);
+
+  // Handle refresh button click
+  const handleRefreshLocation = () => {
+    setIsLoadingLocation(true);
+    
+    // Try to refresh user's registered location first
+    if (userLocation) {
+      refreshUserLocation().then(() => {
+        setIsLoadingLocation(false);
+      }).catch(err => {
+        console.error("Failed to refresh user location:", err);
+        // Fallback to device location
+        refreshLocation();
       });
-      
-      setStationsWithDistance(updatedStations);
+    } else {
+      // If no user location, just refresh device location
+      refreshLocation();
     }
-  }, [location]);
+  };
 
   // Sort stations by distance
   const sortedStations = [...stationsWithDistance].sort((a, b) => 
@@ -91,20 +147,20 @@ const MapView: React.FC = () => {
   }));
 
   // Add FuelFriendly agents as markers - based on current location
-  const fuelAgents = location ? [
+  const fuelAgents = mapCenter ? [
     { 
-      lat: location.coordinates.lat + 0.005, 
-      lng: location.coordinates.lng + 0.005, 
+      lat: mapCenter.lat + 0.005, 
+      lng: mapCenter.lng + 0.005, 
       name: "Agent John" 
     },
     { 
-      lat: location.coordinates.lat - 0.008, 
-      lng: location.coordinates.lng + 0.007, 
+      lat: mapCenter.lat - 0.008, 
+      lng: mapCenter.lng + 0.007, 
       name: "Agent Sarah" 
     },
     { 
-      lat: location.coordinates.lat + 0.007, 
-      lng: location.coordinates.lng - 0.009, 
+      lat: mapCenter.lat + 0.007, 
+      lng: mapCenter.lng - 0.009, 
       name: "Agent Mike" 
     }
   ] : [];
@@ -146,28 +202,36 @@ const MapView: React.FC = () => {
     setShowTraffic(show);
   };
 
+  // Location label from user's registration or device
+  const locationLabel = userLocation ? 
+    `${userLocation.city}, ${userLocation.country}` : 
+    (location ? `${location.city}, ${location.country}` : 'Unknown Location');
+
   return (
     <div className="min-h-screen bg-background">
       <Header title="Temukan SPBU" showBack={true} />
 
       {/* Location indicator */}
-      {location && (
-        <div className="m-4 p-2 bg-green-50 dark:bg-green-900/30 rounded-lg flex items-center justify-between">
-          <div className="flex items-center">
-            <MapPin className="text-green-500 h-4 w-4 mr-2" />
-            <p className="text-sm text-green-800 dark:text-green-300">
-              {location.city}, {location.country}
-            </p>
-          </div>
-          <button 
-            onClick={refreshLocation}
-            className="text-green-600 dark:text-green-400 flex items-center text-xs"
-          >
-            <RefreshCw className="h-3 w-3 mr-1" />
-            Refresh
-          </button>
+      <div className="m-4 p-2 bg-green-50 dark:bg-green-900/30 rounded-lg flex items-center justify-between">
+        <div className="flex items-center">
+          <MapPin className="text-green-500 h-4 w-4 mr-2" />
+          <p className="text-sm text-green-800 dark:text-green-300">
+            {isLoadingLocation ? 'Loading location...' : locationLabel}
+          </p>
         </div>
-      )}
+        <button 
+          onClick={handleRefreshLocation}
+          className="text-green-600 dark:text-green-400 flex items-center text-xs"
+          disabled={isLoadingLocation}
+        >
+          {isLoadingLocation ? (
+            <div className="h-3 w-3 border-2 border-green-500 border-t-transparent rounded-full animate-spin mr-1" />
+          ) : (
+            <RefreshCw className="h-3 w-3 mr-1" />
+          )}
+          Refresh
+        </button>
+      </div>
 
       {permissionDenied && (
         <motion.div
@@ -183,7 +247,7 @@ const MapView: React.FC = () => {
             variant="outline" 
             size="sm" 
             className="border-red-500 text-red-500 hover:bg-red-500/20"
-            onClick={refreshLocation}
+            onClick={handleRefreshLocation}
           >
             Coba Lagi
           </Button>
@@ -199,7 +263,7 @@ const MapView: React.FC = () => {
         <Map
           className="w-full h-full"
           zoom={13}
-          center={location?.coordinates}
+          center={mapCenter}
           markers={allMarkers}
           onMarkerClick={handleMarkerClick}
           showBackButton={true}
@@ -210,7 +274,7 @@ const MapView: React.FC = () => {
           onTrafficToggle={handleTrafficToggle}
         />
 
-        {locationLoading && (
+        {isLoadingLocation && (
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black/80 px-4 py-2 rounded-full flex items-center space-x-2">
             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
             <span className="text-white text-sm">Mencari lokasi Anda...</span>

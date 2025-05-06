@@ -1,8 +1,6 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Filter, Bell, User, Home, ShoppingBag, MapPin, Settings, Fuel } from 'lucide-react';
+import { Search, Filter, Bell, User, Home, ShoppingBag, MapPin, Settings, Fuel, RefreshCw, AlertCircle } from 'lucide-react';
 import BottomNav from '@/components/layout/BottomNav';
-import StationCard from '@/components/ui/StationCard';
 import Map from '@/components/ui/Map';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
@@ -14,26 +12,13 @@ import { MAPBOX_STYLE, MAP_STYLES } from '@/config/mapbox';
 import { useGeolocation } from '@/hooks/use-geolocation';
 import StationListItem from '@/components/ui/StationListItem';
 import { formatToRupiah } from './MapView';
-
-// Calculate distance between two coordinates in km using Haversine formula
-function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
-  const R = 6371; // Radius of the earth in km
-  const dLat = deg2rad(lat2 - lat1);
-  const dLon = deg2rad(lon2 - lon1);
-  const a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
-    Math.sin(dLon/2) * Math.sin(dLon/2); 
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
-  const d = R * c; // Distance in km
-  return d;
-}
-
-function deg2rad(deg: number) {
-  return deg * (Math.PI/180);
-}
+import { useAuth } from '@/contexts/AuthContext';
+import { filterStationsByDistance, DEFAULT_COORDINATES } from '@/services/geocodingService';
+import { toast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
 
 const Index = () => {
+  const { userLocation, refreshUserLocation } = useAuth();
   const { location, refreshLocation } = useGeolocation();
   const [searchQuery, setSearchQuery] = useState('');
   const isMobile = useIsMobile();
@@ -45,42 +30,73 @@ const Index = () => {
   const navigate = useNavigate();
   
   // Track location changes to update map and stations
-  const [mapCenter, setMapCenter] = useState({ lat: 0, lng: 0 });
-  const [stationsWithDistance, setStationsWithDistance] = useState(allStations);
+  const [mapCenter, setMapCenter] = useState(DEFAULT_COORDINATES);
+  const [stationsWithDistance, setStationsWithDistance] = useState<any[]>([]);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(true);
   
-  // Update map center and calculate distances when location changes
+  // Use user's saved location or device location
   useEffect(() => {
-    if (location && location.coordinates) {
-      console.log("Location updated in Index:", location);
-      setMapCenter(location.coordinates);
+    const initializeLocation = async () => {
+      setIsLoadingLocation(true);
       
-      // Recalculate distances based on new location
-      const updatedStations = allStations.map(station => {
-        const distance = getDistance(
-          location.coordinates.lat,
-          location.coordinates.lng,
-          station.position.lat,
-          station.position.lng
-        ).toFixed(1);
+      // Check if we have user location from registration first
+      if (userLocation && !userLocation.isLoading && userLocation.coordinates) {
+        console.log("Using user's registered location:", userLocation);
+        setMapCenter(userLocation.coordinates);
         
-        return {
-          ...station,
-          distance
-        };
-      });
-      
-      setStationsWithDistance(updatedStations);
-    }
-  }, [location]);
+        // Filter stations based on user location
+        const filteredStations = filterStationsByDistance(
+          allStations,
+          userLocation.coordinates
+        );
+        setStationsWithDistance(filteredStations);
+        setIsLoadingLocation(false);
+      } 
+      // Fallback to device geolocation if available
+      else if (location && location.coordinates) {
+        console.log("Using device geolocation:", location);
+        setMapCenter(location.coordinates);
+        
+        // Filter stations based on device location
+        const filteredStations = filterStationsByDistance(
+          allStations,
+          location.coordinates
+        );
+        setStationsWithDistance(filteredStations);
+        setIsLoadingLocation(false);
+      } 
+      // Otherwise, use default location (Jakarta)
+      else {
+        console.log("Using default location (Jakarta)");
+        setMapCenter(DEFAULT_COORDINATES);
+        
+        // Filter stations based on default location
+        const filteredStations = filterStationsByDistance(
+          allStations,
+          DEFAULT_COORDINATES
+        );
+        setStationsWithDistance(filteredStations);
+        
+        toast({
+          title: "Using default location",
+          description: "We couldn't determine your location. Showing Jakarta, Indonesia.",
+        });
+        
+        setIsLoadingLocation(false);
+      }
+    };
+    
+    initializeLocation();
+  }, [userLocation, location]);
 
-  // Filter and sort stations by distance
+  // Filter stations by search query
   const filteredStations = stationsWithDistance
     .filter(station =>
       station.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       station.address.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-    .sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
+    );
 
+  // Show map with delay for smoother UI
   useEffect(() => {
     const timer = setTimeout(() => {
       setMapVisible(true);
@@ -91,6 +107,25 @@ const Index = () => {
 
   const handleSeeAll = () => {
     navigate('/map');
+  };
+
+  // Handle refresh button click
+  const handleRefreshLocation = () => {
+    setIsLoadingLocation(true);
+    
+    // Try to refresh user's registered location first
+    if (userLocation) {
+      refreshUserLocation().then(() => {
+        setIsLoadingLocation(false);
+      }).catch(err => {
+        console.error("Failed to refresh user location:", err);
+        // Fallback to device location
+        refreshLocation();
+      });
+    } else {
+      // If no user location, just refresh device location
+      refreshLocation();
+    }
   };
 
   // Gas station image URL
@@ -108,15 +143,15 @@ const Index = () => {
   }));
 
   // Add FuelFriendly agents as markers - adjusted based on current location
-  const fuelAgents = location ? [
+  const fuelAgents = mapCenter ? [
     { 
-      lat: location.coordinates.lat + 0.005, 
-      lng: location.coordinates.lng + 0.005, 
+      lat: mapCenter.lat + 0.005, 
+      lng: mapCenter.lng + 0.005, 
       name: "Agent John" 
     },
     { 
-      lat: location.coordinates.lat - 0.008, 
-      lng: location.coordinates.lng + 0.007, 
+      lat: mapCenter.lat - 0.008, 
+      lng: mapCenter.lng + 0.007, 
       name: "Agent Sarah" 
     }
   ] : [];
@@ -135,6 +170,11 @@ const Index = () => {
 
   // Combine regular markers with agent markers
   const allMarkers = [...markers, ...agentMarkers];
+
+  // Location label from user's registration or device
+  const locationLabel = userLocation ? 
+    `${userLocation.city}, ${userLocation.country}` : 
+    (location ? `${location.city}, ${location.country}` : 'Unknown Location');
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 pb-20">
@@ -174,39 +214,55 @@ const Index = () => {
           </div>
           <button 
             className="h-12 w-12 flex items-center justify-center rounded-full bg-green-100 dark:bg-green-900"
-            onClick={() => refreshLocation()}
+            onClick={handleRefreshLocation}
           >
-            <Filter className="h-5 w-5 text-green-500" />
+            {isLoadingLocation ? 
+              <div className="h-5 w-5 border-2 border-green-500 border-t-transparent rounded-full animate-spin" /> : 
+              <Filter className="h-5 w-5 text-green-500" />
+            }
           </button>
         </div>
       </div>
 
       {/* Location Indicator */}
-      {location && (
-        <div className="px-4 py-2 bg-green-50 dark:bg-green-900/30 flex items-center justify-between">
-          <div className="flex items-center">
-            <MapPin className="h-4 w-4 text-green-500 mr-2" />
-            <span className="text-sm text-green-800 dark:text-green-300">
-              {location.city}, {location.country}
-            </span>
-          </div>
-          <button 
-            onClick={() => refreshLocation()}
-            className="text-xs text-green-600 dark:text-green-400 underline"
-          >
-            Refresh
-          </button>
+      <div className="px-4 py-2 bg-green-50 dark:bg-green-900/30 flex items-center justify-between">
+        <div className="flex items-center">
+          <MapPin className="h-4 w-4 text-green-500 mr-2" />
+          <span className="text-sm text-green-800 dark:text-green-300">
+            {isLoadingLocation ? 'Loading location...' : locationLabel}
+          </span>
         </div>
-      )}
+        <button 
+          onClick={handleRefreshLocation}
+          className="text-xs text-green-600 dark:text-green-400 flex items-center"
+          disabled={isLoadingLocation}
+        >
+          {isLoadingLocation ? (
+            <div className="h-3 w-3 border-2 border-green-500 border-t-transparent rounded-full animate-spin mr-1" />
+          ) : (
+            <RefreshCw className="h-3 w-3 mr-1" />
+          )}
+          Refresh
+        </button>
+      </div>
 
       {/* Map Section */}
       <div className="px-4 py-2 relative">
+        {isLoadingLocation && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/20 rounded-2xl">
+            <div className="bg-white dark:bg-gray-800 px-6 py-4 rounded-xl flex items-center space-x-3 shadow-lg">
+              <div className="h-5 w-5 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
+              <span className="text-sm font-medium">Loading map...</span>
+            </div>
+          </div>
+        )}
+        
         <div className={`transition-all duration-1000 rounded-2xl overflow-hidden ${mapVisible ? 'opacity-100 shadow-lg scale-100' : 'opacity-0 scale-95'}`}>
           <Map
             className="h-56 w-full rounded-2xl overflow-hidden"
             interactive={true}
             showTraffic={showTraffic}
-            center={location?.coordinates || { lat: 0, lng: 0 }}
+            center={mapCenter}
             zoom={13}
             mapStyle={currentMapStyle}
             markers={allMarkers}
@@ -225,36 +281,86 @@ const Index = () => {
         </div>
       </div>
 
+      {/* User Location Error Message */}
+      {userLocation && userLocation.error && (
+        <motion.div 
+          className="mx-4 my-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-center"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <AlertCircle className="h-5 w-5 text-red-500 mr-2 flex-shrink-0" />
+          <p className="text-sm text-red-700 dark:text-red-300 flex-1">
+            Unable to load your registered location. Using default or device location instead.
+          </p>
+          <Button 
+            size="sm" 
+            variant="outline" 
+            className="border-red-300 dark:border-red-700 text-red-500"
+            onClick={handleRefreshLocation}
+          >
+            Retry
+          </Button>
+        </motion.div>
+      )}
+
       {/* Stations List */}
       <div className="px-4 pt-4">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-          {location ? `Nearest Gas Stations in ${location.city}` : 'Loading Gas Stations...'}
+          {isLoadingLocation ? 
+            'Loading Gas Stations...' : 
+            `Nearest Gas Stations in ${userLocation?.city || location?.city || 'your area'}`
+          }
         </h2>
 
-        <div className="space-y-4">
-          {filteredStations.slice(0, 8).map((station, index) => {
-            const cheapestFuel = station.fuels && station.fuels.length > 0
-              ? station.fuels.reduce((min, fuel) =>
-                  parseFloat(fuel.price) < parseFloat(min.price) ? fuel : min,
-                  station.fuels[0])
-              : null;
+        {filteredStations.length === 0 && !isLoadingLocation ? (
+          <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4 text-center">
+            <Fuel className="h-10 w-10 mx-auto mb-2 text-orange-500" />
+            <p className="text-orange-800 dark:text-orange-300">No gas stations found nearby.</p>
+            <p className="text-orange-600 dark:text-orange-400 text-sm mt-1">Try expanding your search or changing location.</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {isLoadingLocation ? (
+              // Loading placeholders
+              [...Array(3)].map((_, i) => (
+                <div key={i} className="animate-pulse bg-gray-200 dark:bg-gray-800 rounded-xl h-40"></div>
+              ))
+            ) : (
+              // Actual station list
+              filteredStations.slice(0, 8).map((station, index) => {
+                const cheapestFuel = station.fuels && station.fuels.length > 0
+                  ? station.fuels.reduce((min, fuel) =>
+                      parseFloat(fuel.price) < parseFloat(min.price) ? fuel : min,
+                      station.fuels[0])
+                  : null;
+                  
+                // Use station open status based on time if available
+                const currentHour = new Date().getHours();
+                const isOpen = station.hours ? 
+                  currentHour >= station.hours.open && currentHour < station.hours.close :
+                  true;
 
-            return (
-              <StationListItem
-                key={station.id}
-                id={station.id}
-                name={station.name}
-                address={`${station.address}, ${location?.city || 'Unknown Location'}`}
-                distance={station.distance}
-                price={cheapestFuel ? cheapestFuel.price : "3.29"}
-                rating={station.rating}
-                reviewCount={24}
-                imageUrl={station.imageUrl}
-                delay={index}
-              />
-            );
-          })}
-        </div>
+                return (
+                  <StationListItem
+                    key={station.id}
+                    id={station.id}
+                    name={station.name}
+                    address={`${station.address}, ${userLocation?.city || location?.city || 'Unknown Location'}`}
+                    distance={station.distance}
+                    price={cheapestFuel ? cheapestFuel.price : "3.29"}
+                    rating={station.rating}
+                    reviewCount={24}
+                    imageUrl={station.imageUrl}
+                    delay={index}
+                    isOpen={isOpen}
+                    openStatus={station.hours ? 
+                      `${station.hours.open}:00 - ${station.hours.close}:00` : undefined}
+                  />
+                );
+              })
+            )}
+          </div>
+        )}
       </div>
 
       {/* Bottom Nav */}
