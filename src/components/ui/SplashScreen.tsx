@@ -2,6 +2,7 @@
 import * as React from 'react';
 import { motion } from 'framer-motion';
 import { useTheme } from '../ui/theme-provider';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 interface SplashScreenProps {
   onFinish: () => void;
@@ -37,8 +38,13 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
   
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-green-500 overflow-hidden">
-      {/* Animated hexagon patterns */}
-      <div className="absolute top-0 left-0 w-full h-2/5">
+      {/* Theme toggle in top right corner */}
+      <div className="absolute top-6 right-6 z-20">
+        <ThemeToggle />
+      </div>
+      
+      {/* Animated hexagon patterns - adjusted to be closer to edges */}
+      <div className="absolute top-0 left-0 w-full h-1/5">
         <motion.div
           className="w-full h-full relative overflow-hidden"
           initial={{ opacity: 0, y: -50 }}
@@ -55,8 +61,8 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
         </motion.div>
       </div>
       
-      {/* Bottom animated hexagon pattern */}
-      <div className="absolute bottom-0 left-0 w-full h-2/5">
+      {/* Bottom animated hexagon pattern - adjusted to be closer to edge */}
+      <div className="absolute bottom-0 left-0 w-full h-1/5">
         <motion.div
           className="w-full h-full relative overflow-hidden"
           initial={{ opacity: 0, y: 50 }}
