@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, Filter, Bell, User, Home, ShoppingBag, MapPin, Settings, Fuel, RefreshCw, AlertCircle, Layers, Globe, Satellite, Moon, Cube } from 'lucide-react';
+import { Search, Filter, Bell, User, Home, ShoppingBag, MapPin, Settings, Fuel, RefreshCw, AlertCircle, Layers, Globe, Satellite, Moon, Box } from 'lucide-react';
 import Map from '@/components/ui/Map';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
@@ -34,6 +34,7 @@ const Index = () => {
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
   const [isLoadingStations, setIsLoadingStations] = useState(true);
   const [maxStationsToShow, setMaxStationsToShow] = useState(50); // Show 50 stations
+  const [enable3DBuildings, setEnable3DBuildings] = useState(true);
   
   // Function to update stations based on coordinates
   const updateStationsForCoordinates = useCallback(async (coordinates: {lat: number, lng: number}) => {
@@ -336,7 +337,7 @@ const Index = () => {
               className={`rounded-full flex items-center gap-1 px-3 py-1 ${enable3DBuildings ? "bg-purple-600 text-white hover:bg-purple-700" : "border-gray-300"}`}
               onClick={toggle3DBuildings}
             >
-              <Cube className={`h-3.5 w-3.5 ${enable3DBuildings ? "text-white" : "text-gray-600 dark:text-gray-400"}`} />
+              <Box className={`h-3.5 w-3.5 ${enable3DBuildings ? "text-white" : "text-gray-600 dark:text-gray-400"}`} />
               <span className="text-xs font-medium">3D</span>
             </Button>
           </div>

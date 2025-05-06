@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MAPBOX_STYLE, MAP_STYLES } from '@/config/mapbox';
 import { useGeolocation } from '@/hooks/use-geolocation';
 import { Button } from '@/components/ui/button';
-import { MapPin, AlertCircle, User, RefreshCw, Globe, Layers, Cube } from 'lucide-react';
+import { MapPin, AlertCircle, User, RefreshCw, Globe, Layers, Box } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { filterStationsByDistance, DEFAULT_COORDINATES } from '@/services/geocodingService';
 import { toast } from '@/hooks/use-toast';
@@ -283,7 +283,7 @@ const MapView: React.FC = () => {
             className={enable3DBuildings ? "bg-purple-500 hover:bg-purple-600" : ""}
             onClick={toggle3DBuildings}
           >
-            <Cube className="h-3 w-3 mr-1" />
+            <Box className="h-3 w-3 mr-1" />
             3D Buildings
           </Button>
         </div>
