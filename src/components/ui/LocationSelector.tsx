@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/components/ui/theme-provider";
+import { toast } from "@/hooks/use-toast";
+import { geocodeLocation } from "@/services/geocodingService";
 
 // Sample countries data - in a real app this would come from an API
 const countries = [
@@ -38,13 +40,21 @@ const citiesByCountry: Record<string, string[]> = {
   "MY": ["Kuala Lumpur", "Penang", "Johor Bahru", "Ipoh"],
   "SG": ["Singapore"],
   "TH": ["Bangkok", "Chiang Mai", "Phuket", "Pattaya"],
-  "US": ["New York", "Los Angeles", "Chicago", "Houston", "Phoenix"],
+  "US": ["New York", "Los Angeles", "Chicago", "Houston", "Phoenix", "San Francisco", "Miami"],
   "GB": ["London", "Manchester", "Birmingham", "Glasgow", "Liverpool"],
   "JP": ["Tokyo", "Osaka", "Kyoto", "Yokohama", "Nagoya"],
   "AU": ["Sydney", "Melbourne", "Brisbane", "Perth", "Adelaide"]
 };
 
-const LocationSelector = ({ compact = false }: { compact?: boolean }) => {
+interface LocationSelectorProps {
+  compact?: boolean;
+  onLocationSelected?: (city: string, country: string, coordinates: {lat: number, lng: number}) => void;
+}
+
+const LocationSelector = ({ 
+  compact = false, 
+  onLocationSelected 
+}: LocationSelectorProps) => {
   const { theme } = useTheme();
   const { userLocation, updateLocation } = useAuth();
   const [open, setOpen] = useState(false);
@@ -52,6 +62,7 @@ const LocationSelector = ({ compact = false }: { compact?: boolean }) => {
   const [selectedCity, setSelectedCity] = useState("");
   const [availableCities, setAvailableCities] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   // Set initial values when userLocation changes
   useEffect(() => {
@@ -84,10 +95,37 @@ const LocationSelector = ({ compact = false }: { compact?: boolean }) => {
         city.toLowerCase().includes(searchQuery.toLowerCase()))
     : availableCities;
 
-  const handleSaveLocation = () => {
+  const handleSaveLocation = async () => {
+    setIsLoading(true);
     const countryName = countries.find(c => c.code === selectedCountry)?.name || "Indonesia";
-    updateLocation(selectedCity, countryName);
-    setOpen(false);
+    
+    try {
+      // Get coordinates for the selected location
+      const coordinates = await geocodeLocation(selectedCity, countryName);
+      
+      // Update location in AuthContext
+      await updateLocation(selectedCity, countryName);
+      
+      // Callback for immediate map update
+      if (onLocationSelected) {
+        onLocationSelected(selectedCity, countryName, coordinates);
+      }
+      
+      toast({
+        title: "Location Updated",
+        description: `Your location has been set to ${selectedCity}, ${countryName}`,
+      });
+    } catch (error) {
+      console.error("Error updating location:", error);
+      toast({
+        title: "Error",
+        description: "Could not update location. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+      setOpen(false);
+    }
   };
 
   // Get country name from code
@@ -212,14 +250,23 @@ const LocationSelector = ({ compact = false }: { compact?: boolean }) => {
           <Button
             variant="outline"
             onClick={() => setOpen(false)}
+            disabled={isLoading}
           >
             Cancel
           </Button>
           <Button
             onClick={handleSaveLocation}
             className="bg-green-500 hover:bg-green-600"
+            disabled={isLoading}
           >
-            Update Location
+            {isLoading ? (
+              <>
+                <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                Updating...
+              </>
+            ) : (
+              "Update Location"
+            )}
           </Button>
         </div>
       </DialogContent>

@@ -1,7 +1,5 @@
-
-import React, { useState, useEffect } from 'react';
-import { Search, Filter, Bell, User, Home, ShoppingBag, MapPin, Settings, Fuel, RefreshCw, AlertCircle } from 'lucide-react';
-import BottomNav from '@/components/layout/BottomNav';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Search, Filter, Bell, User, Home, ShoppingBag, MapPin, Settings, Fuel, RefreshCw, AlertCircle, Layers, Globe } from 'lucide-react';
 import Map from '@/components/ui/Map';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
@@ -9,25 +7,24 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { allStations } from "@/data/dummyData";
-import { MAPBOX_STYLE, MAP_STYLES } from '@/config/mapbox';
+import { MAPBOX_TOKEN, MAP_STYLES } from '@/config/mapbox';
 import { useGeolocation } from '@/hooks/use-geolocation';
 import StationListItem from '@/components/ui/StationListItem';
 import { formatToRupiah } from './MapView';
 import { useAuth } from '@/contexts/AuthContext';
-import { filterStationsByDistance, DEFAULT_COORDINATES } from '@/services/geocodingService';
+import { filterStationsByDistance, DEFAULT_COORDINATES, geocodeLocation, calculateDistance } from '@/services/geocodingService';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import LocationSelector from '@/components/ui/LocationSelector';
 
 const Index = () => {
-  const { userLocation, refreshUserLocation } = useAuth();
+  const { userLocation, refreshUserLocation, updateLocation } = useAuth();
   const { location, refreshLocation } = useGeolocation();
   const [searchQuery, setSearchQuery] = useState('');
   const isMobile = useIsMobile();
   const [showTraffic, setShowTraffic] = useState(true);
   const [mapVisible, setMapVisible] = useState(false);
   const [currentMapStyle, setCurrentMapStyle] = useState(MAP_STYLES.STREETS);
-  const [scrollPosition, setScrollPosition] = useState(0);
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
   const navigate = useNavigate();
   
@@ -35,6 +32,36 @@ const Index = () => {
   const [mapCenter, setMapCenter] = useState(DEFAULT_COORDINATES);
   const [stationsWithDistance, setStationsWithDistance] = useState<any[]>([]);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
+  const [isLoadingStations, setIsLoadingStations] = useState(true);
+  
+  // Function to update stations based on coordinates
+  const updateStationsForCoordinates = useCallback(async (coordinates: {lat: number, lng: number}) => {
+    setIsLoadingStations(true);
+    try {
+      // In a real app, this would be an API call to get stations near coordinates
+      // For now, we'll use the filterStationsByDistance function with our dummy data
+      const filteredStations = filterStationsByDistance(
+        allStations,
+        coordinates
+      );
+      setStationsWithDistance(filteredStations);
+    } catch (error) {
+      console.error("Error fetching stations:", error);
+      toast({
+        title: "Error fetching stations",
+        description: "Could not get nearby gas stations. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoadingStations(false);
+    }
+  }, []);
+  
+  // Handle location selection from LocationSelector
+  const handleLocationSelected = useCallback(async (city: string, country: string, coordinates: {lat: number, lng: number}) => {
+    setMapCenter(coordinates);
+    await updateStationsForCoordinates(coordinates);
+  }, [updateStationsForCoordinates]);
   
   // Use user's saved location or device location
   useEffect(() => {
@@ -45,39 +72,21 @@ const Index = () => {
       if (userLocation && !userLocation.isLoading && userLocation.coordinates) {
         console.log("Using user's registered location:", userLocation);
         setMapCenter(userLocation.coordinates);
-        
-        // Filter stations based on user location
-        const filteredStations = filterStationsByDistance(
-          allStations,
-          userLocation.coordinates
-        );
-        setStationsWithDistance(filteredStations);
+        await updateStationsForCoordinates(userLocation.coordinates);
         setIsLoadingLocation(false);
       } 
       // Fallback to device geolocation if available
       else if (location && location.coordinates) {
         console.log("Using device geolocation:", location);
         setMapCenter(location.coordinates);
-        
-        // Filter stations based on device location
-        const filteredStations = filterStationsByDistance(
-          allStations,
-          location.coordinates
-        );
-        setStationsWithDistance(filteredStations);
+        await updateStationsForCoordinates(location.coordinates);
         setIsLoadingLocation(false);
       } 
       // Otherwise, use default location (Jakarta)
       else {
         console.log("Using default location (Jakarta)");
         setMapCenter(DEFAULT_COORDINATES);
-        
-        // Filter stations based on default location
-        const filteredStations = filterStationsByDistance(
-          allStations,
-          DEFAULT_COORDINATES
-        );
-        setStationsWithDistance(filteredStations);
+        await updateStationsForCoordinates(DEFAULT_COORDINATES);
         
         toast({
           title: "Using default location",
@@ -89,7 +98,7 @@ const Index = () => {
     };
     
     initializeLocation();
-  }, [userLocation, location]);
+  }, [userLocation, location, updateStationsForCoordinates]);
 
   // Filter stations by search query
   const filteredStations = stationsWithDistance
@@ -112,21 +121,45 @@ const Index = () => {
   };
 
   // Handle refresh button click
-  const handleRefreshLocation = () => {
+  const handleRefreshLocation = async () => {
     setIsLoadingLocation(true);
+    setIsLoadingStations(true);
     
-    // Try to refresh user's registered location first
-    if (userLocation) {
-      refreshUserLocation().then(() => {
-        setIsLoadingLocation(false);
-      }).catch(err => {
-        console.error("Failed to refresh user location:", err);
-        // Fallback to device location
-        refreshLocation();
+    try {
+      // Try to refresh user's registered location first
+      if (userLocation) {
+        await refreshUserLocation();
+        if (userLocation.coordinates) {
+          setMapCenter(userLocation.coordinates);
+          await updateStationsForCoordinates(userLocation.coordinates);
+        }
+      } else {
+        // If no user location, just refresh device location
+        await refreshLocation();
+        if (location && location.coordinates) {
+          setMapCenter(location.coordinates);
+          await updateStationsForCoordinates(location.coordinates);
+        } else {
+          // If all fails, use default coordinates
+          setMapCenter(DEFAULT_COORDINATES);
+          await updateStationsForCoordinates(DEFAULT_COORDINATES);
+        }
+      }
+      
+      toast({
+        title: "Location refreshed",
+        description: "Showing updated nearby stations",
       });
-    } else {
-      // If no user location, just refresh device location
-      refreshLocation();
+    } catch (error) {
+      console.error("Error refreshing location:", error);
+      toast({
+        title: "Error refreshing location",
+        description: "Please try again later",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoadingLocation(false);
+      setIsLoadingStations(false);
     }
   };
 
@@ -177,6 +210,11 @@ const Index = () => {
   const locationLabel = userLocation ? 
     `${userLocation.city}, ${userLocation.country}` : 
     (location ? `${location.city}, ${location.country}` : 'Unknown Location');
+
+  // Toggle map style
+  const handleMapStyleChange = (style: string) => {
+    setCurrentMapStyle(style);
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 pb-20">
@@ -236,7 +274,10 @@ const Index = () => {
           <span className="text-sm text-green-800 dark:text-green-300 mr-2">
             {isLoadingLocation ? 'Loading location...' : locationLabel}
           </span>
-          <LocationSelector compact={true} />
+          <LocationSelector 
+            compact={true}
+            onLocationSelected={handleLocationSelected}
+          />
         </div>
         <button 
           onClick={handleRefreshLocation}
@@ -250,6 +291,54 @@ const Index = () => {
           )}
           Refresh
         </button>
+      </div>
+
+      {/* Map Style Selector */}
+      <div className="px-4 pt-2">
+        <div className="flex justify-between items-center">
+          <div className="flex gap-2">
+            <Button 
+              size="sm"
+              variant={currentMapStyle === MAP_STYLES.STREETS ? "default" : "outline"}
+              className={currentMapStyle === MAP_STYLES.STREETS ? "bg-green-500 hover:bg-green-600" : ""}
+              onClick={() => handleMapStyleChange(MAP_STYLES.STREETS)}
+            >
+              <Globe className="h-3 w-3 mr-1" />
+              Streets
+            </Button>
+            <Button 
+              size="sm"
+              variant={currentMapStyle === MAP_STYLES.SATELLITE ? "default" : "outline"}
+              className={currentMapStyle === MAP_STYLES.SATELLITE ? "bg-green-500 hover:bg-green-600" : ""}
+              onClick={() => handleMapStyleChange(MAP_STYLES.SATELLITE)}
+            >
+              <Globe className="h-3 w-3 mr-1" />
+              Satellite
+            </Button>
+            <Button 
+              size="sm"
+              variant={currentMapStyle === MAP_STYLES.DARK ? "default" : "outline"}
+              className={currentMapStyle === MAP_STYLES.DARK ? "bg-green-500 hover:bg-green-600" : ""}
+              onClick={() => handleMapStyleChange(MAP_STYLES.DARK)}
+            >
+              <Globe className="h-3 w-3 mr-1" />
+              Dark
+            </Button>
+          </div>
+          <Button 
+            size="sm"
+            variant="outline"
+            onClick={handleRefreshLocation}
+            disabled={isLoadingStations}
+          >
+            {isLoadingStations ? (
+              <div className="h-3 w-3 border-2 border-current border-t-transparent rounded-full animate-spin mr-1" />
+            ) : (
+              <RefreshCw className="h-3 w-3 mr-1" />
+            )}
+            Refresh Stations
+          </Button>
+        </div>
       </div>
 
       {/* Map Section */}
@@ -272,7 +361,7 @@ const Index = () => {
             zoom={13}
             mapStyle={currentMapStyle}
             markers={allMarkers}
-            onStyleChange={(style) => setCurrentMapStyle(style)}
+            onStyleChange={handleMapStyleChange}
             onTrafficToggle={(show) => setShowTraffic(show)}
             initialPitch={60}
             initialBearing={30}
@@ -312,13 +401,13 @@ const Index = () => {
       {/* Stations List */}
       <div className="px-4 pt-4">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-          {isLoadingLocation ? 
+          {isLoadingStations ? 
             'Loading Gas Stations...' : 
             `Nearest Gas Stations in ${userLocation?.city || location?.city || 'your area'}`
           }
         </h2>
 
-        {filteredStations.length === 0 && !isLoadingLocation ? (
+        {filteredStations.length === 0 && !isLoadingStations ? (
           <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4 text-center">
             <Fuel className="h-10 w-10 mx-auto mb-2 text-orange-500" />
             <p className="text-orange-800 dark:text-orange-300">No gas stations found nearby.</p>
@@ -326,7 +415,7 @@ const Index = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            {isLoadingLocation ? (
+            {isLoadingStations ? (
               // Loading placeholders
               [...Array(3)].map((_, i) => (
                 <div key={i} className="animate-pulse bg-gray-200 dark:bg-gray-800 rounded-xl h-40"></div>
