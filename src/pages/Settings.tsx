@@ -6,8 +6,9 @@ import BottomNav from "@/components/layout/BottomNav";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { Moon, Sun, Bell, Shield, CreditCard, HelpCircle, LogOut } from "lucide-react";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/components/ui/theme-provider";
 import { useNavigate } from "react-router-dom";
+import { Switch } from "@/components/ui/switch";
 
 interface SettingsProps {
   onLogout?: () => void;
@@ -149,19 +150,12 @@ const Settings: React.FC<SettingsProps> = ({ onLogout }) => {
                         {item.name}
                       </span>
                     </div>
-                    {item.isToggle ? (
-                      <div className={`w-11 h-6 rounded-full p-1 transition-colors ${
-                        item.value 
-                          ? 'bg-green-500' 
-                          : !isDarkMode 
-                            ? 'bg-gray-300' 
-                            : 'bg-gray-600'
-                      }`}>
-                        <div className={`w-4 h-4 rounded-full bg-white transform transition-transform ${
-                          item.value ? 'translate-x-5' : 'translate-x-0'
-                        }`} />
-                      </div>
-                    ) : null}
+                    {item.isToggle && (
+                      <Switch
+                        checked={item.value}
+                        className={`${item.value ? 'bg-green-500' : !isDarkMode ? 'bg-gray-300' : 'bg-gray-600'}`}
+                      />
+                    )}
                   </button>
                 ))}
               </div>

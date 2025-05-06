@@ -1,7 +1,7 @@
 
 import * as React from 'react';
 import { motion } from 'framer-motion';
-import { Flame } from 'lucide-react';
+import { useTheme } from '../ui/theme-provider';
 
 interface SplashScreenProps {
   onFinish: () => void;
@@ -9,6 +9,8 @@ interface SplashScreenProps {
 
 const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
   const [progress, setProgress] = React.useState(0);
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark';
   
   React.useEffect(() => {
     // Handle splash screen timing with animated progress
@@ -34,7 +36,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
   }, [onFinish]);
   
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-green-500 overflow-hidden">
+    <div className={`fixed inset-0 flex items-center justify-center ${isDarkMode ? 'bg-green-500' : 'bg-white'} overflow-hidden`}>
       {/* Animated hexagon patterns */}
       <div className="absolute top-0 left-0 w-full h-2/5">
         <motion.div
@@ -76,7 +78,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
         {[...Array(20)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute w-2 h-2 rounded-full bg-white/20"
+            className={`absolute w-2 h-2 rounded-full ${isDarkMode ? 'bg-white/20' : 'bg-green-500/20'}`}
             initial={{ 
               x: Math.random() * window.innerWidth, 
               y: Math.random() * window.innerHeight,
@@ -102,20 +104,20 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
         <div className="relative mb-6">
           {/* Circle animation */}
           <motion.div 
-            className="w-24 h-24 rounded-full border-2 border-white flex items-center justify-center relative bg-white/10 backdrop-blur-sm"
+            className={`w-24 h-24 rounded-full border-2 ${isDarkMode ? 'border-white bg-white/10' : 'border-green-500 bg-green-500/10'} flex items-center justify-center relative backdrop-blur-sm`}
             initial={{ y: -300, opacity: 0, scale: 0.5, rotate: -90 }}
             animate={{ y: 0, opacity: 1, scale: 1, rotate: 0 }}
             transition={{ duration: 0.8, type: "spring", stiffness: 100, damping: 15 }}
           >
             {/* Circular pulse effect */}
             <motion.div
-              className="absolute inset-0 rounded-full border-2 border-white/50"
+              className={`absolute inset-0 rounded-full border-2 ${isDarkMode ? 'border-white/50' : 'border-green-500/50'}`}
               animate={{ scale: [1, 1.5, 1], opacity: [0.7, 0, 0.7] }}
               transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
             />
           </motion.div>
           
-          {/* Flame animation */}
+          {/* Logo animation */}
           <motion.div
             className="absolute top-0 left-0 w-full h-full flex items-center justify-center"
             initial={{ y: 300, opacity: 0, scale: 0.5 }}
@@ -130,7 +132,11 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
               }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
-              <Flame className="h-12 w-12 text-white drop-shadow-lg" />
+              <img
+                src="/lovable-uploads/44c35d38-14ee-46b9-8302-0944a264f34e.png"
+                alt="FuelFriendly Logo"
+                className="h-12 w-12"
+              />
             </motion.div>
           </motion.div>
         </div>
@@ -152,20 +158,20 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
         
         {/* Progress bar */}
         <motion.div 
-          className="mt-10 w-48 h-1 bg-white/20 rounded-full overflow-hidden"
+          className={`mt-10 w-48 h-1 ${isDarkMode ? 'bg-white/20' : 'bg-green-500/20'} rounded-full overflow-hidden`}
           initial={{ opacity: 0, scaleX: 0.8 }}
           animate={{ opacity: 1, scaleX: 1 }}
           transition={{ delay: 1.5, duration: 0.3 }}
         >
           <motion.div 
-            className="h-full bg-white rounded-full"
+            className={`h-full ${isDarkMode ? 'bg-white' : 'bg-green-500'} rounded-full`}
             style={{ width: `${progress}%` }}
           />
         </motion.div>
         
         {/* Loading text */}
         <motion.p 
-          className="mt-4 text-xs text-white/70"
+          className={`mt-4 text-xs ${isDarkMode ? 'text-white/70' : 'text-green-500/70'}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.5 }}

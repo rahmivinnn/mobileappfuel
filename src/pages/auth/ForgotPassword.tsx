@@ -6,13 +6,17 @@ import { Hexagon, ArrowLeft, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { useTheme } from '@/components/ui/theme-provider';
 
 const ForgotPassword: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { theme } = useTheme();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const isDarkMode = theme === 'dark';
 
   // Twilio credentials - in a production app, these should be stored securely
   const twilioApiKey = 'SK4473f756b7d91b57e760f7b7103b0054';
@@ -84,7 +88,7 @@ const ForgotPassword: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-background">
+    <div className={`min-h-screen ${isDarkMode ? 'bg-background' : 'bg-white'}`}>
       {/* Status bar */}
       <div className="px-4 py-2 flex justify-between items-center">
         <div className="text-sm">{currentTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
@@ -117,8 +121,8 @@ const ForgotPassword: React.FC = () => {
             >
               <ArrowLeft size={20} />
             </Link>
-            {/* Logo removed as requested */}
-            <div className="w-10"></div>
+            {/* Theme Toggle */}
+            <ThemeToggle />
           </div>
           
           <div className="text-center mb-8">
@@ -126,7 +130,7 @@ const ForgotPassword: React.FC = () => {
               <Mail size={30} className="text-green-500" />
             </div>
             <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-2">Forgot Password</h2>
-            <p className="text-gray-600 dark:text-gray-400 text-sm">
+            <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'} text-sm`}>
               Enter your email address and we'll send you a verification code to reset your password
             </p>
           </div>
@@ -160,7 +164,7 @@ const ForgotPassword: React.FC = () => {
           </form>
           
           <div className="mt-6 text-center">
-            <p className="text-gray-600 dark:text-gray-400 text-sm">
+            <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'} text-sm`}>
               Remember your password?{' '}
               <Link to="/signin" className="text-green-500 font-semibold hover:underline">
                 Sign In
