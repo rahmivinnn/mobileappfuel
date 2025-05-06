@@ -1,4 +1,5 @@
 
+
 /**
  * Utility functions for currency formatting based on country
  */
@@ -90,7 +91,7 @@ const currencyFormats: Record<string, { formatter: (price: number) => string, sy
 };
 
 // Format price according to country code
-export const formatToCurrency = (price: string | number, countryCode: string = 'ID'): string => {
+export const formatToCurrency = (price: string | number, countryCode: string = 'US'): string => {
   const numericPrice = typeof price === 'string' ? parseFloat(price) : price;
   
   // If we have a specific formatter for this country, use it
@@ -98,16 +99,17 @@ export const formatToCurrency = (price: string | number, countryCode: string = '
     return currencyFormats[countryCode].formatter(numericPrice);
   }
   
-  // Default to IDR if country code not found
-  return formatToRupiah(numericPrice);
+  // Default to USD if country code not found
+  return currencyFormats['US'].formatter(numericPrice);
 };
 
 // Get currency symbol for a country
-export const getCurrencySymbol = (countryCode: string = 'ID'): string => {
-  return currencyFormats[countryCode]?.symbol || 'Rp';
+export const getCurrencySymbol = (countryCode: string = 'US'): string => {
+  return currencyFormats[countryCode]?.symbol || '$';
 };
 
 // Get currency code for a country
-export const getCurrencyCode = (countryCode: string = 'ID'): string => {
-  return currencyFormats[countryCode]?.code || 'IDR';
+export const getCurrencyCode = (countryCode: string = 'US'): string => {
+  return currencyFormats[countryCode]?.code || 'USD';
 };
+

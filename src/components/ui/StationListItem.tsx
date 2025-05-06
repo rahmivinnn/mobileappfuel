@@ -44,11 +44,11 @@ const StationListItem: React.FC<StationListItemProps> = ({
   // Use gas station image if the provided URL fails to load
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     setImageError(true);
-    e.currentTarget.src = "/lovable-uploads/f01d03f8-3174-4828-bdcd-196b636f0b6f.png";
+    e.currentTarget.src = "/lovable-uploads/8bb583f1-3cc3-48b8-9f8b-904bfcfe84ef.png"; // Updated to the new gas station icon
   };
   
-  // Get user's country from localStorage to determine currency format
-  const userCountry = localStorage.getItem('userCountry') || 'ID';
+  // Always use US currency format
+  const userCountry = 'US';
   
   // Get translated labels based on the user's country/language
   // For now, using English universally, but could be expanded for localization
@@ -88,7 +88,7 @@ const StationListItem: React.FC<StationListItemProps> = ({
           ) : (
             <div className="flex items-center justify-center w-full h-full bg-green-100">
               <img 
-                src="/lovable-uploads/f01d03f8-3174-4828-bdcd-196b636f0b6f.png"
+                src="/lovable-uploads/8bb583f1-3cc3-48b8-9f8b-904bfcfe84ef.png" 
                 alt="Gas Station"
                 className="w-full h-full object-cover"
               />

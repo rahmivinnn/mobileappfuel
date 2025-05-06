@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { Search, Filter, Bell, User, Home, ShoppingBag, MapPin, Settings, Fuel, RefreshCw, AlertCircle, Layers, Globe, Satellite, Moon, Box } from 'lucide-react';
 import Map from '@/components/ui/Map';
@@ -10,7 +11,7 @@ import { allStations } from "@/data/dummyData";
 import { MAPBOX_TOKEN, MAP_STYLES } from '@/config/mapbox';
 import { useGeolocation } from '@/hooks/use-geolocation';
 import StationListItem from '@/components/ui/StationListItem';
-import { formatToRupiah } from './MapView';
+import { formatToCurrency } from '@/utils/currencyUtils';
 import { useAuth } from '@/contexts/AuthContext';
 import { filterStationsByDistance, DEFAULT_COORDINATES, US_COORDINATES, geocodeLocation, calculateDistance } from '@/services/geocodingService';
 import { toast } from '@/hooks/use-toast';

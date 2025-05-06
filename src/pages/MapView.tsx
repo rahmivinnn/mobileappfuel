@@ -13,16 +13,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { filterStationsByDistance, DEFAULT_COORDINATES } from '@/services/geocodingService';
 import { toast } from '@/hooks/use-toast';
 import LocationSelector from '@/components/ui/LocationSelector';
+import { formatToCurrency } from '@/utils/currencyUtils';
 
-// Helper function for rupiah formatting
+// Helper function for dollar formatting (we're now using the utility function instead)
 export const formatToRupiah = (number: number | string) => {
-  const num = typeof number === 'string' ? parseFloat(number) : number;
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(num);
+  return formatToCurrency(number, 'US');
 };
 
 const MapView: React.FC = () => {
