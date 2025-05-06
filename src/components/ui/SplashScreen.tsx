@@ -108,16 +108,16 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
       <div className="z-10 flex flex-col items-center justify-center">
         {/* Container for both circle and flame to coordinate animations */}
         <div className="relative mb-6">
-          {/* Circle animation */}
+          {/* Circle animation - Updated to change color based on theme */}
           <motion.div 
-            className="w-24 h-24 rounded-full border-2 border-white bg-white/10 flex items-center justify-center relative backdrop-blur-sm"
+            className={`w-24 h-24 rounded-full border-2 ${isDarkMode ? 'border-black bg-black/10' : 'border-white bg-white/10'} flex items-center justify-center relative backdrop-blur-sm`}
             initial={{ y: -300, opacity: 0, scale: 0.5, rotate: -90 }}
             animate={{ y: 0, opacity: 1, scale: 1, rotate: 0 }}
             transition={{ duration: 0.8, type: "spring", stiffness: 100, damping: 15 }}
           >
-            {/* Circular pulse effect */}
+            {/* Circular pulse effect - Updated to change color based on theme */}
             <motion.div
-              className="absolute inset-0 rounded-full border-2 border-white/50"
+              className={`absolute inset-0 rounded-full border-2 ${isDarkMode ? 'border-black/50' : 'border-white/50'}`}
               animate={{ scale: [1, 1.5, 1], opacity: [0.7, 0, 0.7] }}
               transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
             />
@@ -162,22 +162,22 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
           />
         </motion.div>
         
-        {/* Progress bar */}
+        {/* Progress bar - Updated to change colors based on theme */}
         <motion.div 
-          className="mt-10 w-48 h-1 bg-white/20 rounded-full overflow-hidden"
+          className={`mt-10 w-48 h-1 ${isDarkMode ? 'bg-black/20' : 'bg-white/20'} rounded-full overflow-hidden`}
           initial={{ opacity: 0, scaleX: 0.8 }}
           animate={{ opacity: 1, scaleX: 1 }}
           transition={{ delay: 1.5, duration: 0.3 }}
         >
           <motion.div 
-            className="h-full bg-white rounded-full"
+            className={`h-full ${isDarkMode ? 'bg-black' : 'bg-white'} rounded-full`}
             style={{ width: `${progress}%` }}
           />
         </motion.div>
         
-        {/* Loading text */}
+        {/* Loading text - Updated to change color based on theme */}
         <motion.p 
-          className="mt-4 text-xs text-white/70"
+          className={`mt-4 text-xs ${isDarkMode ? 'text-black/70' : 'text-white/70'}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.5 }}
