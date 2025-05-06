@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import * as LabelPrimitive from "@radix-ui/react-label"
 import { Slot } from "@radix-ui/react-slot"
@@ -12,6 +13,7 @@ import {
 
 import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
+import { useTheme } from "./theme-provider"
 
 const Form = FormProvider
 
@@ -75,10 +77,16 @@ const FormItem = React.forwardRef<
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => {
   const id = React.useId()
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark';
 
   return (
     <FormItemContext.Provider value={{ id }}>
-      <div ref={ref} className={cn("space-y-2", className)} {...props} />
+      <div 
+        ref={ref} 
+        className={cn("space-y-2", className)} 
+        {...props} 
+      />
     </FormItemContext.Provider>
   )
 })
@@ -89,6 +97,8 @@ const FormLabel = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root>
 >(({ className, ...props }, ref) => {
   const { error, formItemId } = useFormField()
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark';
 
   return (
     <Label
@@ -106,6 +116,8 @@ const FormControl = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof Slot>
 >(({ ...props }, ref) => {
   const { error, formItemId, formDescriptionId, formMessageId } = useFormField()
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark';
 
   return (
     <Slot
@@ -128,12 +140,18 @@ const FormDescription = React.forwardRef<
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, ...props }, ref) => {
   const { formDescriptionId } = useFormField()
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark';
 
   return (
     <p
       ref={ref}
       id={formDescriptionId}
-      className={cn("text-sm text-muted-foreground", className)}
+      className={cn(
+        "text-sm", 
+        isDarkMode ? "text-gray-400" : "text-muted-foreground", 
+        className
+      )}
       {...props}
     />
   )
@@ -145,6 +163,9 @@ const FormMessage = React.forwardRef<
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, children, ...props }, ref) => {
   const { error, formMessageId } = useFormField()
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark';
+  
   const body = error ? String(error?.message) : children
 
   if (!body) {
@@ -155,7 +176,11 @@ const FormMessage = React.forwardRef<
     <p
       ref={ref}
       id={formMessageId}
-      className={cn("text-sm font-medium text-destructive", className)}
+      className={cn(
+        "text-sm font-medium", 
+        isDarkMode ? "text-red-400" : "text-destructive",
+        className
+      )}
       {...props}
     >
       {body}

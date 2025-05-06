@@ -10,6 +10,7 @@ import { ArrowLeft } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
+import { useTheme } from '@/components/ui/theme-provider';
 import * as z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -233,6 +234,9 @@ type FormValues = z.infer<typeof formSchema>;
 const SignUp: React.FC<SignUpProps> = ({ onLogin }) => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { theme } = useTheme();
+
+  const isDarkMode = theme === 'dark';
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -289,7 +293,7 @@ const SignUp: React.FC<SignUpProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen bg-black flex flex-col relative overflow-hidden">
+    <div className={`min-h-screen ${isDarkMode ? 'bg-black' : 'bg-black'} flex flex-col relative overflow-hidden`}>
       {/* Top green wave */}
       <div className="absolute top-0 left-0 w-full h-1/4 bg-green-500 rounded-b-[50%] z-0" />
       
@@ -306,7 +310,7 @@ const SignUp: React.FC<SignUpProps> = ({ onLogin }) => {
       
       {/* Header */}
       <div className="pt-6 px-6 z-10">
-        <Link to="/" className="inline-flex items-center text-green-500 hover:text-green-400">
+        <Link to="/" className={`inline-flex items-center ${isDarkMode ? 'text-green-400' : 'text-green-500'} hover:text-green-400`}>
           <ArrowLeft className="h-5 w-5 mr-1" />
           <span>Back</span>
         </Link>
@@ -324,7 +328,7 @@ const SignUp: React.FC<SignUpProps> = ({ onLogin }) => {
           >
             {/* Logo circle */}
             <motion.div 
-              className="w-24 h-24 rounded-full border-2 border-green-500 flex items-center justify-center mb-4"
+              className={`w-24 h-24 rounded-full border-2 ${isDarkMode ? 'border-green-400' : 'border-green-500'} flex items-center justify-center mb-4`}
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, duration: 0.5, type: "spring" }}
@@ -332,7 +336,7 @@ const SignUp: React.FC<SignUpProps> = ({ onLogin }) => {
               <img 
                 src="/lovable-uploads/44c35d38-14ee-46b9-8302-0944a264f34e.png" 
                 alt="FuelFriendly Logo" 
-                className="w-16 h-16"
+                className={`w-16 h-16 ${isDarkMode ? 'invert' : ''}`}
               />
             </motion.div>
             
@@ -345,7 +349,7 @@ const SignUp: React.FC<SignUpProps> = ({ onLogin }) => {
               <img 
                 src="/lovable-uploads/2b80eff8-6efd-4f15-9213-ed9fe4e0cba9.png" 
                 alt="FUELFRIENDLY" 
-                className="h-6"
+                className={`h-6 ${isDarkMode ? 'invert' : ''}`}
               />
             </motion.div>
           </motion.div>
@@ -358,7 +362,7 @@ const SignUp: React.FC<SignUpProps> = ({ onLogin }) => {
           className="w-full max-w-md mx-auto"
         >
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-white mb-2">Create account</h1>
+            <h1 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-white'} mb-2`}>Create account</h1>
             <p className="text-gray-400">Sign up to get started</p>
           </div>
 
@@ -373,7 +377,9 @@ const SignUp: React.FC<SignUpProps> = ({ onLogin }) => {
                       <Input
                         type="text"
                         placeholder="Full Name"
-                        className="h-12 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 rounded-lg"
+                        className={`h-12 ${isDarkMode 
+                          ? 'bg-gray-800 border-gray-700 text-white placeholder:text-gray-500' 
+                          : 'bg-gray-800 border-gray-700 text-white placeholder:text-gray-500'} rounded-lg`}
                         {...field}
                       />
                     </FormControl>
@@ -391,7 +397,9 @@ const SignUp: React.FC<SignUpProps> = ({ onLogin }) => {
                       <Input
                         type="email"
                         placeholder="Email address"
-                        className="h-12 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 rounded-lg"
+                        className={`h-12 ${isDarkMode 
+                          ? 'bg-gray-800 border-gray-700 text-white placeholder:text-gray-500' 
+                          : 'bg-gray-800 border-gray-700 text-white placeholder:text-gray-500'} rounded-lg`}
                         {...field}
                       />
                     </FormControl>
@@ -409,7 +417,9 @@ const SignUp: React.FC<SignUpProps> = ({ onLogin }) => {
                       <Input
                         type="password"
                         placeholder="Password"
-                        className="h-12 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 rounded-lg"
+                        className={`h-12 ${isDarkMode 
+                          ? 'bg-gray-800 border-gray-700 text-white placeholder:text-gray-500' 
+                          : 'bg-gray-800 border-gray-700 text-white placeholder:text-gray-500'} rounded-lg`}
                         {...field}
                       />
                     </FormControl>
@@ -428,12 +438,24 @@ const SignUp: React.FC<SignUpProps> = ({ onLogin }) => {
                         onValueChange={field.onChange} 
                         defaultValue={field.value}
                       >
-                        <SelectTrigger className="h-12 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 rounded-lg">
+                        <SelectTrigger 
+                          className={`h-12 ${isDarkMode 
+                            ? 'bg-gray-800 border-gray-700 text-white' 
+                            : 'bg-gray-800 border-gray-700 text-white'} rounded-lg`}
+                        >
                           <SelectValue placeholder="Select your country" />
                         </SelectTrigger>
-                        <SelectContent className="bg-gray-800 border-gray-700 text-white max-h-60 overflow-y-auto">
+                        <SelectContent 
+                          className={`${isDarkMode 
+                            ? 'bg-gray-800 border-gray-700 text-white' 
+                            : 'bg-gray-800 border-gray-700 text-white'} max-h-60 overflow-y-auto`}
+                        >
                           {countries.map((country) => (
-                            <SelectItem key={country.code} value={country.code} className="hover:bg-gray-700">
+                            <SelectItem 
+                              key={country.code} 
+                              value={country.code} 
+                              className={`${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-700'}`}
+                            >
                               {country.name}
                             </SelectItem>
                           ))}
@@ -455,11 +477,13 @@ const SignUp: React.FC<SignUpProps> = ({ onLogin }) => {
                         id="terms" 
                         checked={field.value} 
                         onCheckedChange={field.onChange}
-                        className="border-green-500 data-[state=checked]:bg-green-500 data-[state=checked]:text-white"
+                        className={`${isDarkMode 
+                          ? 'border-green-400 data-[state=checked]:bg-green-400' 
+                          : 'border-green-500 data-[state=checked]:bg-green-500'} data-[state=checked]:text-white`}
                       />
                     </FormControl>
                     <label htmlFor="terms" className="text-sm text-gray-400">
-                      I agree to the <Link to="#" className="text-green-500 hover:underline">Terms of Service</Link> and <Link to="#" className="text-green-500 hover:underline">Privacy Policy</Link>
+                      I agree to the <Link to="#" className={`${isDarkMode ? 'text-green-400' : 'text-green-500'} hover:underline`}>Terms of Service</Link> and <Link to="#" className={`${isDarkMode ? 'text-green-400' : 'text-green-500'} hover:underline`}>Privacy Policy</Link>
                     </label>
                     <FormMessage className="text-red-400 text-sm" />
                   </FormItem>
@@ -468,7 +492,9 @@ const SignUp: React.FC<SignUpProps> = ({ onLogin }) => {
               
               <Button 
                 type="submit" 
-                className="w-full h-12 rounded-full bg-green-500 hover:bg-green-600 text-white font-medium text-base"
+                className={`w-full h-12 rounded-full ${isDarkMode 
+                  ? 'bg-green-400 hover:bg-green-500' 
+                  : 'bg-green-500 hover:bg-green-600'} text-white font-medium text-base`}
                 disabled={isLoading}
               >
                 {isLoading ? 'Creating account...' : 'Sign Up'}
@@ -485,7 +511,9 @@ const SignUp: React.FC<SignUpProps> = ({ onLogin }) => {
           <Button 
             type="button" 
             variant="outline" 
-            className="w-full h-12 rounded-full border-2 border-green-500 bg-transparent text-white hover:bg-green-500/10 font-medium text-base flex items-center justify-center gap-2"
+            className={`w-full h-12 rounded-full border-2 ${isDarkMode 
+              ? 'border-green-400 bg-transparent text-white hover:bg-green-400/10' 
+              : 'border-green-500 bg-transparent text-white hover:bg-green-500/10'} font-medium text-base flex items-center justify-center gap-2`}
             onClick={handleGoogleSignUp}
             disabled={isLoading}
           >
@@ -503,7 +531,7 @@ const SignUp: React.FC<SignUpProps> = ({ onLogin }) => {
           <div className="text-center mt-8">
             <p className="text-gray-400 text-sm">
               Already have an account?{' '}
-              <Link to="/sign-in" className="text-green-500 hover:text-green-400 font-medium">
+              <Link to="/sign-in" className={`${isDarkMode ? 'text-green-400' : 'text-green-500'} hover:text-green-400 font-medium`}>
                 Log in
               </Link>
             </p>

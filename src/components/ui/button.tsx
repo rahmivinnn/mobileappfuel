@@ -1,6 +1,8 @@
+
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
+import { useTheme } from "./theme-provider"
 
 import { cn } from "@/lib/utils"
 
@@ -41,10 +43,19 @@ export interface ButtonProps
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark';
+    
+    // Apply theme-specific styles if needed
+    let themeClass = '';
+    if (variant === 'outline' && isDarkMode) {
+      themeClass = 'dark-outline';
+    }
+    
     const Comp = asChild ? Slot : "button"
     return (
       <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={cn(buttonVariants({ variant, size, className }), themeClass)}
         ref={ref}
         {...props}
       />
