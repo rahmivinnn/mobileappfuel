@@ -154,7 +154,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     await fetchUserLocation(user);
   };
 
-  // Check if user is already logged in on mount
+  // Check if user is already logged in on mount and set default location to Los Angeles
   useEffect(() => {
     const checkAuthStatus = async () => {
       setIsLoading(true);
@@ -164,20 +164,46 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (token) {
           const currentUser = await authService.getCurrentUser();
           if (currentUser) {
+            // If no city is set, default to Los Angeles
+            if (!currentUser.city || !currentUser.country) {
+              currentUser.city = "Los Angeles";
+              currentUser.country = "United States";
+            }
+            
             setUser(currentUser);
             
-            // If user has a country selected, ensure it's set in localStorage
-            if (currentUser.country) {
-              localStorage.setItem('userCountry', 'ID'); // Default code
-              localStorage.setItem('userCountryName', currentUser.country);
-              
-              // Fetch coordinates for the user's location
-              fetchUserLocation(currentUser);
-            }
+            // Set Los Angeles location in localStorage by default
+            localStorage.setItem('userCity', currentUser.city);
+            localStorage.setItem('userCountryName', currentUser.country);
+            
+            // Fetch coordinates for the user's location
+            fetchUserLocation(currentUser);
           }
+        } else {
+          // Set default location to Los Angeles, even if not logged in
+          setUserLocation({
+            city: "Los Angeles",
+            country: "United States",
+            coordinates: US_COORDINATES,
+            isLoading: false,
+            error: null
+          });
+          
+          localStorage.setItem('userCity', 'Los Angeles');
+          localStorage.setItem('userCountryName', 'United States');
+          localStorage.setItem('userCoordinates', JSON.stringify(US_COORDINATES));
         }
       } catch (error) {
         console.error("Error checking auth status:", error);
+        
+        // Set default location to Los Angeles if there's an error
+        setUserLocation({
+          city: "Los Angeles",
+          country: "United States",
+          coordinates: US_COORDINATES,
+          isLoading: false,
+          error: null
+        });
       } finally {
         setIsLoading(false);
       }

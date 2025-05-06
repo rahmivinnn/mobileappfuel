@@ -14,10 +14,10 @@ export const MAP_STYLES = {
 // Default map style
 export const MAPBOX_STYLE = MAP_STYLES.STREETS;
 
-// Default map center (Bandung coordinates)
+// Default map center (Los Angeles, United States)
 export const DEFAULT_CENTER = {
-  lat: -6.9175,
-  lng: 107.6191
+  lat: 34.0522,
+  lng: -118.2437
 };
 
 // Default zoom level

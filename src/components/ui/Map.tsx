@@ -745,41 +745,6 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
           </div>
         )}
 
-        {/* Map style selector - LARGE BUTTONS */}
-        {mapLoaded && interactive && (
-          <div className="absolute top-4 right-4 z-10">
-            <div className="bg-black/80 backdrop-blur-md rounded-xl p-3 border-2 border-green-500 shadow-xl">
-              <div className="flex flex-col space-y-3">
-                <div className="text-sm text-white text-center font-bold mb-1 border-b border-green-500 pb-2">MAP STYLE</div>
-                {mapStyleOptions.map((style) => (
-                  <button
-                    key={style.value}
-                    className={`px-4 py-2 text-sm rounded-lg transition-all duration-200 flex items-center justify-center ${
-                      currentMapStyle === style.value
-                        ? 'bg-green-500 text-white font-bold shadow-lg'
-                        : 'bg-gray-800 text-white hover:bg-gray-700 border border-gray-700'
-                    }`}
-                    onClick={() => {
-                      setCurrentMapStyle(style.value);
-                      if (onStyleChange) onStyleChange(style.value);
-                      
-                      // Show toast notification
-                      toast({
-                        title: `Map style changed to ${style.name}`,
-                        description: style.name === 'Satellite' ? "Showing satellite imagery" : 
-                                     style.name === 'Dark' ? "Switching to night mode" :
-                                     "Standard street map view",
-                      });
-                    }}
-                  >
-                    {style.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Interactive floating controls */}
         {mapLoaded && interactive && (
           <div className="absolute bottom-20 right-4 flex flex-col space-y-3">

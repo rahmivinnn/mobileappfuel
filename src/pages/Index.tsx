@@ -12,7 +12,7 @@ import { useGeolocation } from '@/hooks/use-geolocation';
 import StationListItem from '@/components/ui/StationListItem';
 import { formatToRupiah } from './MapView';
 import { useAuth } from '@/contexts/AuthContext';
-import { filterStationsByDistance, DEFAULT_COORDINATES, geocodeLocation, calculateDistance } from '@/services/geocodingService';
+import { filterStationsByDistance, DEFAULT_COORDINATES, US_COORDINATES, geocodeLocation, calculateDistance } from '@/services/geocodingService';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import LocationSelector from '@/components/ui/LocationSelector';
@@ -29,10 +29,11 @@ const Index = () => {
   const navigate = useNavigate();
   
   // Track location changes to update map and stations
-  const [mapCenter, setMapCenter] = useState(DEFAULT_COORDINATES);
+  const [mapCenter, setMapCenter] = useState(US_COORDINATES); // Default to LA
   const [stationsWithDistance, setStationsWithDistance] = useState<any[]>([]);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
   const [isLoadingStations, setIsLoadingStations] = useState(true);
+  const [maxStationsToShow, setMaxStationsToShow] = useState(50); // Show 50 stations
   
   // Function to update stations based on coordinates
   const updateStationsForCoordinates = useCallback(async (coordinates: {lat: number, lng: number}) => {
@@ -43,7 +44,7 @@ const Index = () => {
       const filteredStations = filterStationsByDistance(
         allStations,
         coordinates
-      );
+      ).slice(0, maxStationsToShow);
       setStationsWithDistance(filteredStations);
     } catch (error) {
       console.error("Error fetching stations:", error);
@@ -55,50 +56,58 @@ const Index = () => {
     } finally {
       setIsLoadingStations(false);
     }
-  }, []);
+  }, [maxStationsToShow]);
   
   // Handle location selection from LocationSelector
   const handleLocationSelected = useCallback(async (city: string, country: string, coordinates: {lat: number, lng: number}) => {
     setMapCenter(coordinates);
     await updateStationsForCoordinates(coordinates);
-  }, [updateStationsForCoordinates]);
+    
+    // If city is Los Angeles, make sure it's associated with United States
+    if (city.toLowerCase() === "los angeles") {
+      updateLocation("Los Angeles", "United States");
+    }
+  }, [updateStationsForCoordinates, updateLocation]);
   
-  // Use user's saved location or device location
+  // Use Los Angeles as default location
   useEffect(() => {
     const initializeLocation = async () => {
       setIsLoadingLocation(true);
       
-      // Check if we have user location from registration first
-      if (userLocation && !userLocation.isLoading && userLocation.coordinates) {
-        console.log("Using user's registered location:", userLocation);
-        setMapCenter(userLocation.coordinates);
-        await updateStationsForCoordinates(userLocation.coordinates);
-        setIsLoadingLocation(false);
-      } 
-      // Fallback to device geolocation if available
-      else if (location && location.coordinates) {
-        console.log("Using device geolocation:", location);
-        setMapCenter(location.coordinates);
-        await updateStationsForCoordinates(location.coordinates);
-        setIsLoadingLocation(false);
-      } 
-      // Otherwise, use default location (Jakarta)
-      else {
-        console.log("Using default location (Jakarta)");
-        setMapCenter(DEFAULT_COORDINATES);
-        await updateStationsForCoordinates(DEFAULT_COORDINATES);
+      // First try to use Los Angeles as default
+      try {
+        console.log("Setting default location to Los Angeles, United States");
+        setMapCenter(US_COORDINATES);
+        await updateStationsForCoordinates(US_COORDINATES);
         
-        toast({
-          title: "Using default location",
-          description: "We couldn't determine your location. Showing Jakarta, Indonesia.",
-        });
+        // Update user's location in Auth context to Los Angeles if not already set
+        if (!userLocation || userLocation.city !== "Los Angeles") {
+          updateLocation("Los Angeles", "United States");
+        }
+        
+        setIsLoadingLocation(false);
+      } catch (error) {
+        console.error("Error setting Los Angeles location:", error);
+        
+        // Fall back to user's registered location if available
+        if (userLocation && !userLocation.isLoading && userLocation.coordinates) {
+          console.log("Using user's registered location:", userLocation);
+          setMapCenter(userLocation.coordinates);
+          await updateStationsForCoordinates(userLocation.coordinates);
+        } 
+        // Otherwise fall back to device geolocation
+        else if (location && location.coordinates) {
+          console.log("Using device geolocation:", location);
+          setMapCenter(location.coordinates);
+          await updateStationsForCoordinates(location.coordinates);
+        }
         
         setIsLoadingLocation(false);
       }
     };
     
     initializeLocation();
-  }, [userLocation, location, updateStationsForCoordinates]);
+  }, []);
 
   // Filter stations by search query
   const filteredStations = stationsWithDistance
@@ -126,29 +135,13 @@ const Index = () => {
     setIsLoadingStations(true);
     
     try {
-      // Try to refresh user's registered location first
-      if (userLocation) {
-        await refreshUserLocation();
-        if (userLocation.coordinates) {
-          setMapCenter(userLocation.coordinates);
-          await updateStationsForCoordinates(userLocation.coordinates);
-        }
-      } else {
-        // If no user location, just refresh device location
-        await refreshLocation();
-        if (location && location.coordinates) {
-          setMapCenter(location.coordinates);
-          await updateStationsForCoordinates(location.coordinates);
-        } else {
-          // If all fails, use default coordinates
-          setMapCenter(DEFAULT_COORDINATES);
-          await updateStationsForCoordinates(DEFAULT_COORDINATES);
-        }
-      }
+      // Default to Los Angeles
+      setMapCenter(US_COORDINATES);
+      await updateStationsForCoordinates(US_COORDINATES);
       
       toast({
         title: "Location refreshed",
-        description: "Showing updated nearby stations",
+        description: "Showing updated nearby stations in Los Angeles",
       });
     } catch (error) {
       console.error("Error refreshing location:", error);
@@ -166,8 +159,8 @@ const Index = () => {
   // Gas station image URL
   const gasStationIconUrl = "/lovable-uploads/e7264ee5-ed98-4679-91b4-8f12d183784b.png";
 
-  // Convert stations to map markers - limit to nearest 5
-  const markers = filteredStations.slice(0, 5).map(station => ({
+  // Convert stations to map markers - limit to nearest 10 for performance
+  const markers = filteredStations.slice(0, 10).map(station => ({
     position: {
       lat: station.position.lat,
       lng: station.position.lng
@@ -209,7 +202,7 @@ const Index = () => {
   // Location label from user's registration or device
   const locationLabel = userLocation ? 
     `${userLocation.city}, ${userLocation.country}` : 
-    (location ? `${location.city}, ${location.country}` : 'Unknown Location');
+    (location ? `${location.city}, ${location.country}` : 'Los Angeles, United States');
 
   // Toggle map style
   const handleMapStyleChange = (style: string) => {
@@ -400,11 +393,14 @@ const Index = () => {
 
       {/* Stations List */}
       <div className="px-4 pt-4">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-          {isLoadingStations ? 
-            'Loading Gas Stations...' : 
-            `Nearest Gas Stations in ${userLocation?.city || location?.city || 'your area'}`
-          }
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center justify-between">
+          <span>
+            {isLoadingStations ? 
+              'Loading Gas Stations...' : 
+              `${filteredStations.length} Gas Stations in Los Angeles`
+            }
+          </span>
+          <span className="text-sm text-green-500 font-normal">Showing {Math.min(filteredStations.length, maxStationsToShow)} stations</span>
         </h2>
 
         {filteredStations.length === 0 && !isLoadingStations ? (
@@ -417,12 +413,12 @@ const Index = () => {
           <div className="space-y-4">
             {isLoadingStations ? (
               // Loading placeholders
-              [...Array(3)].map((_, i) => (
+              [...Array(5)].map((_, i) => (
                 <div key={i} className="animate-pulse bg-gray-200 dark:bg-gray-800 rounded-xl h-40"></div>
               ))
             ) : (
-              // Actual station list
-              filteredStations.slice(0, 8).map((station, index) => {
+              // Actual station list - show up to maxStationsToShow stations
+              filteredStations.slice(0, maxStationsToShow).map((station, index) => {
                 const cheapestFuel = station.fuels && station.fuels.length > 0
                   ? station.fuels.reduce((min, fuel) =>
                       parseFloat(fuel.price) < parseFloat(min.price) ? fuel : min,
@@ -440,7 +436,7 @@ const Index = () => {
                     key={station.id}
                     id={station.id}
                     name={station.name}
-                    address={`${station.address}, ${userLocation?.city || location?.city || 'Unknown Location'}`}
+                    address={station.address}
                     distance={station.distance}
                     price={cheapestFuel ? cheapestFuel.price : "3.29"}
                     rating={station.rating}
@@ -448,11 +444,24 @@ const Index = () => {
                     imageUrl={station.imageUrl}
                     delay={index}
                     isOpen={isOpen}
-                    openStatus={station.hours ? 
-                      `${station.hours.open}:00 - ${station.hours.close}:00` : undefined}
+                    openStatus={station.hours && station.hours.is24Hours ? 
+                      "Open 24/7" :
+                      (station.hours ? `${station.hours.open}:00 - ${station.hours.close}:00` : undefined)}
                   />
                 );
               })
+            )}
+            
+            {/* Show load more button if there are more stations to display */}
+            {filteredStations.length > maxStationsToShow && (
+              <div className="flex justify-center py-4">
+                <Button
+                  onClick={() => setMaxStationsToShow(prev => prev + 20)}
+                  variant="outline"
+                >
+                  Load More Stations
+                </Button>
+              </div>
             )}
           </div>
         )}

@@ -153,7 +153,7 @@ function deg2rad(deg: number): number {
 export function filterStationsByDistance(
   stations: any[],
   userCoords: {lat: number, lng: number},
-  maxDistance: number = 30 // Default radius of 30km
+  maxDistance: number = 100 // Increased default radius to 100km to get more stations
 ): any[] {
   return stations
     .map(station => {
@@ -176,7 +176,8 @@ export function filterStationsByDistance(
 // Fetch nearby gas stations - enhanced to handle US locations better
 export async function fetchNearbyStations(
   coords: {lat: number, lng: number},
-  radius: number = 5000 // radius in meters
+  radius: number = 5000, // radius in meters
+  count: number = 50 // Number of stations to return
 ): Promise<any[]> {
   // This is a placeholder for a real API call
   // In a real app, you would use Mapbox/Foursquare/Google Places API
@@ -185,16 +186,16 @@ export async function fetchNearbyStations(
   await new Promise(resolve => setTimeout(resolve, 1000));
   
   // Check if coordinates are close to Los Angeles
-  const isLosAngeles = Math.abs(coords.lat - US_COORDINATES.lat) < 0.1 && 
-                      Math.abs(coords.lng - US_COORDINATES.lng) < 0.1;
+  const isLosAngeles = Math.abs(coords.lat - US_COORDINATES.lat) < 0.5 && 
+                      Math.abs(coords.lng - US_COORDINATES.lng) < 0.5;
                       
   // Generate more realistic stations for Los Angeles
   if (isLosAngeles) {
-    return generateLosAngelesStations(coords, 15);
+    return generateLosAngelesStations(coords, count);
   }
   
   // For other locations, return the filtered dummy data
-  const randomStations = generateRandomStations(coords, 15);
+  const randomStations = generateRandomStations(coords, count);
   return randomStations;
 }
 
@@ -202,7 +203,7 @@ export async function fetchNearbyStations(
 // This is just for demonstration - in a real app you'd use a proper API
 function generateRandomStations(
   center: {lat: number, lng: number},
-  count: number = 10
+  count: number = 50
 ): any[] {
   const stations = [];
   const brandNames = ["Pertamina", "Shell", "BP", "Total", "Petronas", "ExxonMobil", "FuelFriendly"];
@@ -254,7 +255,7 @@ function generateRandomStations(
 // Generate realistic Los Angeles gas stations
 function generateLosAngelesStations(
   center: {lat: number, lng: number},
-  count: number = 10
+  count: number = 50
 ): any[] {
   const stations = [];
   const laStreets = [
