@@ -141,7 +141,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
               <img
                 src="/lovable-uploads/44c35d38-14ee-46b9-8302-0944a264f34e.png"
                 alt="FuelFriendly Logo"
-                className="h-12 w-12"
+                className={`h-12 w-12 ${isDarkMode ? 'invert' : ''}`}
               />
             </motion.div>
           </motion.div>
@@ -156,7 +156,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
           <motion.img 
             src="/lovable-uploads/2b80eff8-6efd-4f15-9213-ed9fe4e0cba9.png" 
             alt="FUELFRIENDLY" 
-            className="h-6"
+            className={`h-6 ${isDarkMode ? 'invert' : ''}`}
             animate={{ y: [0, -3, 0] }}
             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
           />
