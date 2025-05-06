@@ -28,7 +28,7 @@ const Index = () => {
   const [currentMapStyle, setCurrentMapStyle] = useState(MAP_STYLES.STREETS);
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
   const navigate = useNavigate();
-  
+
   // Track location changes to update map and stations
   const [mapCenter, setMapCenter] = useState(US_COORDINATES); // Default to LA
   const [stationsWithDistance, setStationsWithDistance] = useState<any[]>([]);
@@ -36,7 +36,7 @@ const Index = () => {
   const [isLoadingStations, setIsLoadingStations] = useState(true);
   const [maxStationsToShow, setMaxStationsToShow] = useState(50); // Show 50 stations
   const [enable3DBuildings, setEnable3DBuildings] = useState(true);
-  
+
   // Function to update stations based on coordinates
   const updateStationsForCoordinates = useCallback(async (coordinates: {lat: number, lng: number}) => {
     setIsLoadingStations(true);
@@ -59,55 +59,55 @@ const Index = () => {
       setIsLoadingStations(false);
     }
   }, [maxStationsToShow]);
-  
+
   // Handle location selection from LocationSelector
   const handleLocationSelected = useCallback(async (city: string, country: string, coordinates: {lat: number, lng: number}) => {
     setMapCenter(coordinates);
     await updateStationsForCoordinates(coordinates);
-    
+
     // If city is Los Angeles, make sure it's associated with United States
     if (city.toLowerCase() === "los angeles") {
       updateLocation("Los Angeles", "United States");
     }
   }, [updateStationsForCoordinates, updateLocation]);
-  
+
   // Use Los Angeles as default location
   useEffect(() => {
     const initializeLocation = async () => {
       setIsLoadingLocation(true);
-      
+
       // First try to use Los Angeles as default
       try {
         console.log("Setting default location to Los Angeles, United States");
         setMapCenter(US_COORDINATES);
         await updateStationsForCoordinates(US_COORDINATES);
-        
+
         // Update user's location in Auth context to Los Angeles if not already set
         if (!userLocation || userLocation.city !== "Los Angeles") {
           updateLocation("Los Angeles", "United States");
         }
-        
+
         setIsLoadingLocation(false);
       } catch (error) {
         console.error("Error setting Los Angeles location:", error);
-        
+
         // Fall back to user's registered location if available
         if (userLocation && !userLocation.isLoading && userLocation.coordinates) {
           console.log("Using user's registered location:", userLocation);
           setMapCenter(userLocation.coordinates);
           await updateStationsForCoordinates(userLocation.coordinates);
-        } 
+        }
         // Otherwise fall back to device geolocation
         else if (location && location.coordinates) {
           console.log("Using device geolocation:", location);
           setMapCenter(location.coordinates);
           await updateStationsForCoordinates(location.coordinates);
         }
-        
+
         setIsLoadingLocation(false);
       }
     };
-    
+
     initializeLocation();
   }, []);
 
@@ -135,12 +135,12 @@ const Index = () => {
   const handleRefreshLocation = async () => {
     setIsLoadingLocation(true);
     setIsLoadingStations(true);
-    
+
     try {
       // Default to Los Angeles
       setMapCenter(US_COORDINATES);
       await updateStationsForCoordinates(US_COORDINATES);
-      
+
       toast({
         title: "Location refreshed",
         description: "Showing updated nearby stations in Los Angeles",
@@ -161,12 +161,20 @@ const Index = () => {
   // Gas station image URL - updated to use the new 3D gas station image
   const gasStationIconUrl = "/lovable-uploads/8bb583f1-3cc3-48b8-9f8b-904bfcfe84ef.png";
 
-  // Toggle 3D buildings
+  // Toggle 3D buildings with enhanced feedback
   const toggle3DBuildings = () => {
-    setEnable3DBuildings(prev => !prev);
-    toast({
-      title: enable3DBuildings ? "3D Buildings Disabled" : "3D Buildings Enabled",
-      description: enable3DBuildings ? "Switched to 2D view" : "Showing buildings in 3D",
+    // Toggle state with callback to ensure we use the latest state
+    setEnable3DBuildings(prev => {
+      const newState = !prev;
+
+      // Show toast notification based on new state
+      toast({
+        title: newState ? "3D Buildings Enabled" : "3D Buildings Disabled",
+        description: newState ? "Showing buildings in 3D view" : "Switched to 2D map view",
+        duration: 2000
+      });
+
+      return newState;
     });
   };
 
@@ -183,15 +191,15 @@ const Index = () => {
 
   // Add FuelFriendly agents as markers - adjusted based on current location
   const fuelAgents = mapCenter ? [
-    { 
-      lat: mapCenter.lat + 0.005, 
-      lng: mapCenter.lng + 0.005, 
-      name: "Agent John" 
+    {
+      lat: mapCenter.lat + 0.005,
+      lng: mapCenter.lng + 0.005,
+      name: "Agent John"
     },
-    { 
-      lat: mapCenter.lat - 0.008, 
-      lng: mapCenter.lng + 0.007, 
-      name: "Agent Sarah" 
+    {
+      lat: mapCenter.lat - 0.008,
+      lng: mapCenter.lng + 0.007,
+      name: "Agent Sarah"
     }
   ] : [];
 
@@ -211,13 +219,22 @@ const Index = () => {
   const allMarkers = [...markers, ...agentMarkers];
 
   // Location label from user's registration or device
-  const locationLabel = userLocation ? 
-    `${userLocation.city}, ${userLocation.country}` : 
+  const locationLabel = userLocation ?
+    `${userLocation.city}, ${userLocation.country}` :
     (location ? `${location.city}, ${location.country}` : 'Los Angeles, United States');
 
   // Handle map style change
   const handleMapStyleChange = (style: string) => {
     setCurrentMapStyle(style);
+
+    // Show toast notification for style change
+    toast({
+      title: "Map Style Changed",
+      description: style.includes('satellite') ?
+        "Switched to satellite view" :
+        (style.includes('dark') ? "Switched to dark mode" : "Switched to streets view"),
+      duration: 2000
+    });
   };
 
   return (
@@ -259,12 +276,12 @@ const Index = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <button 
+          <button
             className="h-12 w-12 flex items-center justify-center rounded-full bg-green-100 dark:bg-green-900"
             onClick={handleRefreshLocation}
           >
-            {isLoadingLocation ? 
-              <div className="h-5 w-5 border-2 border-green-500 border-t-transparent rounded-full animate-spin" /> : 
+            {isLoadingLocation ?
+              <div className="h-5 w-5 border-2 border-green-500 border-t-transparent rounded-full animate-spin" /> :
               <Filter className="h-5 w-5 text-green-500" />
             }
           </button>
@@ -278,12 +295,12 @@ const Index = () => {
           <span className="text-sm text-green-800 dark:text-green-300 mr-2">
             {isLoadingLocation ? 'Loading location...' : locationLabel}
           </span>
-          <LocationSelector 
+          <LocationSelector
             compact={true}
             onLocationSelected={handleLocationSelected}
           />
         </div>
-        <button 
+        <button
           onClick={handleRefreshLocation}
           className="text-xs text-green-600 dark:text-green-400 flex items-center"
           disabled={isLoadingLocation}
@@ -301,7 +318,7 @@ const Index = () => {
       <div className="px-4 pt-2">
         <div className="flex justify-between items-center">
           <div className="flex gap-1">
-            <Button 
+            <Button
               size="sm"
               variant={currentMapStyle === MAP_STYLES.STREETS ? "default" : "outline"}
               className={`rounded-full flex items-center gap-1 px-3 py-1 ${currentMapStyle === MAP_STYLES.STREETS ? "bg-green-500 hover:bg-green-600" : "border-gray-300"}`}
@@ -310,8 +327,8 @@ const Index = () => {
               <Globe className={`h-3.5 w-3.5 ${currentMapStyle === MAP_STYLES.STREETS ? "text-white" : "text-gray-600 dark:text-gray-400"}`} />
               <span className="text-xs font-medium">Streets</span>
             </Button>
-            
-            <Button 
+
+            <Button
               size="sm"
               variant={currentMapStyle === MAP_STYLES.SATELLITE ? "default" : "outline"}
               className={`rounded-full flex items-center gap-1 px-3 py-1 ${currentMapStyle === MAP_STYLES.SATELLITE ? "bg-blue-600 text-white hover:bg-blue-700" : "border-gray-300"}`}
@@ -320,8 +337,8 @@ const Index = () => {
               <Satellite className={`h-3.5 w-3.5 ${currentMapStyle === MAP_STYLES.SATELLITE ? "text-white" : "text-gray-600 dark:text-gray-400"}`} />
               <span className="text-xs font-medium">Satellite</span>
             </Button>
-            
-            <Button 
+
+            <Button
               size="sm"
               variant={currentMapStyle === MAP_STYLES.DARK ? "default" : "outline"}
               className={`rounded-full flex items-center gap-1 px-3 py-1 ${currentMapStyle === MAP_STYLES.DARK ? "bg-gray-800 text-white hover:bg-gray-700" : "border-gray-300"}`}
@@ -330,9 +347,9 @@ const Index = () => {
               <Moon className={`h-3.5 w-3.5 ${currentMapStyle === MAP_STYLES.DARK ? "text-white" : "text-gray-600 dark:text-gray-400"}`} />
               <span className="text-xs font-medium">Dark</span>
             </Button>
-            
+
             {/* 3D Buildings Toggle */}
-            <Button 
+            <Button
               size="sm"
               variant={enable3DBuildings ? "default" : "outline"}
               className={`rounded-full flex items-center gap-1 px-3 py-1 ${enable3DBuildings ? "bg-purple-600 text-white hover:bg-purple-700" : "border-gray-300"}`}
@@ -342,8 +359,8 @@ const Index = () => {
               <span className="text-xs font-medium">3D</span>
             </Button>
           </div>
-          
-          <Button 
+
+          <Button
             size="sm"
             variant="outline"
             onClick={handleRefreshLocation}
@@ -370,7 +387,7 @@ const Index = () => {
             </div>
           </div>
         )}
-        
+
         <div className={`transition-all duration-1000 rounded-2xl overflow-hidden ${mapVisible ? 'opacity-100 shadow-lg scale-100' : 'opacity-0 scale-95'}`}>
           <Map
             className="h-56 w-full rounded-2xl overflow-hidden"
@@ -398,7 +415,7 @@ const Index = () => {
 
       {/* User Location Error Message */}
       {userLocation && userLocation.error && (
-        <motion.div 
+        <motion.div
           className="mx-4 my-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-center"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -407,9 +424,9 @@ const Index = () => {
           <p className="text-sm text-red-700 dark:text-red-300 flex-1">
             Unable to load your registered location. Using default or device location instead.
           </p>
-          <Button 
-            size="sm" 
-            variant="outline" 
+          <Button
+            size="sm"
+            variant="outline"
             className="border-red-300 dark:border-red-700 text-red-500"
             onClick={handleRefreshLocation}
           >
@@ -422,8 +439,8 @@ const Index = () => {
       <div className="px-4 pt-4">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center justify-between">
           <span>
-            {isLoadingStations ? 
-              'Loading Gas Stations...' : 
+            {isLoadingStations ?
+              'Loading Gas Stations...' :
               `${filteredStations.length} Gas Stations in Los Angeles`
             }
           </span>
@@ -451,10 +468,10 @@ const Index = () => {
                       parseFloat(fuel.price) < parseFloat(min.price) ? fuel : min,
                       station.fuels[0])
                   : null;
-                  
+
                 // Use station open status based on time if available
                 const currentHour = new Date().getHours();
-                const isOpen = station.hours ? 
+                const isOpen = station.hours ?
                   currentHour >= station.hours.open && currentHour < station.hours.close :
                   true;
 
@@ -471,14 +488,14 @@ const Index = () => {
                     imageUrl={station.imageUrl}
                     delay={index}
                     isOpen={isOpen}
-                    openStatus={station.hours && station.hours.is24Hours ? 
+                    openStatus={station.hours && station.hours.is24Hours ?
                       "Open 24/7" :
                       (station.hours ? `${station.hours.open}:00 - ${station.hours.close}:00` : undefined)}
                   />
                 );
               })
             )}
-            
+
             {/* Show load more button if there are more stations to display */}
             {filteredStations.length > maxStationsToShow && (
               <div className="flex justify-center py-4">

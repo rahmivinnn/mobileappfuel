@@ -74,7 +74,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
     const [mapRotation, setMapRotation] = useState(initialBearing);
     const [is3DEnabled, setIs3DEnabled] = useState(enable3DBuildings);
 
-    // New gas station icon URL (uploaded image)
+    // Gas station icon URL - using the orange gas station image
     const gasStationIconUrl = "/lovable-uploads/8bb583f1-3cc3-48b8-9f8b-904bfcfe84ef.png";
 
     // Initialize map
@@ -118,7 +118,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
               type: 'vector',
               url: 'mapbox://mapbox.mapbox-traffic-v1'
             });
-            
+
             map.addLayer({
               'id': 'traffic-data',
               'type': 'line',
@@ -145,7 +145,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
             console.error("Error adding traffic layer:", error);
           }
         }
-        
+
         // Add 3D buildings for more immersive view if enabled
         if (is3DEnabled) {
           add3DBuildings(map);
@@ -174,17 +174,30 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
     // Helper function to add 3D building layers
     const add3DBuildings = (map: mapboxgl.Map) => {
       try {
+        // Remove existing 3D buildings layer if it exists
         if (map.getLayer('3d-buildings')) {
           map.removeLayer('3d-buildings');
         }
-          
+
+        // Check if the source exists before adding the layer
+        if (!map.getSource('composite')) {
+          console.log("Composite source not available yet, waiting for style to load");
+          // Wait for style to load completely
+          map.once('style.load', () => {
+            // Try adding 3D buildings again after style is fully loaded
+            setTimeout(() => add3DBuildings(map), 500);
+          });
+          return;
+        }
+
+        // Add enhanced 3D buildings layer
         map.addLayer({
           'id': '3d-buildings',
           'source': 'composite',
           'source-layer': 'building',
           'filter': ['==', 'extrude', 'true'],
           'type': 'fill-extrusion',
-          'minzoom': 14,
+          'minzoom': 13, // Lower minzoom to see buildings from further away
           'paint': {
             'fill-extrusion-color': [
               'interpolate',
@@ -202,52 +215,71 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
           }
         });
 
-        // Add light effect for 3D buildings
+        // Add enhanced light effect for 3D buildings
         map.setLight({
           anchor: 'viewport',
           color: 'white',
-          intensity: 0.4,
+          intensity: 0.5, // Slightly increased intensity
           position: [1, 0, 0.8]
         });
+
+        console.log("3D buildings added successfully");
       } catch (error) {
         console.error("Error adding 3D buildings:", error);
       }
     };
 
-    // Toggle 3D buildings function
+    // Toggle 3D buildings function with enhanced animation
     const toggle3DBuildings = () => {
       if (!mapInstanceRef.current || !mapInstanceRef.current.loaded()) return;
-      
+
       const map = mapInstanceRef.current;
       const newIs3DEnabled = !is3DEnabled;
       setIs3DEnabled(newIs3DEnabled);
-      
+
       if (newIs3DEnabled) {
-        // Enable 3D buildings
+        // Enable 3D buildings with enhanced animation
         map.easeTo({
           pitch: 60,
-          duration: 1000
+          duration: 1500,
+          bearing: mapRotation + 15, // Slight rotation for better 3D effect
+          easing: (t) => {
+            return t * (2 - t); // Ease out quadratic for smoother animation
+          }
         });
-        add3DBuildings(map);
-        
+
+        // Add 3D buildings with slight delay to ensure style is loaded
+        setTimeout(() => {
+          add3DBuildings(map);
+        }, 300);
+
         toast({
-          title: "3D Mode Enabled",
-          description: "Showing buildings in 3D"
+          title: "3D Buildings Enabled",
+          description: "Showing buildings in 3D view",
+          duration: 2000
         });
       } else {
-        // Disable 3D buildings
-        if (map.getLayer('3d-buildings')) {
-          map.removeLayer('3d-buildings');
+        // Disable 3D buildings with smooth transition
+        try {
+          if (map.getLayer('3d-buildings')) {
+            map.removeLayer('3d-buildings');
+          }
+        } catch (error) {
+          console.error("Error removing 3D buildings layer:", error);
         }
-        
+
         map.easeTo({
           pitch: 0,
-          duration: 1000
+          duration: 1500,
+          easing: (t) => {
+            return t * (2 - t); // Ease out quadratic
+          }
         });
-        
+
         toast({
-          title: "3D Mode Disabled",
-          description: "Switched to 2D map view"
+          title: "3D Buildings Disabled",
+          description: "Switched to 2D map view",
+          duration: 2000
         });
       }
     };
@@ -272,15 +304,34 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
           const currentStyle = mapInstanceRef.current.getStyle();
           // Check if style needs to be updated
           if (currentStyle && currentMapStyle && currentStyle.sprite !== currentMapStyle) {
+            // Store current pitch and bearing before style change
+            const currentPitch = mapInstanceRef.current.getPitch();
+            const currentBearing = mapInstanceRef.current.getBearing();
+
+            // Set new style
             mapInstanceRef.current.setStyle(currentMapStyle);
-            
-            // Re-add 3D buildings if enabled after style change
-            if (is3DEnabled) {
-              mapInstanceRef.current.once('style.load', () => {
+
+            // Re-add 3D buildings and restore camera after style change
+            mapInstanceRef.current.once('style.load', () => {
+              // Restore pitch and bearing
+              mapInstanceRef.current!.setPitch(currentPitch);
+              mapInstanceRef.current!.setBearing(currentBearing);
+
+              // Re-add 3D buildings if enabled
+              if (is3DEnabled) {
                 add3DBuildings(mapInstanceRef.current!);
+              }
+
+              // Show toast notification for style change
+              toast({
+                title: "Map Style Changed",
+                description: currentMapStyle.includes('satellite') ?
+                  "Switched to satellite view" :
+                  (currentMapStyle.includes('dark') ? "Switched to dark mode" : "Switched to streets view"),
+                duration: 2000
               });
-            }
-            
+            });
+
             if (onStyleChange) onStyleChange(currentMapStyle);
           }
         } catch (error) {
@@ -305,7 +356,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
         el.style.position = 'relative';
         el.style.width = '40px';
         el.style.height = '40px';
-        
+
         // Make marker clickable if onMarkerClick is provided
         if (onMarkerClick) {
           el.style.cursor = 'pointer';
@@ -316,7 +367,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
               description: marker.isAgent ? "FuelFriendly Agent is ready to help you" : "Gas station selected",
               duration: 2000,
             });
-            
+
             // Call the provided click handler
             onMarkerClick(index);
           };
@@ -326,7 +377,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
         el.onmouseenter = () => {
           el.style.transform = 'scale(1.1)';
           el.style.transition = 'transform 0.3s ease';
-          
+
           // Show info popup
           if (marker.title) {
             setPopupInfo({
@@ -337,7 +388,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
             setShowPopup(true);
           }
         };
-        
+
         el.onmouseleave = () => {
           el.style.transform = 'scale(1)';
           setShowPopup(false);
@@ -349,12 +400,12 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
           const agentIconUrl = "/lovable-uploads/1bc06a60-0463-4f47-abde-502bc408852e.png";
           el.innerHTML = `
             <div style="width: 32px; height: 32px; position: relative; transform: translateY(-16px);">
-              <img 
-                src="${agentIconUrl}" 
-                style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));" 
+              <img
+                src="${agentIconUrl}"
+                style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));"
                 alt="Agent"
               />
-              ${marker.label ? 
+              ${marker.label ?
                 `<div style="
                   position: absolute;
                   white-space: nowrap;
@@ -370,7 +421,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
                   font-family: Arial, sans-serif;
                   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
                   border: 1px solid rgba(255,255,255,0.3);
-                ">${marker.label}</div>` : 
+                ">${marker.label}</div>` :
                 ''
               }
             </div>
@@ -378,16 +429,16 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
         } else {
           // Gas station marker with the new 3D gas station icon
           const markerImageUrl = marker.icon || gasStationIconUrl;
-          
+
           el.innerHTML = `
             <div style="width: 36px; height: 36px; position: relative; transform: translateY(-18px);">
-              <img 
-                src="${markerImageUrl}" 
-                style="width: 36px; height: 36px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));" 
+              <img
+                src="${markerImageUrl}"
+                style="width: 36px; height: 36px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));"
                 alt="Gas Station"
                 onerror="this.onerror=null; this.src='/lovable-uploads/8bb583f1-3cc3-48b8-9f8b-904bfcfe84ef.png';"
               />
-              ${marker.label ? 
+              ${marker.label ?
                 `<div style="
                   position: absolute;
                   white-space: nowrap;
@@ -403,7 +454,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
                   font-family: Arial, sans-serif;
                   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
                   border: 1px solid rgba(255,255,255,0.2);
-                ">${marker.label}</div>` : 
+                ">${marker.label}</div>` :
                 ''
               }
             </div>
@@ -560,15 +611,15 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
               el.innerHTML = `
                 <div style="
                   position: relative;
-                  width: 24px; 
+                  width: 24px;
                   height: 24px;
                 ">
                   <div style="
-                    width: 24px; 
-                    height: 24px; 
-                    background-color: #3498db; 
-                    border: 3px solid white; 
-                    border-radius: 50%; 
+                    width: 24px;
+                    height: 24px;
+                    background-color: #3498db;
+                    border: 3px solid white;
+                    border-radius: 50%;
                     box-shadow: 0 0 0 2px rgba(0,0,0,0.1), 0 0 10px rgba(52,152,219,0.7);
                     position: relative;
                     z-index: 2;
@@ -597,7 +648,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
                   "></div>
                 </div>
               `;
-              
+
               // Add keyframes for pulse animation
               if (!document.querySelector('#pulse-user-animation')) {
                 const style = document.createElement('style');
@@ -637,10 +688,10 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
           });
           setIsLocatingUser(false);
         },
-        { 
-          enableHighAccuracy: true, 
-          timeout: 10000, 
-          maximumAge: 0 
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
         }
       );
     };
@@ -648,15 +699,15 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
     // Function to toggle map tilt/pitch
     const toggleTilt = () => {
       if (!mapInstanceRef.current) return;
-      
+
       const currentPitch = mapInstanceRef.current.getPitch();
       const newPitch = currentPitch > 30 ? 0 : 60;
-      
+
       mapInstanceRef.current.easeTo({
         pitch: newPitch,
         duration: 1000,
       });
-      
+
       toast({
         title: newPitch > 0 ? "3D View Enabled" : "2D View Enabled",
         description: newPitch > 0 ? "Showing terrain and buildings in 3D" : "Switched to flat map view",
@@ -666,14 +717,14 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
     // Function to rotate map
     const rotateMap = () => {
       if (!mapInstanceRef.current) return;
-      
+
       const newRotation = (mapRotation + 45) % 360;
-      
+
       mapInstanceRef.current.easeTo({
         bearing: newRotation,
         duration: 1000,
       });
-      
+
       setMapRotation(newRotation);
     };
 
@@ -702,7 +753,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
 
         {/* Info popup for markers */}
         {showPopup && popupInfo && mapLoaded && (
-          <div 
+          <div
             className="absolute z-20 bg-black/80 backdrop-blur-md text-white p-3 rounded-lg shadow-lg border border-white/20 max-w-[200px]"
             style={{
               left: '50%',
@@ -740,7 +791,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
                     essential: true,
                     duration: 1500
                   });
-                  
+
                   toast({
                     title: "Map reset",
                     description: "Returning to default view"
@@ -759,7 +810,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
             >
               <Locate size={18} />
             </button>
-            
+
             {/* Toggle 3D view button */}
             <button
               className={`w-10 h-10 rounded-full ${is3DEnabled ? 'bg-purple-600' : 'bg-purple-400'} text-white flex items-center justify-center shadow-lg hover:bg-purple-500 hover:scale-105 transition-all duration-200`}
@@ -768,7 +819,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
             >
               <Layers size={18} />
             </button>
-            
+
             {/* Rotate map button */}
             <button
               className="w-10 h-10 rounded-full bg-orange-500 text-white flex items-center justify-center shadow-lg hover:bg-orange-400 hover:scale-105 transition-all duration-200"
