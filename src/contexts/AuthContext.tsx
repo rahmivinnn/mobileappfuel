@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authService, UserData, UserRole } from '@/services/authService';
 import { useNavigate } from 'react-router-dom';
@@ -152,7 +151,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     checkAuthStatus();
     
     // Try auto Google login if available
-    // This is a simplified example - in production you would use the Google Identity Services library
     const attemptGoogleAutoLogin = async () => {
       try {
         if (window.google && window.google.accounts) {
