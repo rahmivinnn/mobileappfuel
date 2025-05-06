@@ -1,7 +1,7 @@
 
-// Generate 100 random stations around Bandung, Indonesia
+// Generate 100 random stations around Los Angeles, United States
 
-// Helper function to generate random coordinates around Bandung
+// Helper function to generate random coordinates around a center point
 function generateRandomCoordinates(baseLat: number, baseLng: number, radiusInKm: number) {
   const earthRadius = 6371; // Earth radius in kilometers
   const degreesToRadians = Math.PI / 180;
@@ -20,79 +20,84 @@ function generateRandomCoordinates(baseLat: number, baseLng: number, radiusInKm:
   return { lat, lng };
 }
 
-// Bandung coordinates
-const bandungLat = -6.9175;
-const bandungLng = 107.6191;
+// Los Angeles coordinates
+const losAngelesLat = 34.0522;
+const losAngelesLng = -118.2437;
 
-// Gas station brand names in Indonesia
+// Gas station brand names in the US
 const stationBrands = [
-  'Pertamina', 
   'Shell', 
-  'BP', 
-  'Total', 
-  'Vivo', 
-  'Petronas',
-  'SPBU',
-  'MyPertamina',
-  'Bright',
-  'Exxon Mobil'
+  'Chevron', 
+  'Exxon', 
+  'Mobil',
+  'BP',
+  'Texaco',
+  'ARCO',
+  '76',
+  'Valero',
+  'Speedway',
+  'Circle K',
+  'Costco',
+  'Sam\'s Club',
+  'Marathon',
+  'Sunoco'
 ];
 
-// Bandung area neighborhoods and areas
-const bandungAreas = [
-  'Dago',
-  'Setiabudi',
-  'Lembang',
-  'Pasteur',
-  'Cipaganti',
-  'Antapani',
-  'Cibiru',
-  'Buahbatu',
-  'Kebon Kawung',
-  'Pasir Koja',
-  'Cicendo',
-  'Ujung Berung',
-  'Batununggal',
-  'Cimahi',
-  'Cibaduyut',
-  'Ciumbuleuit',
-  'Sukajadi',
-  'Cibeunying',
-  'Arcamanik',
-  'Margacinta'
+// Los Angeles area neighborhoods and areas
+const losAngelesAreas = [
+  'Downtown',
+  'Hollywood',
+  'Beverly Hills',
+  'Santa Monica',
+  'Venice',
+  'Westwood',
+  'Brentwood',
+  'Echo Park',
+  'Silver Lake',
+  'Los Feliz',
+  'Koreatown',
+  'Culver City',
+  'Century City',
+  'Chinatown',
+  'Burbank',
+  'Glendale',
+  'Pasadena',
+  'Long Beach',
+  'Malibu',
+  'Marina del Rey'
 ];
 
-// Bandung streets
-const bandungStreets = [
-  'Jl. Asia Afrika',
-  'Jl. Braga',
-  'Jl. Dago',
-  'Jl. Ir. H. Juanda',
-  'Jl. Merdeka',
-  'Jl. Pasirkaliki',
-  'Jl. Gatot Subroto',
-  'Jl. Pasteur',
-  'Jl. Soekarno-Hatta',
-  'Jl. Dipatiukur',
-  'Jl. Cihampelas',
-  'Jl. Riau',
-  'Jl. Buah Batu',
-  'Jl. Ahmad Yani',
-  'Jl. Supratman',
-  'Jl. Laswi',
-  'Jl. Pajajaran',
-  'Jl. Setiabudi',
-  'Jl. Terusan Jakarta',
-  'Jl. Sudirman'
+// Los Angeles streets
+const losAngelesStreets = [
+  'Wilshire Blvd',
+  'Sunset Blvd',
+  'Santa Monica Blvd',
+  'Hollywood Blvd',
+  'Melrose Ave',
+  'Ventura Blvd',
+  'Rodeo Dr',
+  'Olympic Blvd',
+  'Pico Blvd',
+  'La Cienega Blvd',
+  'Fairfax Ave',
+  'La Brea Ave',
+  'Western Ave',
+  'Vermont Ave',
+  'Figueroa St',
+  'Spring St',
+  'Main St',
+  'Venice Blvd',
+  'Lincoln Blvd',
+  'Sepulveda Blvd'
 ];
 
-// Fuel types available in Indonesia
+// Fuel types available in the US with prices in dollars
 export const fuelTypes = [
-  { id: 'pertalite', name: 'Pertalite', price: 10000 },
-  { id: 'pertamax', name: 'Pertamax', price: 13500 },
-  { id: 'pertamaxturbo', name: 'Pertamax Turbo', price: 15000 },
-  { id: 'solar', name: 'Solar', price: 6800 },
-  { id: 'dexlite', name: 'Dexlite', price: 13150 }
+  { id: 'regular', name: 'Regular', price: 3.99 },
+  { id: 'midgrade', name: 'Midgrade', price: 4.29 },
+  { id: 'premium', name: 'Premium', price: 4.59 },
+  { id: 'diesel', name: 'Diesel', price: 4.99 },
+  { id: 'e85', name: 'E85', price: 3.49 }
 ];
 
 // Generate station images
@@ -102,31 +107,38 @@ const stationImages = [
   '/lovable-uploads/8c6a633e-ae68-4424-b2b3-4458a96b7d3b.png',
   '/lovable-uploads/aafa9060-dd0c-4f89-9725-afe221ab74ba.png',
   '/lovable-uploads/ba008608-8960-40b9-8a96-e5b173a48e08.png',
-  '/lovable-uploads/c123a960-63f7-48ab-b0a0-6f29584106f7.png'
+  '/lovable-uploads/c123a960-63f7-48ab-b0a0-6f29584106f7.png',
+  '/lovable-uploads/b5fa7932-1a2e-4d11-bb77-3553f76ae527.png'
 ];
 
 // Generate 100 random gas stations
 export const allStations = Array.from({ length: 100 }, (_, i) => {
-  const coords = generateRandomCoordinates(bandungLat, bandungLng, 10);
+  const coords = generateRandomCoordinates(losAngelesLat, losAngelesLng, 15);
   const brandName = stationBrands[Math.floor(Math.random() * stationBrands.length)];
-  const area = bandungAreas[Math.floor(Math.random() * bandungAreas.length)];
-  const street = bandungStreets[Math.floor(Math.random() * bandungStreets.length)];
+  const area = losAngelesAreas[Math.floor(Math.random() * losAngelesAreas.length)];
+  const street = losAngelesStreets[Math.floor(Math.random() * losAngelesStreets.length)];
+  const streetNumber = Math.floor(Math.random() * 9000) + 1000;
   const distance = (Math.random() * 15).toFixed(1);
   const rating = (3 + Math.random() * 2).toFixed(1);
   const reviewCount = Math.floor(Math.random() * 100) + 5;
   const isOpen = Math.random() > 0.2; // 80% chance of being open
   const imageUrl = stationImages[Math.floor(Math.random() * stationImages.length)];
   
+  // Generate random hours
+  const openHour = Math.floor(Math.random() * 6) + 5; // 5 AM to 10 AM
+  const closeHour = Math.floor(Math.random() * 6) + 18; // 6 PM to 11 PM
+  const is24Hours = Math.random() > 0.7; // 30% chance of being 24 hours
+  
   // Generate random available fuel types and prices
   const availableFuels = fuelTypes.filter(() => Math.random() > 0.3).map(fuel => ({
     ...fuel,
-    price: (fuel.price + (Math.random() * 500 - 250)).toFixed(0) // Add random price variation in Indonesian Rupiah
+    price: (fuel.price + (Math.random() * 0.6 - 0.3)).toFixed(2) // Add random price variation in USD
   }));
   
   return {
     id: (i + 1).toString(),
     name: `${brandName} ${area}`,
-    address: `${street}, ${area}, Bandung`,
+    address: `${streetNumber} ${street}, ${area}, Los Angeles, CA`,
     distance,
     rating: parseFloat(rating),
     reviewCount,
@@ -134,6 +146,11 @@ export const allStations = Array.from({ length: 100 }, (_, i) => {
     imageUrl,
     position: coords,
     fuels: availableFuels,
+    hours: {
+      open: is24Hours ? 0 : openHour,
+      close: is24Hours ? 24 : closeHour,
+      is24Hours
+    },
     amenities: {
       hasConvenienceStore: Math.random() > 0.3,
       hasCarWash: Math.random() > 0.7,
@@ -144,8 +161,8 @@ export const allStations = Array.from({ length: 100 }, (_, i) => {
   };
 });
 
-// Generate 100 random order history items
-const orderStatuses = ['selesai', 'dalam pengiriman', 'diproses', 'dibatalkan'];
+// Generate order history items
+const orderStatuses = ['completed', 'in transit', 'processing', 'canceled'];
 
 export const orderHistory = Array.from({ length: 100 }, (_, i) => {
   const station = allStations[Math.floor(Math.random() * allStations.length)];
@@ -161,25 +178,25 @@ export const orderHistory = Array.from({ length: 100 }, (_, i) => {
     stationName: station.name,
     fuelType: fuel.name,
     quantity,
-    totalPrice: (fuel.price * quantity).toFixed(0),
+    totalPrice: (fuel.price * quantity).toFixed(2),
     orderDate: orderDate.toISOString(),
     status,
     items: [
-      { name: `${quantity} Liter ${fuel.name}`, quantity: '1x', price: parseFloat((fuel.price * quantity).toFixed(0)) },
-      ...(Math.random() > 0.7 ? [{ name: 'Cemilan', quantity: '2x', price: 25000 }] : [])
+      { name: `${quantity} Gallon ${fuel.name}`, quantity: '1x', price: parseFloat((fuel.price * quantity).toFixed(2)) },
+      ...(Math.random() > 0.7 ? [{ name: 'Snacks', quantity: '2x', price: 4.99 }] : [])
     ],
     driver: Math.random() > 0.5 ? {
-      name: 'Budi Santoso',
-      location: 'Bandung, Jawa Barat',
+      name: 'Mike Johnson',
+      location: 'Los Angeles, CA',
       image: '/lovable-uploads/a3df03b1-a154-407f-b8fe-e5dd6f0bade3.png',
       rating: 4.8,
-      phone: '+62 812-3456-7890'
+      phone: '+1 323-456-7890'
     } : {
-      name: 'Dewi Pratiwi',
-      location: 'Bandung, Jawa Barat',
+      name: 'Sarah Williams',
+      location: 'Los Angeles, CA',
       image: '/lovable-uploads/c3b29f6b-a689-4ac3-a338-4194cbee5e0c.png',
       rating: 4.9,
-      phone: '+62 857-1234-5678'
+      phone: '+1 213-987-6543'
     }
   };
 });

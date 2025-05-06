@@ -159,8 +159,8 @@ const Index = () => {
   // Gas station image URL
   const gasStationIconUrl = "/lovable-uploads/e7264ee5-ed98-4679-91b4-8f12d183784b.png";
 
-  // Convert stations to map markers - limit to nearest 10 for performance
-  const markers = filteredStations.slice(0, 10).map(station => ({
+  // Convert stations to map markers - show all 50 for better visibility
+  const markers = filteredStations.slice(0, 50).map(station => ({
     position: {
       lat: station.position.lat,
       lng: station.position.lng
@@ -204,7 +204,7 @@ const Index = () => {
     `${userLocation.city}, ${userLocation.country}` : 
     (location ? `${location.city}, ${location.country}` : 'Los Angeles, United States');
 
-  // Toggle map style
+  // Handle map style change
   const handleMapStyleChange = (style: string) => {
     setCurrentMapStyle(style);
   };
@@ -286,50 +286,60 @@ const Index = () => {
         </button>
       </div>
 
-      {/* Map Style Selector */}
+      {/* Map Style Selector - Updated to match design */}
       <div className="px-4 pt-2">
         <div className="flex justify-between items-center">
-          <div className="flex gap-2">
+          <div className="flex gap-1">
             <Button 
               size="sm"
               variant={currentMapStyle === MAP_STYLES.STREETS ? "default" : "outline"}
-              className={currentMapStyle === MAP_STYLES.STREETS ? "bg-green-500 hover:bg-green-600" : ""}
+              className={`rounded-full flex items-center gap-1 px-3 py-1 ${currentMapStyle === MAP_STYLES.STREETS ? "bg-green-500 hover:bg-green-600" : "border-gray-300"}`}
               onClick={() => handleMapStyleChange(MAP_STYLES.STREETS)}
             >
-              <Globe className="h-3 w-3 mr-1" />
-              Streets
+              <div className={`w-4 h-4 rounded-full flex items-center justify-center ${currentMapStyle === MAP_STYLES.STREETS ? "bg-white" : "bg-green-500"}`}>
+                <Globe className={`h-2.5 w-2.5 ${currentMapStyle === MAP_STYLES.STREETS ? "text-green-500" : "text-white"}`} />
+              </div>
+              <span className="text-xs font-medium">Streets</span>
             </Button>
+            
             <Button 
               size="sm"
               variant={currentMapStyle === MAP_STYLES.SATELLITE ? "default" : "outline"}
-              className={currentMapStyle === MAP_STYLES.SATELLITE ? "bg-green-500 hover:bg-green-600" : ""}
+              className={`rounded-full flex items-center gap-1 px-3 py-1 ${currentMapStyle === MAP_STYLES.SATELLITE ? "bg-black text-white hover:bg-gray-800" : "border-gray-300"}`}
               onClick={() => handleMapStyleChange(MAP_STYLES.SATELLITE)}
             >
-              <Globe className="h-3 w-3 mr-1" />
-              Satellite
+              <div className={`w-4 h-4 rounded-full flex items-center justify-center ${currentMapStyle === MAP_STYLES.SATELLITE ? "bg-white" : "bg-black"}`}>
+                <Globe className={`h-2.5 w-2.5 ${currentMapStyle === MAP_STYLES.SATELLITE ? "text-black" : "text-white"}`} />
+              </div>
+              <span className="text-xs font-medium">Satellite</span>
             </Button>
+            
             <Button 
               size="sm"
               variant={currentMapStyle === MAP_STYLES.DARK ? "default" : "outline"}
-              className={currentMapStyle === MAP_STYLES.DARK ? "bg-green-500 hover:bg-green-600" : ""}
+              className={`rounded-full flex items-center gap-1 px-3 py-1 ${currentMapStyle === MAP_STYLES.DARK ? "bg-gray-800 text-white hover:bg-gray-700" : "border-gray-300"}`}
               onClick={() => handleMapStyleChange(MAP_STYLES.DARK)}
             >
-              <Globe className="h-3 w-3 mr-1" />
-              Dark
+              <div className={`w-4 h-4 rounded-full flex items-center justify-center ${currentMapStyle === MAP_STYLES.DARK ? "bg-white" : "bg-gray-800"}`}>
+                <Globe className={`h-2.5 w-2.5 ${currentMapStyle === MAP_STYLES.DARK ? "text-gray-800" : "text-white"}`} />
+              </div>
+              <span className="text-xs font-medium">Dark</span>
             </Button>
           </div>
+          
           <Button 
             size="sm"
             variant="outline"
             onClick={handleRefreshLocation}
             disabled={isLoadingStations}
+            className="rounded-full"
           >
             {isLoadingStations ? (
               <div className="h-3 w-3 border-2 border-current border-t-transparent rounded-full animate-spin mr-1" />
             ) : (
               <RefreshCw className="h-3 w-3 mr-1" />
             )}
-            Refresh Stations
+            <span className="text-xs">Refresh</span>
           </Button>
         </div>
       </div>
@@ -365,6 +375,7 @@ const Index = () => {
                 navigate(`/station/${filteredStations[index].id}`);
               }
             }}
+            hideStyleControls={true} // Hide the style controls in the Map component
           />
         </div>
       </div>
@@ -417,7 +428,7 @@ const Index = () => {
                 <div key={i} className="animate-pulse bg-gray-200 dark:bg-gray-800 rounded-xl h-40"></div>
               ))
             ) : (
-              // Actual station list - show up to maxStationsToShow stations
+              // Actual station list - show all 50 stations
               filteredStations.slice(0, maxStationsToShow).map((station, index) => {
                 const cheapestFuel = station.fuels && station.fuels.length > 0
                   ? station.fuels.reduce((min, fuel) =>

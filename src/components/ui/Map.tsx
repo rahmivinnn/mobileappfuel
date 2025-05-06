@@ -30,6 +30,7 @@ interface MapProps extends React.HTMLAttributes<HTMLDivElement> {
   initialPitch?: number;
   initialBearing?: number;
   enable3DBuildings?: boolean;
+  hideStyleControls?: boolean; // New prop to hide style controls
 }
 
 const Map = React.forwardRef<HTMLDivElement, MapProps>(
@@ -51,6 +52,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
       initialPitch = 30,
       initialBearing = 0,
       enable3DBuildings = true,
+      hideStyleControls = false, // Default to showing controls
       ...props
     },
     ref
@@ -698,11 +700,11 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
     };
 
     // Map style options
-    const mapStyleOptions = [
+    const mapStyleOptions = !hideStyleControls ? [
       { name: 'Streets', value: MAP_STYLES.STREETS },
       { name: 'Satellite', value: MAP_STYLES.SATELLITE },
       { name: 'Dark', value: MAP_STYLES.DARK }
-    ];
+    ] : [];
 
     return (
       <div
@@ -830,6 +832,35 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
               >
                 −
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* Map style selector - Only show if hideStyleControls is false */}
+        {mapLoaded && interactive && mapStyleOptions.length > 0 && !hideStyleControls && (
+          <div className="absolute top-4 right-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden z-10">
+            <div className="flex flex-col">
+              {mapStyleOptions.map((style) => (
+                <button
+                  key={style.value}
+                  className={`px-4 py-2 text-sm font-medium flex items-center space-x-2 transition-colors ${
+                    currentMapStyle === style.value
+                      ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300'
+                      : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
+                  onClick={() => {
+                    setCurrentMapStyle(style.value);
+                    if (onStyleChange) onStyleChange(style.value);
+                  }}
+                >
+                  <div
+                    className={`w-3 h-3 rounded-full ${
+                      currentMapStyle === style.value ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'
+                    }`}
+                  />
+                  <span>{style.name}</span>
+                </button>
+              ))}
             </div>
           </div>
         )}
