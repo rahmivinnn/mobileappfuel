@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, Filter, Bell, User, Home, ShoppingBag, MapPin, Settings, Fuel, RefreshCw, AlertCircle, Layers, Globe, Satellite, Moon } from 'lucide-react';
+import { Search, Filter, Bell, User, Home, ShoppingBag, MapPin, Settings, Fuel, RefreshCw, AlertCircle, Layers, Globe, Satellite, Moon, Cube } from 'lucide-react';
 import Map from '@/components/ui/Map';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
@@ -156,8 +156,17 @@ const Index = () => {
     }
   };
 
-  // Gas station image URL
-  const gasStationIconUrl = "/lovable-uploads/e7264ee5-ed98-4679-91b4-8f12d183784b.png";
+  // Gas station image URL - updated to use the new 3D gas station image
+  const gasStationIconUrl = "/lovable-uploads/8bb583f1-3cc3-48b8-9f8b-904bfcfe84ef.png";
+
+  // Toggle 3D buildings
+  const toggle3DBuildings = () => {
+    setEnable3DBuildings(prev => !prev);
+    toast({
+      title: enable3DBuildings ? "3D Buildings Disabled" : "3D Buildings Enabled",
+      description: enable3DBuildings ? "Switched to 2D view" : "Showing buildings in 3D",
+    });
+  };
 
   // Convert stations to map markers - show all 50 for better visibility
   const markers = filteredStations.slice(0, 50).map(station => ({
@@ -286,7 +295,7 @@ const Index = () => {
         </button>
       </div>
 
-      {/* Map Style Selector - Updated with icons */}
+      {/* Map Style Selector - With 3D buildings toggle */}
       <div className="px-4 pt-2">
         <div className="flex justify-between items-center">
           <div className="flex gap-1">
@@ -318,6 +327,17 @@ const Index = () => {
             >
               <Moon className={`h-3.5 w-3.5 ${currentMapStyle === MAP_STYLES.DARK ? "text-white" : "text-gray-600 dark:text-gray-400"}`} />
               <span className="text-xs font-medium">Dark</span>
+            </Button>
+            
+            {/* 3D Buildings Toggle */}
+            <Button 
+              size="sm"
+              variant={enable3DBuildings ? "default" : "outline"}
+              className={`rounded-full flex items-center gap-1 px-3 py-1 ${enable3DBuildings ? "bg-purple-600 text-white hover:bg-purple-700" : "border-gray-300"}`}
+              onClick={toggle3DBuildings}
+            >
+              <Cube className={`h-3.5 w-3.5 ${enable3DBuildings ? "text-white" : "text-gray-600 dark:text-gray-400"}`} />
+              <span className="text-xs font-medium">3D</span>
             </Button>
           </div>
           
@@ -360,9 +380,9 @@ const Index = () => {
             markers={allMarkers}
             onStyleChange={handleMapStyleChange}
             onTrafficToggle={(show) => setShowTraffic(show)}
-            initialPitch={60}
+            initialPitch={enable3DBuildings ? 60 : 0}
             initialBearing={30}
-            enable3DBuildings={true}
+            enable3DBuildings={enable3DBuildings}
             onMarkerClick={(index) => {
               // Only navigate to station details if it's a gas station marker
               if (index < markers.length) {

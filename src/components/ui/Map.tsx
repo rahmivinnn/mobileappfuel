@@ -73,9 +73,10 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
     const [showPopup, setShowPopup] = useState(false);
     const [popupInfo, setPopupInfo] = useState<{position: [number, number], title: string, content: string} | null>(null);
     const [mapRotation, setMapRotation] = useState(initialBearing);
+    const [is3DEnabled, setIs3DEnabled] = useState(enable3DBuildings);
 
-    // Gas station icon URL - updated to use the new image
-    const gasStationIconUrl = "/lovable-uploads/e7264ee5-ed98-4679-91b4-8f12d183784b.png";
+    // New gas station icon URL (uploaded image)
+    const gasStationIconUrl = "/lovable-uploads/8bb583f1-3cc3-48b8-9f8b-904bfcfe84ef.png";
 
     // Initialize map
     useEffect(() => {
@@ -89,7 +90,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
         zoom: zoom,
         attributionControl: false,
         interactive: interactive,
-        pitch: initialPitch, // Use initialPitch for 3D effect
+        pitch: is3DEnabled ? initialPitch : 0, // Use initialPitch for 3D effect if enabled
         bearing: initialBearing, // Initial rotation based on prop
       });
 
@@ -147,42 +148,8 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
         }
         
         // Add 3D buildings for more immersive view if enabled
-        if (enable3DBuildings) {
-          try {
-            map.addLayer({
-              'id': '3d-buildings',
-              'source': 'composite',
-              'source-layer': 'building',
-              'filter': ['==', 'extrude', 'true'],
-              'type': 'fill-extrusion',
-              'minzoom': 14,
-              'paint': {
-                'fill-extrusion-color': [
-                  'interpolate',
-                  ['linear'],
-                  ['get', 'height'],
-                  0, '#AAAAAA',
-                  50, '#888888',
-                  100, '#666666',
-                  200, '#444444'
-                ],
-                'fill-extrusion-height': ['get', 'height'],
-                'fill-extrusion-base': ['get', 'min_height'],
-                'fill-extrusion-opacity': 0.7,
-                'fill-extrusion-vertical-gradient': true
-              }
-            });
-
-            // Add light effect for 3D buildings
-            map.setLight({
-              anchor: 'viewport',
-              color: 'white',
-              intensity: 0.4,
-              position: [1, 0, 0.8]
-            });
-          } catch (error) {
-            console.error("Error adding 3D buildings:", error);
-          }
+        if (is3DEnabled) {
+          add3DBuildings(map);
         }
 
         // Rotate map slowly for visual effect if interactive and with initial bearing
@@ -191,7 +158,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
             map.easeTo({
               bearing: initialBearing,
               duration: 6000,
-              pitch: initialPitch,
+              pitch: is3DEnabled ? initialPitch : 0,
               essential: true
             });
           }, 1000);
@@ -205,6 +172,87 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
       };
     }, []);
 
+    // Helper function to add 3D building layers
+    const add3DBuildings = (map: mapboxgl.Map) => {
+      try {
+        if (map.getLayer('3d-buildings')) {
+          map.removeLayer('3d-buildings');
+        }
+          
+        map.addLayer({
+          'id': '3d-buildings',
+          'source': 'composite',
+          'source-layer': 'building',
+          'filter': ['==', 'extrude', 'true'],
+          'type': 'fill-extrusion',
+          'minzoom': 14,
+          'paint': {
+            'fill-extrusion-color': [
+              'interpolate',
+              ['linear'],
+              ['get', 'height'],
+              0, '#AAAAAA',
+              50, '#888888',
+              100, '#666666',
+              200, '#444444'
+            ],
+            'fill-extrusion-height': ['get', 'height'],
+            'fill-extrusion-base': ['get', 'min_height'],
+            'fill-extrusion-opacity': 0.7,
+            'fill-extrusion-vertical-gradient': true
+          }
+        });
+
+        // Add light effect for 3D buildings
+        map.setLight({
+          anchor: 'viewport',
+          color: 'white',
+          intensity: 0.4,
+          position: [1, 0, 0.8]
+        });
+      } catch (error) {
+        console.error("Error adding 3D buildings:", error);
+      }
+    };
+
+    // Toggle 3D buildings function
+    const toggle3DBuildings = () => {
+      if (!mapInstanceRef.current || !mapInstanceRef.current.loaded()) return;
+      
+      const map = mapInstanceRef.current;
+      const newIs3DEnabled = !is3DEnabled;
+      setIs3DEnabled(newIs3DEnabled);
+      
+      if (newIs3DEnabled) {
+        // Enable 3D buildings
+        map.easeTo({
+          pitch: 60,
+          duration: 1000
+        });
+        add3DBuildings(map);
+        
+        toast({
+          title: "3D Mode Enabled",
+          description: "Showing buildings in 3D"
+        });
+      } else {
+        // Disable 3D buildings
+        if (map.getLayer('3d-buildings')) {
+          map.removeLayer('3d-buildings');
+        }
+        
+        map.easeTo({
+          pitch: 0,
+          duration: 1000
+        });
+        
+        toast({
+          title: "3D Mode Disabled",
+          description: "Switched to 2D map view"
+        });
+      }
+    };
+
     // Update map center and zoom when props change
     useEffect(() => {
       if (mapInstanceRef.current && mapInstanceRef.current.loaded()) {
@@ -213,10 +261,10 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
           zoom: zoom,
           essential: true,
           duration: 2000, // Extended duration for smoother transitions
-          pitch: 30, // Maintain consistent pitch
+          pitch: is3DEnabled ? 30 : 0, // Maintain consistent pitch based on 3D mode
         });
       }
-    }, [center, zoom]);
+    }, [center, zoom, is3DEnabled]);
 
     // Update map style when currentMapStyle changes
     useEffect(() => {
@@ -226,13 +274,21 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
           // Check if style needs to be updated
           if (currentStyle && currentMapStyle && currentStyle.sprite !== currentMapStyle) {
             mapInstanceRef.current.setStyle(currentMapStyle);
+            
+            // Re-add 3D buildings if enabled after style change
+            if (is3DEnabled) {
+              mapInstanceRef.current.once('style.load', () => {
+                add3DBuildings(mapInstanceRef.current!);
+              });
+            }
+            
             if (onStyleChange) onStyleChange(currentMapStyle);
           }
         } catch (error) {
           console.error('Error updating map style:', error);
         }
       }
-    }, [currentMapStyle, onStyleChange]);
+    }, [currentMapStyle, onStyleChange, is3DEnabled]);
 
     // Add markers to map with enhanced animations and interactivity
     useEffect(() => {
@@ -321,16 +377,16 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
             </div>
           `;
         } else {
-          // Gas station marker with simplified icon approach
+          // Gas station marker with the new 3D gas station icon
           const markerImageUrl = marker.icon || gasStationIconUrl;
           
           el.innerHTML = `
-            <div style="width: 32px; height: 32px; position: relative; transform: translateY(-16px);">
+            <div style="width: 36px; height: 36px; position: relative; transform: translateY(-18px);">
               <img 
                 src="${markerImageUrl}" 
-                style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));" 
+                style="width: 36px; height: 36px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));" 
                 alt="Gas Station"
-                onerror="this.onerror=null; this.src='/lovable-uploads/e7264ee5-ed98-4679-91b4-8f12d183784b.png';"
+                onerror="this.onerror=null; this.src='/lovable-uploads/8bb583f1-3cc3-48b8-9f8b-904bfcfe84ef.png';"
               />
               ${marker.label ? 
                 `<div style="
@@ -681,7 +737,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
                   mapInstanceRef.current.flyTo({
                     center: [center.lng, center.lat],
                     zoom: zoom,
-                    pitch: 30,
+                    pitch: is3DEnabled ? 30 : 0,
                     essential: true,
                     duration: 1500
                   });
@@ -707,8 +763,9 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
             
             {/* Toggle 3D view button */}
             <button
-              className="w-10 h-10 rounded-full bg-purple-500 text-white flex items-center justify-center shadow-lg hover:bg-purple-400 hover:scale-105 transition-all duration-200"
-              onClick={toggleTilt}
+              className={`w-10 h-10 rounded-full ${is3DEnabled ? 'bg-purple-600' : 'bg-purple-400'} text-white flex items-center justify-center shadow-lg hover:bg-purple-500 hover:scale-105 transition-all duration-200`}
+              onClick={toggle3DBuildings}
+              title={is3DEnabled ? "Disable 3D buildings" : "Enable 3D buildings"}
             >
               <Layers size={18} />
             </button>

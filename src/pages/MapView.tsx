@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MAPBOX_STYLE, MAP_STYLES } from '@/config/mapbox';
 import { useGeolocation } from '@/hooks/use-geolocation';
 import { Button } from '@/components/ui/button';
-import { MapPin, AlertCircle, User, RefreshCw, Globe, Layers } from 'lucide-react';
+import { MapPin, AlertCircle, User, RefreshCw, Globe, Layers, Cube } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { filterStationsByDistance, DEFAULT_COORDINATES } from '@/services/geocodingService';
 import { toast } from '@/hooks/use-toast';
@@ -36,6 +36,7 @@ const MapView: React.FC = () => {
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
   const [isLoadingStations, setIsLoadingStations] = useState(true);
   const [mapCenter, setMapCenter] = useState(DEFAULT_COORDINATES);
+  const [enable3DBuildings, setEnable3DBuildings] = useState(true);
 
   // Function to update stations based on coordinates
   const updateStationsForCoordinates = useCallback(async (coordinates: {lat: number, lng: number}) => {
@@ -156,8 +157,8 @@ const MapView: React.FC = () => {
     parseFloat(a.distance) - parseFloat(b.distance)
   );
 
-  // Gas station image URL
-  const gasStationIconUrl = "/lovable-uploads/e7264ee5-ed98-4679-91b4-8f12d183784b.png";
+  // Gas station image URL - updated to use the new 3D gas station image
+  const gasStationIconUrl = "/lovable-uploads/8bb583f1-3cc3-48b8-9f8b-904bfcfe84ef.png";
 
   // Convert stations to map markers
   const markers = sortedStations.slice(0, 10).map(station => ({
@@ -226,6 +227,15 @@ const MapView: React.FC = () => {
     setShowTraffic(show);
   };
 
+  // Toggle 3D buildings
+  const toggle3DBuildings = () => {
+    setEnable3DBuildings(prev => !prev);
+    toast({
+      title: enable3DBuildings ? "3D Buildings Disabled" : "3D Buildings Enabled",
+      description: enable3DBuildings ? "Switched to 2D view" : "Showing buildings in 3D",
+    });
+  };
+
   // Location label from user's registration or device
   const locationLabel = userLocation ? 
     `${userLocation.city}, ${userLocation.country}` : 
@@ -235,7 +245,7 @@ const MapView: React.FC = () => {
     <div className="min-h-screen bg-background">
       <Header title="Temukan SPBU" showBack={true} />
 
-      {/* Map Style Selector */}
+      {/* Map Style and 3D Controls */}
       <div className="mx-4 my-2 flex flex-wrap justify-between items-center gap-2">
         <div className="flex flex-wrap gap-2">
           <Button 
@@ -264,6 +274,17 @@ const MapView: React.FC = () => {
           >
             <Globe className="h-3 w-3 mr-1" />
             Dark
+          </Button>
+          
+          {/* 3D Buildings Toggle */}
+          <Button 
+            size="sm"
+            variant={enable3DBuildings ? "default" : "outline"}
+            className={enable3DBuildings ? "bg-purple-500 hover:bg-purple-600" : ""}
+            onClick={toggle3DBuildings}
+          >
+            <Cube className="h-3 w-3 mr-1" />
+            3D Buildings
           </Button>
         </div>
 
@@ -346,6 +367,8 @@ const MapView: React.FC = () => {
           mapStyle={currentMapStyle}
           onStyleChange={handleStyleChange}
           onTrafficToggle={handleTrafficToggle}
+          enable3DBuildings={enable3DBuildings}
+          initialPitch={enable3DBuildings ? 60 : 0}
         />
 
         {(isLoadingLocation || isLoadingStations) && (
