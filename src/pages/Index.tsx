@@ -223,8 +223,11 @@ const Index = () => {
     `${userLocation.city}, ${userLocation.country}` :
     (location ? `${location.city}, ${location.country}` : 'Los Angeles, United States');
 
-  // Handle map style change
+  // Handle map style change with improved logging
   const handleMapStyleChange = (style: string) => {
+    console.log("handleMapStyleChange called with style:", style);
+
+    // Update the state with the new style
     setCurrentMapStyle(style);
 
     // Show toast notification for style change
@@ -235,6 +238,8 @@ const Index = () => {
         (style.includes('dark') ? "Switched to dark mode" : "Switched to streets view"),
       duration: 2000
     });
+
+    console.log("Map style updated to:", style);
   };
 
   return (
@@ -322,7 +327,10 @@ const Index = () => {
               size="sm"
               variant={currentMapStyle === MAP_STYLES.STREETS ? "default" : "outline"}
               className={`rounded-full flex items-center gap-1 px-3 py-1 ${currentMapStyle === MAP_STYLES.STREETS ? "bg-green-500 hover:bg-green-600" : "border-gray-300"}`}
-              onClick={() => handleMapStyleChange(MAP_STYLES.STREETS)}
+              onClick={() => {
+                console.log("Changing to Streets style");
+                handleMapStyleChange(MAP_STYLES.STREETS);
+              }}
             >
               <Globe className={`h-3.5 w-3.5 ${currentMapStyle === MAP_STYLES.STREETS ? "text-white" : "text-gray-600 dark:text-gray-400"}`} />
               <span className="text-xs font-medium">Streets</span>
@@ -332,7 +340,10 @@ const Index = () => {
               size="sm"
               variant={currentMapStyle === MAP_STYLES.SATELLITE ? "default" : "outline"}
               className={`rounded-full flex items-center gap-1 px-3 py-1 ${currentMapStyle === MAP_STYLES.SATELLITE ? "bg-blue-600 text-white hover:bg-blue-700" : "border-gray-300"}`}
-              onClick={() => handleMapStyleChange(MAP_STYLES.SATELLITE)}
+              onClick={() => {
+                console.log("Changing to Satellite style");
+                handleMapStyleChange(MAP_STYLES.SATELLITE);
+              }}
             >
               <Satellite className={`h-3.5 w-3.5 ${currentMapStyle === MAP_STYLES.SATELLITE ? "text-white" : "text-gray-600 dark:text-gray-400"}`} />
               <span className="text-xs font-medium">Satellite</span>
@@ -342,7 +353,10 @@ const Index = () => {
               size="sm"
               variant={currentMapStyle === MAP_STYLES.DARK ? "default" : "outline"}
               className={`rounded-full flex items-center gap-1 px-3 py-1 ${currentMapStyle === MAP_STYLES.DARK ? "bg-gray-800 text-white hover:bg-gray-700" : "border-gray-300"}`}
-              onClick={() => handleMapStyleChange(MAP_STYLES.DARK)}
+              onClick={() => {
+                console.log("Changing to Dark style");
+                handleMapStyleChange(MAP_STYLES.DARK);
+              }}
             >
               <Moon className={`h-3.5 w-3.5 ${currentMapStyle === MAP_STYLES.DARK ? "text-white" : "text-gray-600 dark:text-gray-400"}`} />
               <span className="text-xs font-medium">Dark</span>
@@ -353,7 +367,10 @@ const Index = () => {
               size="sm"
               variant={enable3DBuildings ? "default" : "outline"}
               className={`rounded-full flex items-center gap-1 px-3 py-1 ${enable3DBuildings ? "bg-purple-600 text-white hover:bg-purple-700" : "border-gray-300"}`}
-              onClick={toggle3DBuildings}
+              onClick={() => {
+                console.log("Toggling 3D buildings from Index page");
+                toggle3DBuildings();
+              }}
             >
               <Box className={`h-3.5 w-3.5 ${enable3DBuildings ? "text-white" : "text-gray-600 dark:text-gray-400"}`} />
               <span className="text-xs font-medium">3D</span>
@@ -389,7 +406,9 @@ const Index = () => {
         )}
 
         <div className={`transition-all duration-1000 rounded-2xl overflow-hidden ${mapVisible ? 'opacity-100 shadow-lg scale-100' : 'opacity-0 scale-95'}`}>
+          {/* Key added to force re-render when style or 3D buildings change */}
           <Map
+            key={`map-${currentMapStyle}-3d-${enable3DBuildings ? 'on' : 'off'}`}
             className="h-56 w-full rounded-2xl overflow-hidden"
             interactive={true}
             showTraffic={showTraffic}

@@ -81,6 +81,9 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
     useEffect(() => {
       if (!mapContainerRef.current) return;
 
+      console.log("Initializing map with style:", currentMapStyle);
+      console.log("3D buildings enabled:", is3DEnabled);
+
       // Create map instance with enhanced options
       const map = new mapboxgl.Map({
         container: mapContainerRef.current,
@@ -98,7 +101,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
 
       // Set map loaded when map is ready
       map.on('load', () => {
-        console.log("Map loaded successfully");
+        console.log("Map loaded successfully with style:", map.getStyle().name);
         setMapLoaded(true);
 
         // Add event listeners for map movement
@@ -114,6 +117,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
         // Add traffic layer if needed
         if (showTraffic) {
           try {
+            console.log("Adding traffic layer");
             map.addSource('traffic', {
               type: 'vector',
               url: 'mapbox://mapbox.mapbox-traffic-v1'
@@ -141,6 +145,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
                 ]
               }
             });
+            console.log("Traffic layer added successfully");
           } catch (error) {
             console.error("Error adding traffic layer:", error);
           }
@@ -148,12 +153,25 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
 
         // Add 3D buildings for more immersive view if enabled
         if (is3DEnabled) {
-          add3DBuildings(map);
+          console.log("Adding 3D buildings on initial load");
+          // Add with slight delay to ensure style is fully loaded
+          setTimeout(() => {
+            add3DBuildings(map);
+
+            // Try again after a longer delay if needed
+            setTimeout(() => {
+              if (!map.getLayer('3d-buildings')) {
+                console.log("Retry adding 3D buildings on initial load");
+                add3DBuildings(map);
+              }
+            }, 1000);
+          }, 500);
         }
 
         // Rotate map slowly for visual effect if interactive and with initial bearing
         if (interactive && initialBearing !== 0) {
           setTimeout(() => {
+            console.log("Rotating map to initial bearing:", initialBearing);
             map.easeTo({
               bearing: initialBearing,
               duration: 6000,
@@ -164,8 +182,22 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
         }
       });
 
+      // Add style change event listener
+      map.on('style.load', () => {
+        console.log("Style loaded event triggered");
+
+        // Re-add 3D buildings if enabled after style change
+        if (is3DEnabled) {
+          console.log("Re-adding 3D buildings after style change event");
+          setTimeout(() => {
+            add3DBuildings(map);
+          }, 500);
+        }
+      });
+
       // Clean up on unmount
       return () => {
+        console.log("Cleaning up map");
         map.remove();
         mapInstanceRef.current = null;
       };
@@ -174,30 +206,89 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
     // Helper function to add 3D building layers
     const add3DBuildings = (map: mapboxgl.Map) => {
       try {
+        console.log("Adding 3D buildings...");
+
         // Remove existing 3D buildings layer if it exists
         if (map.getLayer('3d-buildings')) {
+          console.log("Removing existing 3D buildings layer");
           map.removeLayer('3d-buildings');
         }
 
-        // Check if the source exists before adding the layer
-        if (!map.getSource('composite')) {
-          console.log("Composite source not available yet, waiting for style to load");
-          // Wait for style to load completely
+        // Check if the map style is loaded
+        if (!map.isStyleLoaded()) {
+          console.log("Map style not fully loaded, waiting...");
           map.once('style.load', () => {
-            // Try adding 3D buildings again after style is fully loaded
+            console.log("Style loaded, trying to add 3D buildings again");
             setTimeout(() => add3DBuildings(map), 500);
           });
           return;
         }
 
-        // Add enhanced 3D buildings layer
+        // Check if the composite source exists
+        if (!map.getSource('composite')) {
+          console.log("Composite source not available, trying alternative approach");
+
+          // Try to add a custom 3D buildings layer for satellite and dark modes
+          try {
+            // Add a custom 3D buildings source if needed
+            if (!map.getSource('custom-buildings')) {
+              map.addSource('custom-buildings', {
+                'type': 'vector',
+                'url': 'mapbox://mapbox.mapbox-streets-v8'
+              });
+            }
+
+            // Add the 3D buildings layer with the custom source
+            map.addLayer({
+              'id': '3d-buildings',
+              'source': 'custom-buildings',
+              'source-layer': 'building',
+              'type': 'fill-extrusion',
+              'minzoom': 12, // Lower minzoom to see buildings from further away
+              'paint': {
+                'fill-extrusion-color': [
+                  'interpolate',
+                  ['linear'],
+                  ['get', 'height'],
+                  0, '#AAAAAA',
+                  50, '#888888',
+                  100, '#666666',
+                  200, '#444444'
+                ],
+                'fill-extrusion-height': ['get', 'height'],
+                'fill-extrusion-base': ['get', 'min_height'],
+                'fill-extrusion-opacity': 0.8,
+                'fill-extrusion-vertical-gradient': true
+              }
+            });
+
+            console.log("Added 3D buildings with custom source");
+          } catch (customError) {
+            console.error("Error adding custom 3D buildings:", customError);
+
+            // Wait and try again with the standard approach
+            setTimeout(() => {
+              try {
+                if (map.getSource('composite')) {
+                  add3DBuildings(map);
+                }
+              } catch (retryError) {
+                console.error("Retry failed:", retryError);
+              }
+            }, 1000);
+          }
+          return;
+        }
+
+        // Add enhanced 3D buildings layer with the composite source
+        console.log("Adding 3D buildings with composite source");
         map.addLayer({
           'id': '3d-buildings',
           'source': 'composite',
           'source-layer': 'building',
           'filter': ['==', 'extrude', 'true'],
           'type': 'fill-extrusion',
-          'minzoom': 13, // Lower minzoom to see buildings from further away
+          'minzoom': 12, // Lower minzoom to see buildings from further away
           'paint': {
             'fill-extrusion-color': [
               'interpolate',
@@ -210,7 +301,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
             ],
             'fill-extrusion-height': ['get', 'height'],
             'fill-extrusion-base': ['get', 'min_height'],
-            'fill-extrusion-opacity': 0.7,
+            'fill-extrusion-opacity': 0.8,
             'fill-extrusion-vertical-gradient': true
           }
         });
@@ -219,7 +310,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
         map.setLight({
           anchor: 'viewport',
           color: 'white',
-          intensity: 0.5, // Slightly increased intensity
+          intensity: 0.6, // Increased intensity for better visibility
           position: [1, 0, 0.8]
         });
 
@@ -235,10 +326,13 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
 
       const map = mapInstanceRef.current;
       const newIs3DEnabled = !is3DEnabled;
+
+      console.log("Toggling 3D buildings:", newIs3DEnabled ? "ON" : "OFF");
       setIs3DEnabled(newIs3DEnabled);
 
       if (newIs3DEnabled) {
         // Enable 3D buildings with enhanced animation
+        console.log("Enabling 3D buildings, adjusting camera...");
         map.easeTo({
           pitch: 60,
           duration: 1500,
@@ -249,8 +343,17 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
         });
 
         // Add 3D buildings with slight delay to ensure style is loaded
+        console.log("Adding 3D buildings after delay...");
         setTimeout(() => {
           add3DBuildings(map);
+
+          // Add another attempt after a longer delay if needed
+          setTimeout(() => {
+            if (!map.getLayer('3d-buildings')) {
+              console.log("Retry adding 3D buildings...");
+              add3DBuildings(map);
+            }
+          }, 1000);
         }, 300);
 
         toast({
@@ -260,14 +363,17 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
         });
       } else {
         // Disable 3D buildings with smooth transition
+        console.log("Disabling 3D buildings...");
         try {
           if (map.getLayer('3d-buildings')) {
+            console.log("Removing 3D buildings layer");
             map.removeLayer('3d-buildings');
           }
         } catch (error) {
           console.error("Error removing 3D buildings layer:", error);
         }
 
+        console.log("Adjusting camera for 2D view");
         map.easeTo({
           pitch: 0,
           duration: 1500,
@@ -301,39 +407,43 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
     useEffect(() => {
       if (mapInstanceRef.current && mapInstanceRef.current.loaded()) {
         try {
-          const currentStyle = mapInstanceRef.current.getStyle();
-          // Check if style needs to be updated
-          if (currentStyle && currentMapStyle && currentStyle.sprite !== currentMapStyle) {
-            // Store current pitch and bearing before style change
-            const currentPitch = mapInstanceRef.current.getPitch();
-            const currentBearing = mapInstanceRef.current.getBearing();
+          // Always update the style when currentMapStyle changes
+          // Store current pitch and bearing before style change
+          const currentPitch = mapInstanceRef.current.getPitch();
+          const currentBearing = mapInstanceRef.current.getBearing();
 
-            // Set new style
-            mapInstanceRef.current.setStyle(currentMapStyle);
+          console.log("Changing map style to:", currentMapStyle);
 
-            // Re-add 3D buildings and restore camera after style change
-            mapInstanceRef.current.once('style.load', () => {
-              // Restore pitch and bearing
-              mapInstanceRef.current!.setPitch(currentPitch);
-              mapInstanceRef.current!.setBearing(currentBearing);
+          // Set new style
+          mapInstanceRef.current.setStyle(currentMapStyle);
 
-              // Re-add 3D buildings if enabled
-              if (is3DEnabled) {
+          // Re-add 3D buildings and restore camera after style change
+          mapInstanceRef.current.once('style.load', () => {
+            console.log("Style loaded, restoring camera and 3D buildings");
+
+            // Restore pitch and bearing
+            mapInstanceRef.current!.setPitch(currentPitch);
+            mapInstanceRef.current!.setBearing(currentBearing);
+
+            // Re-add 3D buildings if enabled
+            if (is3DEnabled) {
+              console.log("Re-adding 3D buildings after style change");
+              setTimeout(() => {
                 add3DBuildings(mapInstanceRef.current!);
-              }
+              }, 500); // Add a delay to ensure style is fully loaded
+            }
 
-              // Show toast notification for style change
-              toast({
-                title: "Map Style Changed",
-                description: currentMapStyle.includes('satellite') ?
-                  "Switched to satellite view" :
-                  (currentMapStyle.includes('dark') ? "Switched to dark mode" : "Switched to streets view"),
-                duration: 2000
-              });
+            // Show toast notification for style change
+            toast({
+              title: "Map Style Changed",
+              description: currentMapStyle.includes('satellite') ?
+                "Switched to satellite view" :
+                (currentMapStyle.includes('dark') ? "Switched to dark mode" : "Switched to streets view"),
+              duration: 2000
             });
+          });
 
-            if (onStyleChange) onStyleChange(currentMapStyle);
-          }
+          if (onStyleChange) onStyleChange(currentMapStyle);
         } catch (error) {
           console.error('Error updating map style:', error);
         }
