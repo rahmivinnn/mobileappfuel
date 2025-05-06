@@ -1,8 +1,9 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authService, UserData, UserRole } from '@/services/authService';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
-import { geocodeLocation } from '@/services/geocodingService';
+import { geocodeLocation, US_COORDINATES } from '@/services/geocodingService';
 
 interface LocationData {
   city: string;
@@ -53,6 +54,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
 
     try {
+      // Special case for Los Angeles
+      if (user.city === "Los Angeles") {
+        setUserLocation({
+          city: "Los Angeles",
+          country: "United States",
+          coordinates: US_COORDINATES,
+          isLoading: false,
+          error: null
+        });
+        
+        // Store coordinates in localStorage for quick access
+        localStorage.setItem('userCoordinates', JSON.stringify(US_COORDINATES));
+        return US_COORDINATES;
+      }
+      
       const coordinates = await geocodeLocation(user.city, user.country);
       
       setUserLocation({
@@ -77,6 +93,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const updateLocation = async (city: string, country: string) => {
     setIsLoading(true);
     try {
+      // Special case for Los Angeles
+      if (city === "Los Angeles") {
+        country = "United States"; // Ensure correct country for Los Angeles
+      }
+      
       // Update localStorage
       localStorage.setItem('userCity', city);
       localStorage.setItem('userCountryName', country);
@@ -91,12 +112,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setUser(updatedUser);
       }
       
-      // Fetch new coordinates
-      await fetchUserLocation({
-        ...(user || { uid: '', email: '', role: 'USER' }),
-        city,
-        country
-      });
+      // Fetch new coordinates - special handling for Los Angeles
+      if (city === "Los Angeles") {
+        setUserLocation({
+          city: "Los Angeles",
+          country: "United States",
+          coordinates: US_COORDINATES,
+          isLoading: false,
+          error: null
+        });
+        
+        // Store coordinates in localStorage for quick access
+        localStorage.setItem('userCoordinates', JSON.stringify(US_COORDINATES));
+      } else {
+        // For other cities, geocode as usual
+        await fetchUserLocation({
+          ...(user || { uid: '', email: '', role: 'USER' }),
+          city,
+          country
+        });
+      }
       
       toast({
         title: "Location updated",

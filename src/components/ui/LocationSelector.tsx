@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Search, MapPin, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,7 +19,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/components/ui/theme-provider";
 import { toast } from "@/hooks/use-toast";
-import { geocodeLocation } from "@/services/geocodingService";
+import { geocodeLocation, US_COORDINATES } from "@/services/geocodingService";
 
 // Sample countries data - in a real app this would come from an API
 const countries = [
@@ -40,7 +39,7 @@ const citiesByCountry: Record<string, string[]> = {
   "MY": ["Kuala Lumpur", "Penang", "Johor Bahru", "Ipoh"],
   "SG": ["Singapore"],
   "TH": ["Bangkok", "Chiang Mai", "Phuket", "Pattaya"],
-  "US": ["New York", "Los Angeles", "Chicago", "Houston", "Phoenix", "San Francisco", "Miami"],
+  "US": ["Los Angeles", "New York", "Chicago", "Houston", "Phoenix", "San Francisco", "Miami"],
   "GB": ["London", "Manchester", "Birmingham", "Glasgow", "Liverpool"],
   "JP": ["Tokyo", "Osaka", "Kyoto", "Yokohama", "Nagoya"],
   "AU": ["Sydney", "Melbourne", "Brisbane", "Perth", "Adelaide"]
@@ -67,9 +66,16 @@ const LocationSelector = ({
   // Set initial values when userLocation changes
   useEffect(() => {
     if (userLocation) {
+      // Find country code matching the country name
       const countryCode = countries.find(c => c.name === userLocation.country)?.code || "ID";
       setSelectedCountry(countryCode);
       setSelectedCity(userLocation.city);
+      
+      // Special case for Los Angeles to ensure it's in the US
+      if (userLocation.city === "Los Angeles") {
+        setSelectedCountry("US");
+      }
+      
       setAvailableCities(citiesByCountry[countryCode] || []);
     } else {
       // Default to Indonesia/Jakarta
@@ -86,6 +92,14 @@ const LocationSelector = ({
       if (availableCities.length > 0 && !availableCities.includes(selectedCity)) {
         setSelectedCity(availableCities[0]);
       }
+      
+      // Special case: when switching to US and we had selected Los Angeles before
+      if (selectedCountry === "US" && selectedCity === "Los Angeles") {
+        // Keep the selection
+      } else if (selectedCountry === "US" && !citiesByCountry["US"].includes(selectedCity)) {
+        // Default US city is Los Angeles
+        setSelectedCity("Los Angeles");
+      }
     }
   }, [selectedCountry]);
 
@@ -100,6 +114,26 @@ const LocationSelector = ({
     const countryName = countries.find(c => c.code === selectedCountry)?.name || "Indonesia";
     
     try {
+      // Special case for Los Angeles to ensure it's always tied to United States
+      if (selectedCity === "Los Angeles" && selectedCountry !== "US") {
+        toast({
+          title: "Location Adjusted",
+          description: "Los Angeles is in the United States. We've updated your selection.",
+        });
+        
+        // Force country to US for Los Angeles
+        await updateLocation(selectedCity, "United States");
+        
+        // Callback for immediate map update with correct coordinates
+        if (onLocationSelected) {
+          onLocationSelected(selectedCity, "United States", US_COORDINATES);
+        }
+        
+        setIsLoading(false);
+        setOpen(false);
+        return;
+      }
+      
       // Get coordinates for the selected location
       const coordinates = await geocodeLocation(selectedCity, countryName);
       
@@ -133,6 +167,18 @@ const LocationSelector = ({
     return countries.find(c => c.code === code)?.name || code;
   };
 
+  // Special handling for Los Angeles display
+  const displayLocation = () => {
+    if (userLocation) {
+      // Special case for Los Angeles to ensure correct display
+      if (userLocation.city === "Los Angeles") {
+        return "Los Angeles, United States";
+      }
+      return `${userLocation.city}, ${userLocation.country}`;
+    }
+    return "Select Location";
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -149,7 +195,7 @@ const LocationSelector = ({
             <>
               <MapPin className="h-4 w-4 text-green-500" />
               <span className="hidden sm:inline">
-                {userLocation ? `${userLocation.city}, ${userLocation.country}` : "Select Location"}
+                {displayLocation()}
               </span>
               <span className="sm:hidden">
                 {userLocation ? userLocation.city : "Location"}
@@ -174,7 +220,15 @@ const LocationSelector = ({
             </label>
             <Select
               value={selectedCountry}
-              onValueChange={setSelectedCountry}
+              onValueChange={(value) => {
+                setSelectedCountry(value);
+                // Special handling for Los Angeles
+                if (value === "US" && selectedCity === "Los Angeles") {
+                  // Keep Los Angeles selected when switching to US
+                } else {
+                  setSearchQuery(""); // Clear search when changing country
+                }
+              }}
             >
               <SelectTrigger id="country" className="w-full">
                 <SelectValue placeholder="Select a country" />
@@ -220,7 +274,18 @@ const LocationSelector = ({
                         : "hover:bg-gray-100 dark:hover:bg-gray-800"
                     }
                   `}
-                  onClick={() => setSelectedCity(city)}
+                  onClick={() => {
+                    setSelectedCity(city);
+                    
+                    // Special handling for Los Angeles
+                    if (city === "Los Angeles" && selectedCountry !== "US") {
+                      setSelectedCountry("US");
+                      toast({
+                        title: "Country Updated",
+                        description: "Los Angeles is in the United States. We've updated the country selection.",
+                      });
+                    }
+                  }}
                 >
                   {selectedCity === city && (
                     <div className="h-2 w-2 rounded-full bg-green-500"></div>
@@ -241,7 +306,7 @@ const LocationSelector = ({
           <div className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-md mt-2">
             <span className="text-sm font-medium">Current selection: </span>
             <span className="text-green-600 dark:text-green-400">
-              {selectedCity}, {getCountryName(selectedCountry)}
+              {selectedCity}, {selectedCity === "Los Angeles" ? "United States" : getCountryName(selectedCountry)}
             </span>
           </div>
         </div>
