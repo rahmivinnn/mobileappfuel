@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Star, MapPin, Banknote, Fuel, Clock } from 'lucide-react';
+import { Star, MapPin, Banknote, Fuel, Clock, GasPump } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { formatToCurrency } from '@/utils/currencyUtils';
 
@@ -32,27 +32,19 @@ const StationCard: React.FC<StationCardProps> = ({
 }) => {
   const navigate = useNavigate();
 
-  // Always use the consistent Shell Beverly Hills style icon
-  const displayImage = stationIcon;
+  // Always use US country for currency display
+  const userCountry = 'US';
+
   const displayStatus = openStatus || (isOpen ? "Open" : "Closed");
 
   // Get the lowest price from the first fuel type if price is not provided
   const displayPrice = price || "3.50";  // Default price in USD if not provided
 
-  // Always use US country for currency display
-  const userCountry = 'US';
-
   const handleStationClick = () => {
     navigate(`/station/${id}`);
   };
 
-  // Always use the consistent Shell Beverly Hills style icon
-  const stationIcon = "/lovable-uploads/64ee380c-0fd5-4d42-a7f3-04aea8d9c56c.png";
-
-  // Handle image error
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    e.currentTarget.src = stationIcon;
-  };
+  // No longer need image error handling with SVG icons
 
   // Determine language based on country for labels
   const getLabels = () => {
@@ -108,22 +100,17 @@ const StationCard: React.FC<StationCardProps> = ({
           </div>
         </div>
 
-        <div className="mt-3 h-24 rounded-lg overflow-hidden bg-white dark:bg-gray-800 flex items-center justify-center shadow-inner">
-          <div className="flex items-center justify-center w-full h-full relative">
-            <img
-              src={displayImage}
-              alt={name}
-              className="w-20 h-20 object-contain"
-              style={{
-                filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))'
-              }}
-            />
-            {/* Brand badge if available */}
-            {name && (
-              <div className="absolute bottom-1 right-1 bg-white dark:bg-gray-800 rounded-full px-2 py-0.5 text-xs font-bold shadow-sm border border-gray-200 dark:border-gray-700">
-                {name.split(' ')[0]}
-              </div>
-            )}
+        <div className="mt-3 h-24 rounded-lg overflow-hidden bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 flex items-center justify-center shadow-md">
+          <div className="flex flex-col items-center justify-center w-full h-full relative">
+            {/* Gas Station Icon */}
+            <div className="w-14 h-14 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center shadow-lg mb-1">
+              <GasPump className="w-8 h-8 text-green-500" />
+            </div>
+
+            {/* Brand Name */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg px-2 py-1 text-xs font-bold shadow-sm border border-gray-200 dark:border-gray-700 text-center">
+              {name.split(' ')[0]}
+            </div>
           </div>
         </div>
       </div>

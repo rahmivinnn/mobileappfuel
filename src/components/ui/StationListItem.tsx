@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Star, Banknote, Fuel, User, Clock, Map, Timer } from 'lucide-react';
+import { MapPin, Star, Banknote, Fuel, User, Clock, Map, Timer, GasPump } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { formatToCurrency } from '@/utils/currencyUtils';
 import { Button } from './button';
@@ -86,23 +86,18 @@ const StationListItem: React.FC<StationListItemProps> = ({
       whileTap={{ scale: 0.98 }}
     >
       <div className="flex p-2 gap-3">
-        {/* Consistent 3D Gas Station Icon for all stations */}
-        <div className="w-24 h-24 rounded-xl overflow-hidden bg-white dark:bg-gray-800 flex items-center justify-center shadow-inner">
-          <div className="flex items-center justify-center w-full h-full relative">
-            <img
-              src="/lovable-uploads/64ee380c-0fd5-4d42-a7f3-04aea8d9c56c.png"
-              alt={name}
-              className="w-20 h-20 object-contain"
-              style={{
-                filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))'
-              }}
-            />
-            {/* Brand badge if available */}
-            {brand && (
-              <div className="absolute bottom-1 right-1 bg-white dark:bg-gray-800 rounded-full px-2 py-0.5 text-xs font-bold shadow-sm border border-gray-200 dark:border-gray-700">
-                {brand}
-              </div>
-            )}
+        {/* Gas Station Brand Icon */}
+        <div className="w-24 h-24 rounded-xl overflow-hidden bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 flex items-center justify-center shadow-md">
+          <div className="flex flex-col items-center justify-center w-full h-full relative">
+            {/* Gas Station Icon */}
+            <div className="w-14 h-14 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center shadow-lg mb-1">
+              <GasPump className="w-8 h-8 text-green-500" />
+            </div>
+
+            {/* Brand Name */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg px-2 py-1 text-xs font-bold shadow-sm border border-gray-200 dark:border-gray-700 text-center">
+              {brand || name.split(' ')[0]}
+            </div>
           </div>
         </div>
 
