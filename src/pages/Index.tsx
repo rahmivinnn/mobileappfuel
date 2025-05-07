@@ -380,9 +380,9 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 pb-20">
-      {/* Header - Android 14 Style */}
-      <div className="bg-white dark:bg-gray-900 shadow-sm">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+      {/* Fixed Header - Android 14 Style */}
+      <div className="bg-white dark:bg-gray-900 shadow-sm sticky top-0 z-40">
         <div className="flex justify-between items-center px-3 py-2 h-14">
           <Avatar className="w-8 h-8 bg-green-500 border-2 border-green-300">
             <AvatarFallback className="bg-gradient-to-br from-green-400 to-green-600">
@@ -399,7 +399,9 @@ const Index = () => {
           </div>
 
           <div className="flex items-center gap-1">
-            <ThemeToggle />
+            <div className="rounded-full w-8 h-8 flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+              <ThemeToggle />
+            </div>
             <button className="rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800">
               <Bell className="h-5 w-5 text-gray-700 dark:text-gray-300" />
             </button>
@@ -432,11 +434,14 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Location Indicator - Compact Android 14 Style */}
-      <div className="px-3 py-1.5 bg-green-50 dark:bg-green-900/30 flex items-center justify-between">
-        <div className="flex items-center gap-1">
-          <MapPin className="h-3.5 w-3.5 text-green-500" />
-          <span className="text-xs text-green-800 dark:text-green-300 truncate max-w-[150px]">
+      {/* Scrollable Content Area */}
+      <div className="content-area">
+
+      {/* Location Indicator - Even More Compact Android 14 Style */}
+      <div className="px-3 py-1 bg-green-50 dark:bg-green-900/30 flex items-center justify-between">
+        <div className="flex items-center gap-0.5">
+          <MapPin className="h-3 w-3 text-green-500" />
+          <span className="text-[10px] text-green-800 dark:text-green-300 truncate max-w-[120px]">
             {isLoadingLocation ? 'Loading...' : locationLabel}
           </span>
           <LocationSelector
@@ -446,61 +451,61 @@ const Index = () => {
         </div>
         <button
           onClick={handleRefreshLocation}
-          className="text-[10px] text-green-600 dark:text-green-400 flex items-center px-2 py-1 rounded-full hover:bg-green-100 dark:hover:bg-green-800/30"
+          className="text-[9px] text-green-600 dark:text-green-400 flex items-center px-1.5 py-0.5 rounded-full hover:bg-green-100 dark:hover:bg-green-800/30"
           disabled={isLoadingLocation}
         >
           {isLoadingLocation ? (
-            <div className="h-2.5 w-2.5 border-1.5 border-green-500 border-t-transparent rounded-full animate-spin mr-1" />
+            <div className="h-2 w-2 border-1 border-green-500 border-t-transparent rounded-full animate-spin mr-0.5" />
           ) : (
-            <RefreshCw className="h-2.5 w-2.5 mr-1" />
+            <RefreshCw className="h-2 w-2 mr-0.5" />
           )}
           Refresh
         </button>
       </div>
 
-      {/* Map Style Selector - Android 14 Style */}
-      <div className="px-3 pt-1.5 pb-1">
+      {/* Map Style Selector - Android 14 Style - More Compact */}
+      <div className="px-3 pt-1 pb-0.5">
         <div className="flex justify-between items-center">
           <div className="flex gap-0.5 overflow-x-auto no-scrollbar">
             <Button
               size="sm"
               variant={currentMapStyle === MAP_STYLES.STREETS ? "default" : "outline"}
-              className={`rounded-full flex items-center gap-0.5 px-2 py-0.5 h-7 min-w-0 ${currentMapStyle === MAP_STYLES.STREETS ? "bg-green-500 hover:bg-green-600" : "border-gray-200 dark:border-gray-700"}`}
+              className={`rounded-full flex items-center gap-0.5 px-1.5 py-0 h-6 min-w-0 ${currentMapStyle === MAP_STYLES.STREETS ? "bg-green-500 hover:bg-green-600" : "border-gray-200 dark:border-gray-700"}`}
               onClick={() => handleMapStyleChange(MAP_STYLES.STREETS)}
             >
-              <Globe className={`h-3 w-3 ${currentMapStyle === MAP_STYLES.STREETS ? "text-white" : "text-gray-600 dark:text-gray-400"}`} />
-              <span className="text-[10px] font-medium">Streets</span>
+              <Globe className={`h-2.5 w-2.5 ${currentMapStyle === MAP_STYLES.STREETS ? "text-white" : "text-gray-600 dark:text-gray-400"}`} />
+              <span className="text-[9px] font-medium">Streets</span>
             </Button>
 
             <Button
               size="sm"
               variant={currentMapStyle === MAP_STYLES.SATELLITE ? "default" : "outline"}
-              className={`rounded-full flex items-center gap-0.5 px-2 py-0.5 h-7 min-w-0 ${currentMapStyle === MAP_STYLES.SATELLITE ? "bg-blue-600 text-white hover:bg-blue-700" : "border-gray-200 dark:border-gray-700"}`}
+              className={`rounded-full flex items-center gap-0.5 px-1.5 py-0 h-6 min-w-0 ${currentMapStyle === MAP_STYLES.SATELLITE ? "bg-blue-600 text-white hover:bg-blue-700" : "border-gray-200 dark:border-gray-700"}`}
               onClick={() => handleMapStyleChange(MAP_STYLES.SATELLITE)}
             >
-              <Satellite className={`h-3 w-3 ${currentMapStyle === MAP_STYLES.SATELLITE ? "text-white" : "text-gray-600 dark:text-gray-400"}`} />
-              <span className="text-[10px] font-medium">Satellite</span>
+              <Satellite className={`h-2.5 w-2.5 ${currentMapStyle === MAP_STYLES.SATELLITE ? "text-white" : "text-gray-600 dark:text-gray-400"}`} />
+              <span className="text-[9px] font-medium">Satellite</span>
             </Button>
 
             <Button
               size="sm"
               variant={currentMapStyle === MAP_STYLES.DARK ? "default" : "outline"}
-              className={`rounded-full flex items-center gap-0.5 px-2 py-0.5 h-7 min-w-0 ${currentMapStyle === MAP_STYLES.DARK ? "bg-gray-800 text-white hover:bg-gray-700" : "border-gray-200 dark:border-gray-700"}`}
+              className={`rounded-full flex items-center gap-0.5 px-1.5 py-0 h-6 min-w-0 ${currentMapStyle === MAP_STYLES.DARK ? "bg-gray-800 text-white hover:bg-gray-700" : "border-gray-200 dark:border-gray-700"}`}
               onClick={() => handleMapStyleChange(MAP_STYLES.DARK)}
             >
-              <Moon className={`h-3 w-3 ${currentMapStyle === MAP_STYLES.DARK ? "text-white" : "text-gray-600 dark:text-gray-400"}`} />
-              <span className="text-[10px] font-medium">Dark</span>
+              <Moon className={`h-2.5 w-2.5 ${currentMapStyle === MAP_STYLES.DARK ? "text-white" : "text-gray-600 dark:text-gray-400"}`} />
+              <span className="text-[9px] font-medium">Dark</span>
             </Button>
 
             {/* 3D Buildings Toggle */}
             <Button
               size="sm"
               variant={enable3DBuildings ? "default" : "outline"}
-              className={`rounded-full flex items-center gap-0.5 px-2 py-0.5 h-7 min-w-0 ${enable3DBuildings ? "bg-purple-600 text-white hover:bg-purple-700" : "border-gray-200 dark:border-gray-700"}`}
+              className={`rounded-full flex items-center gap-0.5 px-1.5 py-0 h-6 min-w-0 ${enable3DBuildings ? "bg-purple-600 text-white hover:bg-purple-700" : "border-gray-200 dark:border-gray-700"}`}
               onClick={() => toggle3DBuildings()}
             >
-              <Box className={`h-3 w-3 ${enable3DBuildings ? "text-white" : "text-gray-600 dark:text-gray-400"}`} />
-              <span className="text-[10px] font-medium">3D</span>
+              <Box className={`h-2.5 w-2.5 ${enable3DBuildings ? "text-white" : "text-gray-600 dark:text-gray-400"}`} />
+              <span className="text-[9px] font-medium">3D</span>
             </Button>
           </div>
 
@@ -509,46 +514,46 @@ const Index = () => {
             variant="outline"
             onClick={handleRefreshLocation}
             disabled={isLoadingStations}
-            className="rounded-full h-7 px-2 min-w-0 border-gray-200 dark:border-gray-700"
+            className="rounded-full h-6 px-1.5 min-w-0 border-gray-200 dark:border-gray-700"
           >
             {isLoadingStations ? (
-              <div className="h-2.5 w-2.5 border-1.5 border-current border-t-transparent rounded-full animate-spin mr-1" />
+              <div className="h-2 w-2 border-1 border-current border-t-transparent rounded-full animate-spin mr-0.5" />
             ) : (
-              <RefreshCw className="h-2.5 w-2.5 mr-0.5" />
+              <RefreshCw className="h-2 w-2 mr-0.5" />
             )}
-            <span className="text-[10px]">Refresh</span>
+            <span className="text-[9px]">Refresh</span>
           </Button>
         </div>
       </div>
 
       {/* Map Section - Optimized for portrait mode */}
-      <div className="px-3 py-1.5 relative map-section">
+      <div className="px-3 py-1 relative map-section">
         {/* Enhanced Map Demo Link - More compact */}
-        <div className="absolute top-2 right-2 z-10">
+        <div className="absolute top-1.5 right-1.5 z-10">
           <Button
             size="sm"
             variant="outline"
-            className="bg-white/80 dark:bg-gray-800/80 border-green-500 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-full shadow-md h-7 px-2"
+            className="bg-white/90 dark:bg-gray-800/90 border-green-500 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-full shadow-sm h-6 px-1.5"
             onClick={() => navigate('/enhanced-map')}
           >
-            <Layers className="h-3 w-3 mr-0.5" />
-            <span className="text-[10px]">Enhanced</span>
+            <Layers className="h-2.5 w-2.5 mr-0.5" />
+            <span className="text-[9px]">Enhanced</span>
           </Button>
         </div>
         {isLoadingLocation && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/20 rounded-xl">
-            <div className="bg-white dark:bg-gray-800 px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg">
-              <div className="h-4 w-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
-              <span className="text-xs font-medium">Loading map...</span>
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/20 rounded-lg">
+            <div className="bg-white dark:bg-gray-800 px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-sm">
+              <div className="h-3.5 w-3.5 border-1.5 border-green-500 border-t-transparent rounded-full animate-spin" />
+              <span className="text-[10px] font-medium">Loading map...</span>
             </div>
           </div>
         )}
 
-        <div className={`transition-all duration-500 rounded-xl overflow-hidden ${mapVisible ? 'opacity-100 shadow-md scale-100' : 'opacity-0 scale-95'}`}>
+        <div className={`transition-all duration-300 rounded-lg overflow-hidden ${mapVisible ? 'opacity-100 shadow-sm scale-100' : 'opacity-0 scale-95'}`}>
           {/* Key added to force re-render when style or 3D buildings change */}
           <Map
             key={`map-${currentMapStyle}-3d-${enable3DBuildings ? 'on' : 'off'}`}
-            className="h-64 w-full rounded-xl overflow-hidden" // Adjusted height for better portrait fit
+            className="h-56 w-full rounded-lg overflow-hidden" // Reduced height for better fit
             interactive={true}
             showTraffic={showTraffic}
             center={mapCenter}
@@ -557,8 +562,8 @@ const Index = () => {
             markers={allMarkers}
             onStyleChange={handleMapStyleChange}
             onTrafficToggle={(show) => setShowTraffic(show)}
-            initialPitch={enable3DBuildings ? 45 : 0} // Reduced pitch for better portrait view
-            initialBearing={20} // Reduced bearing for better portrait view
+            initialPitch={enable3DBuildings ? 35 : 0} // Further reduced pitch for better portrait view
+            initialBearing={15} // Further reduced bearing for better portrait view
             enable3DBuildings={enable3DBuildings}
             onMarkerClick={(index) => {
               // Only navigate to station details if it's a gas station marker
@@ -570,9 +575,9 @@ const Index = () => {
           />
 
           {/* Floating action buttons for map - More compact */}
-          <div className="absolute bottom-3 right-3 flex flex-col gap-1.5 z-10">
+          <div className="absolute bottom-2 right-2 flex flex-col gap-1 z-10">
             <button
-              className="bg-white dark:bg-gray-800 rounded-full w-8 h-8 flex items-center justify-center shadow-md border border-gray-200 dark:border-gray-700"
+              className="bg-white dark:bg-gray-800 rounded-full w-7 h-7 flex items-center justify-center shadow-sm border border-gray-200 dark:border-gray-700"
               onClick={() => {
                 // Animate map refresh
                 const map = document.querySelector('.mapboxgl-map') as HTMLElement;
@@ -585,7 +590,7 @@ const Index = () => {
                 handleRefreshLocation();
               }}
             >
-              <div className="h-4 w-4 text-blue-500">
+              <div className="h-3.5 w-3.5 text-blue-500">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                   <path fillRule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
                 </svg>
@@ -595,21 +600,21 @@ const Index = () => {
         </div>
       </div>
 
-      {/* User Location Error Message - More compact */}
+      {/* User Location Error Message - Even More compact */}
       {userLocation && userLocation.error && (
         <motion.div
-          className="mx-3 my-1.5 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-center"
-          initial={{ opacity: 0, y: -5 }}
+          className="mx-3 my-1 p-1.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-center"
+          initial={{ opacity: 0, y: -3 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <AlertCircle className="h-4 w-4 text-red-500 mr-1.5 flex-shrink-0" />
-          <p className="text-xs text-red-700 dark:text-red-300 flex-1">
-            Unable to load location. Using default instead.
+          <AlertCircle className="h-3 w-3 text-red-500 mr-1 flex-shrink-0" />
+          <p className="text-[10px] text-red-700 dark:text-red-300 flex-1">
+            Unable to load location. Using default.
           </p>
           <Button
             size="sm"
             variant="outline"
-            className="border-red-300 dark:border-red-700 text-red-500 h-6 text-[10px] px-2 min-w-0"
+            className="border-red-300 dark:border-red-700 text-red-500 h-5 text-[9px] px-1.5 min-w-0"
             onClick={handleRefreshLocation}
           >
             Retry
@@ -617,30 +622,30 @@ const Index = () => {
         </motion.div>
       )}
 
-      {/* Stations List - Android 14 Style */}
-      <div className="px-3 pt-2">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+      {/* Stations List - Android 14 Style - More Compact */}
+      <div className="px-3 pt-1.5">
+        <div className="flex items-center justify-between mb-1.5">
+          <h2 className="text-base font-bold text-gray-900 dark:text-white">
             {isLoadingStations ?
               'Loading Stations...' :
               `${filteredStations.length} Gas Stations`
             }
           </h2>
-          <span className="text-xs text-green-500 font-normal">Showing {Math.min(filteredStations.length, maxStationsToShow)}</span>
+          <span className="text-[10px] text-green-500 font-normal">Showing {Math.min(filteredStations.length, maxStationsToShow)}</span>
         </div>
 
         {filteredStations.length === 0 && !isLoadingStations ? (
-          <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-3 text-center">
-            <Fuel className="h-8 w-8 mx-auto mb-1.5 text-orange-500" />
-            <p className="text-orange-800 dark:text-orange-300 text-sm">No gas stations found nearby.</p>
-            <p className="text-orange-600 dark:text-orange-400 text-xs mt-1">Try expanding your search or changing location.</p>
+          <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-2 text-center">
+            <Fuel className="h-6 w-6 mx-auto mb-1 text-orange-500" />
+            <p className="text-orange-800 dark:text-orange-300 text-xs">No gas stations found nearby.</p>
+            <p className="text-orange-600 dark:text-orange-400 text-[10px] mt-0.5">Try expanding your search or changing location.</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {isLoadingStations ? (
               // Loading placeholders
               [...Array(5)].map((_, i) => (
-                <div key={i} className="animate-pulse bg-gray-200 dark:bg-gray-800 rounded-lg h-32"></div>
+                <div key={i} className="animate-pulse bg-gray-200 dark:bg-gray-800 rounded-lg h-24"></div>
               ))
             ) : (
               // Actual station list - show all 50 stations
@@ -677,7 +682,7 @@ const Index = () => {
                     price={cheapestFuel ? cheapestFuel.price : "3.29"}
                     rating={station.rating}
                     reviewCount={station.reviewCount || 24}
-                    delay={index * 0.05} // Reduced delay for faster loading
+                    delay={index * 0.03} // Further reduced delay for faster loading
                     isOpen={isOpen}
                     openStatus={station.hours && station.hours.is24Hours ?
                       "Open 24/7" :
@@ -704,11 +709,11 @@ const Index = () => {
 
             {/* Show load more button if there are more stations to display */}
             {filteredStations.length > maxStationsToShow && (
-              <div className="flex justify-center py-3">
+              <div className="flex justify-center py-2">
                 <Button
                   onClick={() => setMaxStationsToShow(prev => prev + 20)}
                   variant="outline"
-                  className="h-8 text-xs"
+                  className="h-7 text-[10px]"
                 >
                   Load More Stations
                 </Button>
@@ -718,8 +723,10 @@ const Index = () => {
         )}
       </div>
 
-      {/* Bottom Nav - Android 14 Style */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 h-14 flex items-center justify-around px-2">
+      </div> {/* End of content-area */}
+
+      {/* Bottom Nav - Android 14 Style - Fixed Position */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 h-14 flex items-center justify-around px-2 z-50">
         <div className="flex flex-col items-center text-green-500">
           <div className="w-10 h-10 rounded-full flex items-center justify-center bg-green-50 dark:bg-green-900/20">
             <Home className="h-5 w-5" />
