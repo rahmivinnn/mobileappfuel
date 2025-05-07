@@ -78,72 +78,72 @@ const StationListItem: React.FC<StationListItemProps> = ({
 
   return (
     <motion.div
-      className="w-full bg-white dark:bg-gray-900 rounded-xl overflow-hidden mb-4 shadow-md"
-      initial={{ opacity: 0, y: 20 }}
+      className="w-full bg-white dark:bg-gray-900 rounded-lg overflow-hidden mb-3 shadow-sm"
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: delay * 0.1, duration: 0.3 }}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
+      transition={{ delay: delay, duration: 0.2 }}
+      whileHover={{ scale: 1.01 }}
+      whileTap={{ scale: 0.99 }}
     >
-      <div className="flex p-2 gap-3">
-        {/* Gas Station Brand Icon - Simplified */}
-        <div className="w-24 h-24 rounded-xl overflow-hidden bg-green-100 dark:bg-green-900/30 flex flex-col items-center justify-center shadow-md">
+      <div className="flex p-2 gap-2">
+        {/* Gas Station Brand Icon - More compact */}
+        <div className="w-16 h-16 rounded-lg overflow-hidden bg-green-100 dark:bg-green-900/30 flex flex-col items-center justify-center shadow-sm">
           {/* Emoji Fallback */}
-          <div className="text-4xl mb-1">⛽</div>
+          <div className="text-2xl mb-0.5">⛽</div>
 
           {/* Brand Name */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg px-2 py-1 text-xs font-bold shadow-sm text-center">
+          <div className="bg-white dark:bg-gray-800 rounded-md px-1.5 py-0.5 text-[10px] font-bold shadow-sm text-center">
             {brand || name.split(' ')[0]}
           </div>
         </div>
 
         <div className="flex-1">
-          <h3 className="font-semibold text-gray-900 dark:text-white">{name}</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">{name}</h3>
 
-          <div className="flex items-center text-green-500 mt-2 gap-2">
-            <Banknote className="h-4 w-4" />
-            <p className="text-sm">{labels.fuelPrice}</p>
-            <p className="text-right flex-1 font-bold">{formatToCurrency(price, userCountry)}</p>
+          <div className="flex items-center text-green-500 mt-1 gap-1.5">
+            <Banknote className="h-3 w-3" />
+            <p className="text-xs">{labels.fuelPrice}</p>
+            <p className="text-right flex-1 font-bold text-xs">{formatToCurrency(price, userCountry)}</p>
           </div>
 
-          <div className="flex items-center text-orange-500 mt-1 gap-2">
-            <MapPin className="h-4 w-4" />
-            <p className="text-sm">{labels.distance}</p>
-            <p className="text-right flex-1">{distance} km</p>
+          <div className="flex items-center text-orange-500 mt-0.5 gap-1.5">
+            <MapPin className="h-3 w-3" />
+            <p className="text-xs">{labels.distance}</p>
+            <p className="text-right flex-1 text-xs">{distance} km</p>
           </div>
 
           {/* Show estimated time if available */}
           {estimatedTime && (
-            <div className="flex items-center text-purple-500 mt-1 gap-2">
-              <Timer className="h-4 w-4" />
-              <p className="text-sm">{labels.estimatedTime}</p>
-              <p className="text-right flex-1">{estimatedTime}</p>
+            <div className="flex items-center text-purple-500 mt-0.5 gap-1.5">
+              <Timer className="h-3 w-3" />
+              <p className="text-xs">{labels.estimatedTime}</p>
+              <p className="text-right flex-1 text-xs">{estimatedTime}</p>
             </div>
           )}
 
-          <div className="flex items-center text-blue-500 mt-1 gap-2">
-            <Clock className="h-4 w-4" />
-            <p className="text-sm">{labels.status}</p>
-            <p className={`text-right flex-1 ${isOpen ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+          <div className="flex items-center text-blue-500 mt-0.5 gap-1.5">
+            <Clock className="h-3 w-3" />
+            <p className="text-xs">{labels.status}</p>
+            <p className={`text-right flex-1 text-xs ${isOpen ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
               {displayStatus}
             </p>
           </div>
 
-          <div className="flex items-center text-yellow-500 mt-1 gap-2">
-            <Star className="h-4 w-4" />
-            <p className="text-sm">{labels.reviews}</p>
-            <p className="text-right flex-1">{rating} ({reviewCount} Reviews)</p>
+          <div className="flex items-center text-yellow-500 mt-0.5 gap-1.5">
+            <Star className="h-3 w-3" />
+            <p className="text-xs">{labels.reviews}</p>
+            <p className="text-right flex-1 text-xs">{rating} ({reviewCount})</p>
           </div>
         </div>
       </div>
 
-      {/* Action buttons */}
+      {/* Action buttons - More compact */}
       <div className="flex w-full">
         <button
           onClick={handleClick}
-          className="flex-1 bg-green-500 text-white py-3 font-medium hover:bg-green-600 transition-colors"
+          className="flex-1 bg-green-500 text-white py-2 text-xs font-medium hover:bg-green-600 transition-colors"
         >
-          {labels.select} {name}
+          {labels.select}
         </button>
 
         {onViewMap && (
@@ -152,9 +152,9 @@ const StationListItem: React.FC<StationListItemProps> = ({
               e.stopPropagation();
               onViewMap();
             }}
-            className="bg-blue-500 text-white py-3 px-4 font-medium hover:bg-blue-600 transition-colors flex items-center justify-center"
+            className="bg-blue-500 text-white py-2 px-3 text-xs font-medium hover:bg-blue-600 transition-colors flex items-center justify-center"
           >
-            <Map className="h-4 w-4 mr-2" />
+            <Map className="h-3 w-3 mr-1" />
             {labels.viewOnMap}
           </button>
         )}

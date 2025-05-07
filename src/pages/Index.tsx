@@ -381,12 +381,12 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 pb-20">
-      {/* Header */}
+      {/* Header - Android 14 Style */}
       <div className="bg-white dark:bg-gray-900 shadow-sm">
-        <div className="flex justify-between items-center px-4 py-2">
-          <Avatar className="w-10 h-10 bg-green-500 border-2 border-green-300">
+        <div className="flex justify-between items-center px-3 py-2 h-14">
+          <Avatar className="w-8 h-8 bg-green-500 border-2 border-green-300">
             <AvatarFallback className="bg-gradient-to-br from-green-400 to-green-600">
-              <User className="h-5 w-5 text-white" />
+              <User className="h-4 w-4 text-white" />
             </AvatarFallback>
           </Avatar>
 
@@ -394,48 +394,50 @@ const Index = () => {
             <img
               src="/lovable-uploads/57aff490-f08a-4205-9ae9-496a32e810e6.png"
               alt="FUELFRIENDLY"
-              className="h-7"
+              className="h-6"
             />
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center gap-1">
             <ThemeToggle />
-            <Bell className="h-6 w-6" />
+            <button className="rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800">
+              <Bell className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+            </button>
           </div>
         </div>
 
-        {/* Search */}
-        <div className="px-4 py-2 flex items-center space-x-3 pb-4">
+        {/* Search - Compact Android 14 Style */}
+        <div className="px-3 py-2 flex items-center gap-2 pb-3">
           <div className="relative flex-1">
             <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-              <Search className="h-4 w-4 text-gray-500" />
+              <Search className="h-3.5 w-3.5 text-gray-500" />
             </div>
             <input
               type="text"
               placeholder="Search for nearest gas stations..."
-              className="h-12 w-full rounded-full bg-gray-100 dark:bg-gray-800 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="h-10 w-full rounded-full bg-gray-100 dark:bg-gray-800 pl-9 pr-3 text-xs focus:outline-none focus:ring-1 focus:ring-green-500"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
           <button
-            className="h-12 w-12 flex items-center justify-center rounded-full bg-green-100 dark:bg-green-900"
+            className="h-10 w-10 flex items-center justify-center rounded-full bg-green-100 dark:bg-green-900"
             onClick={handleRefreshLocation}
           >
             {isLoadingLocation ?
-              <div className="h-5 w-5 border-2 border-green-500 border-t-transparent rounded-full animate-spin" /> :
-              <Filter className="h-5 w-5 text-green-500" />
+              <div className="h-4 w-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin" /> :
+              <Filter className="h-4 w-4 text-green-500" />
             }
           </button>
         </div>
       </div>
 
-      {/* Location Indicator */}
-      <div className="px-4 py-2 bg-green-50 dark:bg-green-900/30 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <MapPin className="h-4 w-4 text-green-500 mr-1" />
-          <span className="text-sm text-green-800 dark:text-green-300 mr-2">
-            {isLoadingLocation ? 'Loading location...' : locationLabel}
+      {/* Location Indicator - Compact Android 14 Style */}
+      <div className="px-3 py-1.5 bg-green-50 dark:bg-green-900/30 flex items-center justify-between">
+        <div className="flex items-center gap-1">
+          <MapPin className="h-3.5 w-3.5 text-green-500" />
+          <span className="text-xs text-green-800 dark:text-green-300 truncate max-w-[150px]">
+            {isLoadingLocation ? 'Loading...' : locationLabel}
           </span>
           <LocationSelector
             compact={true}
@@ -444,73 +446,61 @@ const Index = () => {
         </div>
         <button
           onClick={handleRefreshLocation}
-          className="text-xs text-green-600 dark:text-green-400 flex items-center"
+          className="text-[10px] text-green-600 dark:text-green-400 flex items-center px-2 py-1 rounded-full hover:bg-green-100 dark:hover:bg-green-800/30"
           disabled={isLoadingLocation}
         >
           {isLoadingLocation ? (
-            <div className="h-3 w-3 border-2 border-green-500 border-t-transparent rounded-full animate-spin mr-1" />
+            <div className="h-2.5 w-2.5 border-1.5 border-green-500 border-t-transparent rounded-full animate-spin mr-1" />
           ) : (
-            <RefreshCw className="h-3 w-3 mr-1" />
+            <RefreshCw className="h-2.5 w-2.5 mr-1" />
           )}
           Refresh
         </button>
       </div>
 
-      {/* Map Style Selector - With 3D buildings toggle */}
-      <div className="px-4 pt-2">
+      {/* Map Style Selector - Android 14 Style */}
+      <div className="px-3 pt-1.5 pb-1">
         <div className="flex justify-between items-center">
-          <div className="flex gap-1">
+          <div className="flex gap-0.5 overflow-x-auto no-scrollbar">
             <Button
               size="sm"
               variant={currentMapStyle === MAP_STYLES.STREETS ? "default" : "outline"}
-              className={`rounded-full flex items-center gap-1 px-3 py-1 ${currentMapStyle === MAP_STYLES.STREETS ? "bg-green-500 hover:bg-green-600" : "border-gray-300"}`}
-              onClick={() => {
-                console.log("Changing to Streets style");
-                handleMapStyleChange(MAP_STYLES.STREETS);
-              }}
+              className={`rounded-full flex items-center gap-0.5 px-2 py-0.5 h-7 min-w-0 ${currentMapStyle === MAP_STYLES.STREETS ? "bg-green-500 hover:bg-green-600" : "border-gray-200 dark:border-gray-700"}`}
+              onClick={() => handleMapStyleChange(MAP_STYLES.STREETS)}
             >
-              <Globe className={`h-3.5 w-3.5 ${currentMapStyle === MAP_STYLES.STREETS ? "text-white" : "text-gray-600 dark:text-gray-400"}`} />
-              <span className="text-xs font-medium">Streets</span>
+              <Globe className={`h-3 w-3 ${currentMapStyle === MAP_STYLES.STREETS ? "text-white" : "text-gray-600 dark:text-gray-400"}`} />
+              <span className="text-[10px] font-medium">Streets</span>
             </Button>
 
             <Button
               size="sm"
               variant={currentMapStyle === MAP_STYLES.SATELLITE ? "default" : "outline"}
-              className={`rounded-full flex items-center gap-1 px-3 py-1 ${currentMapStyle === MAP_STYLES.SATELLITE ? "bg-blue-600 text-white hover:bg-blue-700" : "border-gray-300"}`}
-              onClick={() => {
-                console.log("Changing to Satellite style");
-                handleMapStyleChange(MAP_STYLES.SATELLITE);
-              }}
+              className={`rounded-full flex items-center gap-0.5 px-2 py-0.5 h-7 min-w-0 ${currentMapStyle === MAP_STYLES.SATELLITE ? "bg-blue-600 text-white hover:bg-blue-700" : "border-gray-200 dark:border-gray-700"}`}
+              onClick={() => handleMapStyleChange(MAP_STYLES.SATELLITE)}
             >
-              <Satellite className={`h-3.5 w-3.5 ${currentMapStyle === MAP_STYLES.SATELLITE ? "text-white" : "text-gray-600 dark:text-gray-400"}`} />
-              <span className="text-xs font-medium">Satellite</span>
+              <Satellite className={`h-3 w-3 ${currentMapStyle === MAP_STYLES.SATELLITE ? "text-white" : "text-gray-600 dark:text-gray-400"}`} />
+              <span className="text-[10px] font-medium">Satellite</span>
             </Button>
 
             <Button
               size="sm"
               variant={currentMapStyle === MAP_STYLES.DARK ? "default" : "outline"}
-              className={`rounded-full flex items-center gap-1 px-3 py-1 ${currentMapStyle === MAP_STYLES.DARK ? "bg-gray-800 text-white hover:bg-gray-700" : "border-gray-300"}`}
-              onClick={() => {
-                console.log("Changing to Dark style");
-                handleMapStyleChange(MAP_STYLES.DARK);
-              }}
+              className={`rounded-full flex items-center gap-0.5 px-2 py-0.5 h-7 min-w-0 ${currentMapStyle === MAP_STYLES.DARK ? "bg-gray-800 text-white hover:bg-gray-700" : "border-gray-200 dark:border-gray-700"}`}
+              onClick={() => handleMapStyleChange(MAP_STYLES.DARK)}
             >
-              <Moon className={`h-3.5 w-3.5 ${currentMapStyle === MAP_STYLES.DARK ? "text-white" : "text-gray-600 dark:text-gray-400"}`} />
-              <span className="text-xs font-medium">Dark</span>
+              <Moon className={`h-3 w-3 ${currentMapStyle === MAP_STYLES.DARK ? "text-white" : "text-gray-600 dark:text-gray-400"}`} />
+              <span className="text-[10px] font-medium">Dark</span>
             </Button>
 
             {/* 3D Buildings Toggle */}
             <Button
               size="sm"
               variant={enable3DBuildings ? "default" : "outline"}
-              className={`rounded-full flex items-center gap-1 px-3 py-1 ${enable3DBuildings ? "bg-purple-600 text-white hover:bg-purple-700" : "border-gray-300"}`}
-              onClick={() => {
-                console.log("Toggling 3D buildings from Index page");
-                toggle3DBuildings();
-              }}
+              className={`rounded-full flex items-center gap-0.5 px-2 py-0.5 h-7 min-w-0 ${enable3DBuildings ? "bg-purple-600 text-white hover:bg-purple-700" : "border-gray-200 dark:border-gray-700"}`}
+              onClick={() => toggle3DBuildings()}
             >
-              <Box className={`h-3.5 w-3.5 ${enable3DBuildings ? "text-white" : "text-gray-600 dark:text-gray-400"}`} />
-              <span className="text-xs font-medium">3D</span>
+              <Box className={`h-3 w-3 ${enable3DBuildings ? "text-white" : "text-gray-600 dark:text-gray-400"}`} />
+              <span className="text-[10px] font-medium">3D</span>
             </Button>
           </div>
 
@@ -519,46 +509,46 @@ const Index = () => {
             variant="outline"
             onClick={handleRefreshLocation}
             disabled={isLoadingStations}
-            className="rounded-full"
+            className="rounded-full h-7 px-2 min-w-0 border-gray-200 dark:border-gray-700"
           >
             {isLoadingStations ? (
-              <div className="h-3 w-3 border-2 border-current border-t-transparent rounded-full animate-spin mr-1" />
+              <div className="h-2.5 w-2.5 border-1.5 border-current border-t-transparent rounded-full animate-spin mr-1" />
             ) : (
-              <RefreshCw className="h-3 w-3 mr-1" />
+              <RefreshCw className="h-2.5 w-2.5 mr-0.5" />
             )}
-            <span className="text-xs">Refresh</span>
+            <span className="text-[10px]">Refresh</span>
           </Button>
         </div>
       </div>
 
-      {/* Map Section */}
-      <div className="px-4 py-2 relative map-section">
-        {/* Enhanced Map Demo Link */}
+      {/* Map Section - Optimized for portrait mode */}
+      <div className="px-3 py-1.5 relative map-section">
+        {/* Enhanced Map Demo Link - More compact */}
         <div className="absolute top-2 right-2 z-10">
           <Button
             size="sm"
             variant="outline"
-            className="bg-white/80 dark:bg-gray-800/80 border-green-500 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-full shadow-md"
+            className="bg-white/80 dark:bg-gray-800/80 border-green-500 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-full shadow-md h-7 px-2"
             onClick={() => navigate('/enhanced-map')}
           >
-            <Layers className="h-3.5 w-3.5 mr-1" />
-            <span className="text-xs">Enhanced Map</span>
+            <Layers className="h-3 w-3 mr-0.5" />
+            <span className="text-[10px]">Enhanced</span>
           </Button>
         </div>
         {isLoadingLocation && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/20 rounded-2xl">
-            <div className="bg-white dark:bg-gray-800 px-6 py-4 rounded-xl flex items-center space-x-3 shadow-lg">
-              <div className="h-5 w-5 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
-              <span className="text-sm font-medium">Loading map...</span>
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/20 rounded-xl">
+            <div className="bg-white dark:bg-gray-800 px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg">
+              <div className="h-4 w-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
+              <span className="text-xs font-medium">Loading map...</span>
             </div>
           </div>
         )}
 
-        <div className={`transition-all duration-1000 rounded-2xl overflow-hidden ${mapVisible ? 'opacity-100 shadow-lg scale-100' : 'opacity-0 scale-95'}`}>
+        <div className={`transition-all duration-500 rounded-xl overflow-hidden ${mapVisible ? 'opacity-100 shadow-md scale-100' : 'opacity-0 scale-95'}`}>
           {/* Key added to force re-render when style or 3D buildings change */}
           <Map
             key={`map-${currentMapStyle}-3d-${enable3DBuildings ? 'on' : 'off'}`}
-            className="h-72 w-full rounded-2xl overflow-hidden" // Increased height from h-56 to h-72
+            className="h-64 w-full rounded-xl overflow-hidden" // Adjusted height for better portrait fit
             interactive={true}
             showTraffic={showTraffic}
             center={mapCenter}
@@ -567,8 +557,8 @@ const Index = () => {
             markers={allMarkers}
             onStyleChange={handleMapStyleChange}
             onTrafficToggle={(show) => setShowTraffic(show)}
-            initialPitch={enable3DBuildings ? 60 : 0}
-            initialBearing={30}
+            initialPitch={enable3DBuildings ? 45 : 0} // Reduced pitch for better portrait view
+            initialBearing={20} // Reduced bearing for better portrait view
             enable3DBuildings={enable3DBuildings}
             onMarkerClick={(index) => {
               // Only navigate to station details if it's a gas station marker
@@ -579,10 +569,10 @@ const Index = () => {
             hideStyleControls={true} // Hide the style controls in the Map component
           />
 
-          {/* Floating action buttons for map */}
-          <div className="absolute bottom-4 right-4 flex flex-col gap-2 z-10">
+          {/* Floating action buttons for map - More compact */}
+          <div className="absolute bottom-3 right-3 flex flex-col gap-1.5 z-10">
             <button
-              className="bg-white dark:bg-gray-800 rounded-full w-10 h-10 flex items-center justify-center shadow-lg border border-gray-200 dark:border-gray-700"
+              className="bg-white dark:bg-gray-800 rounded-full w-8 h-8 flex items-center justify-center shadow-md border border-gray-200 dark:border-gray-700"
               onClick={() => {
                 // Animate map refresh
                 const map = document.querySelector('.mapboxgl-map') as HTMLElement;
@@ -595,7 +585,7 @@ const Index = () => {
                 handleRefreshLocation();
               }}
             >
-              <div className="h-5 w-5 text-blue-500">
+              <div className="h-4 w-4 text-blue-500">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                   <path fillRule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
                 </svg>
@@ -605,21 +595,21 @@ const Index = () => {
         </div>
       </div>
 
-      {/* User Location Error Message */}
+      {/* User Location Error Message - More compact */}
       {userLocation && userLocation.error && (
         <motion.div
-          className="mx-4 my-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-center"
-          initial={{ opacity: 0, y: -10 }}
+          className="mx-3 my-1.5 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-center"
+          initial={{ opacity: 0, y: -5 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <AlertCircle className="h-5 w-5 text-red-500 mr-2 flex-shrink-0" />
-          <p className="text-sm text-red-700 dark:text-red-300 flex-1">
-            Unable to load your registered location. Using default or device location instead.
+          <AlertCircle className="h-4 w-4 text-red-500 mr-1.5 flex-shrink-0" />
+          <p className="text-xs text-red-700 dark:text-red-300 flex-1">
+            Unable to load location. Using default instead.
           </p>
           <Button
             size="sm"
             variant="outline"
-            className="border-red-300 dark:border-red-700 text-red-500"
+            className="border-red-300 dark:border-red-700 text-red-500 h-6 text-[10px] px-2 min-w-0"
             onClick={handleRefreshLocation}
           >
             Retry
@@ -627,30 +617,30 @@ const Index = () => {
         </motion.div>
       )}
 
-      {/* Stations List */}
-      <div className="px-4 pt-4">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center justify-between">
-          <span>
+      {/* Stations List - Android 14 Style */}
+      <div className="px-3 pt-2">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white">
             {isLoadingStations ?
-              'Loading Gas Stations...' :
-              `${filteredStations.length} Gas Stations in Los Angeles`
+              'Loading Stations...' :
+              `${filteredStations.length} Gas Stations`
             }
-          </span>
-          <span className="text-sm text-green-500 font-normal">Showing {Math.min(filteredStations.length, maxStationsToShow)} stations</span>
-        </h2>
+          </h2>
+          <span className="text-xs text-green-500 font-normal">Showing {Math.min(filteredStations.length, maxStationsToShow)}</span>
+        </div>
 
         {filteredStations.length === 0 && !isLoadingStations ? (
-          <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4 text-center">
-            <Fuel className="h-10 w-10 mx-auto mb-2 text-orange-500" />
-            <p className="text-orange-800 dark:text-orange-300">No gas stations found nearby.</p>
-            <p className="text-orange-600 dark:text-orange-400 text-sm mt-1">Try expanding your search or changing location.</p>
+          <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-3 text-center">
+            <Fuel className="h-8 w-8 mx-auto mb-1.5 text-orange-500" />
+            <p className="text-orange-800 dark:text-orange-300 text-sm">No gas stations found nearby.</p>
+            <p className="text-orange-600 dark:text-orange-400 text-xs mt-1">Try expanding your search or changing location.</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {isLoadingStations ? (
               // Loading placeholders
               [...Array(5)].map((_, i) => (
-                <div key={i} className="animate-pulse bg-gray-200 dark:bg-gray-800 rounded-xl h-40"></div>
+                <div key={i} className="animate-pulse bg-gray-200 dark:bg-gray-800 rounded-lg h-32"></div>
               ))
             ) : (
               // Actual station list - show all 50 stations
@@ -687,7 +677,7 @@ const Index = () => {
                     price={cheapestFuel ? cheapestFuel.price : "3.29"}
                     rating={station.rating}
                     reviewCount={station.reviewCount || 24}
-                    delay={index}
+                    delay={index * 0.05} // Reduced delay for faster loading
                     isOpen={isOpen}
                     openStatus={station.hours && station.hours.is24Hours ?
                       "Open 24/7" :
@@ -714,10 +704,11 @@ const Index = () => {
 
             {/* Show load more button if there are more stations to display */}
             {filteredStations.length > maxStationsToShow && (
-              <div className="flex justify-center py-4">
+              <div className="flex justify-center py-3">
                 <Button
                   onClick={() => setMaxStationsToShow(prev => prev + 20)}
                   variant="outline"
+                  className="h-8 text-xs"
                 >
                   Load More Stations
                 </Button>
@@ -727,23 +718,31 @@ const Index = () => {
         )}
       </div>
 
-      {/* Bottom Nav */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 h-16 flex items-center justify-around">
+      {/* Bottom Nav - Android 14 Style */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 h-14 flex items-center justify-around px-2">
         <div className="flex flex-col items-center text-green-500">
-          <Home className="h-6 w-6" />
-          <span className="text-xs mt-1">Home</span>
+          <div className="w-10 h-10 rounded-full flex items-center justify-center bg-green-50 dark:bg-green-900/20">
+            <Home className="h-5 w-5" />
+          </div>
+          <span className="text-[10px] mt-0.5">Home</span>
         </div>
         <div className="flex flex-col items-center text-gray-400">
-          <ShoppingBag className="h-6 w-6" />
-          <span className="text-xs mt-1">My Orders</span>
+          <div className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800/50">
+            <ShoppingBag className="h-5 w-5" />
+          </div>
+          <span className="text-[10px] mt-0.5">Orders</span>
         </div>
         <div className="flex flex-col items-center text-gray-400">
-          <MapPin className="h-6 w-6" />
-          <span className="text-xs mt-1">Track Order</span>
+          <div className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800/50">
+            <MapPin className="h-5 w-5" />
+          </div>
+          <span className="text-[10px] mt-0.5">Track</span>
         </div>
         <div className="flex flex-col items-center text-gray-400">
-          <Settings className="h-6 w-6" />
-          <span className="text-xs mt-1">Settings</span>
+          <div className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800/50">
+            <Settings className="h-5 w-5" />
+          </div>
+          <span className="text-[10px] mt-0.5">Settings</span>
         </div>
       </div>
     </div>
