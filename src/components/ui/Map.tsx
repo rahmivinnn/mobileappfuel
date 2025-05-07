@@ -238,7 +238,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
               });
             }
 
-            // Add the 3D buildings layer with the custom source
+            // Add the 3D buildings layer with the custom source and colorful buildings
             map.addLayer({
               'id': '3d-buildings',
               'source': 'custom-buildings',
@@ -246,18 +246,30 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
               'type': 'fill-extrusion',
               'minzoom': 12, // Lower minzoom to see buildings from further away
               'paint': {
+                // Colorful gradient based on building height
                 'fill-extrusion-color': [
                   'interpolate',
                   ['linear'],
                   ['get', 'height'],
-                  0, '#AAAAAA',
-                  50, '#888888',
-                  100, '#666666',
-                  200, '#444444'
+                  0, '#6A98F0',   // Blue for shorter buildings
+                  20, '#5D9DF0',
+                  40, '#4FB8F5',  // Light blue
+                  60, '#45D0B0',  // Teal
+                  80, '#38E08D',  // Green
+                  100, '#A2E638', // Lime
+                  120, '#F0DE59', // Yellow
+                  150, '#F5A742', // Orange
+                  180, '#F56C42', // Red-orange
+                  200, '#F54242'  // Red for taller buildings
                 ],
+                // Random color variation to make buildings more distinct
+                'fill-extrusion-color-transition': {
+                  'duration': 0,
+                  'delay': 0
+                },
                 'fill-extrusion-height': ['get', 'height'],
                 'fill-extrusion-base': ['get', 'min_height'],
-                'fill-extrusion-opacity': 0.8,
+                'fill-extrusion-opacity': 0.9,
                 'fill-extrusion-vertical-gradient': true
               }
             });
@@ -280,8 +292,8 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
           return;
         }
 
-        // Add enhanced 3D buildings layer with the composite source
-        console.log("Adding 3D buildings with composite source");
+        // Add enhanced 3D buildings layer with the composite source and vibrant colors
+        console.log("Adding colorful 3D buildings with composite source");
         map.addLayer({
           'id': '3d-buildings',
           'source': 'composite',
@@ -290,28 +302,49 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
           'type': 'fill-extrusion',
           'minzoom': 12, // Lower minzoom to see buildings from further away
           'paint': {
+            // Vibrant color palette based on building height
             'fill-extrusion-color': [
               'interpolate',
               ['linear'],
               ['get', 'height'],
-              0, '#AAAAAA',
-              50, '#888888',
-              100, '#666666',
-              200, '#444444'
+              0, '#6A98F0',   // Blue for shorter buildings
+              20, '#5D9DF0',
+              40, '#4FB8F5',  // Light blue
+              60, '#45D0B0',  // Teal
+              80, '#38E08D',  // Green
+              100, '#A2E638', // Lime
+              120, '#F0DE59', // Yellow
+              150, '#F5A742', // Orange
+              180, '#F56C42', // Red-orange
+              200, '#F54242'  // Red for taller buildings
             ],
+            // Add some randomness to building colors for more visual interest
+            'fill-extrusion-color-transition': {
+              'duration': 0,
+              'delay': 0
+            },
             'fill-extrusion-height': ['get', 'height'],
             'fill-extrusion-base': ['get', 'min_height'],
-            'fill-extrusion-opacity': 0.8,
+            'fill-extrusion-opacity': 0.9,
             'fill-extrusion-vertical-gradient': true
           }
         });
 
-        // Add enhanced light effect for 3D buildings
+        // Add enhanced dynamic light effect for 3D buildings
         map.setLight({
           anchor: 'viewport',
           color: 'white',
-          intensity: 0.6, // Increased intensity for better visibility
-          position: [1, 0, 0.8]
+          intensity: 0.75, // Higher intensity for better visibility
+          position: [1.5, 0.5, 0.7] // Adjusted light position for better shadows and highlights
+        });
+
+        // Add ambient light to prevent buildings from being too dark
+        map.setFog({
+          'color': 'rgba(255, 255, 255, 0.8)', // Light fog color
+          'high-color': 'rgba(135, 206, 250, 0.5)', // Sky blue tint
+          'horizon-blend': 0.1, // Minimal horizon blend
+          'space-color': 'rgba(135, 206, 250, 0.2)', // Light blue space color
+          'star-intensity': 0.15 // Subtle stars
         });
 
         console.log("3D buildings added successfully");
@@ -483,24 +516,40 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
           };
         }
 
-        // On hover effect for markers
+        // Enhanced hover effects for markers
         el.onmouseenter = () => {
-          el.style.transform = 'scale(1.1)';
-          el.style.transition = 'transform 0.3s ease';
+          // Different hover effects for different marker types
+          if (marker.isAgent) {
+            el.style.transform = 'scale(1.1)';
+          } else {
+            // Gas station gets a more dynamic hover effect
+            el.style.transform = 'scale(1.15) translateY(-5px)';
+            el.style.filter = 'drop-shadow(0 6px 8px rgba(0,0,0,0.3))';
+          }
 
-          // Show info popup
+          el.style.transition = 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+          el.style.zIndex = '999';
+
+          // Show info popup with enhanced content
           if (marker.title) {
+            // Different popup content for different marker types
+            const content = marker.isAgent
+              ? "FuelFriendly Agent: Ready to deliver fuel to your location"
+              : `${marker.title}: Tap to see fuel prices and station details`;
+
             setPopupInfo({
               position: [marker.position.lng, marker.position.lat],
-              title: marker.title,
-              content: marker.isAgent ? "FuelFriendly Agent: Ready to deliver fuel to your location" : "Gas station: Tap to see details and prices"
+              title: marker.isAgent ? marker.title : "Gas Station",
+              content: content
             });
             setShowPopup(true);
           }
         };
 
         el.onmouseleave = () => {
-          el.style.transform = 'scale(1)';
+          el.style.transform = 'scale(1) translateY(0)';
+          el.style.filter = '';
+          el.style.zIndex = '';
           setShowPopup(false);
         };
 
@@ -537,17 +586,42 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
             </div>
           `;
         } else {
-          // Gas station marker with the new 3D gas station icon
-          const markerImageUrl = marker.icon || gasStationIconUrl;
-
+          // Enhanced interactive gas station marker with SVG
           el.innerHTML = `
-            <div style="width: 36px; height: 36px; position: relative; transform: translateY(-18px);">
-              <img
-                src="${markerImageUrl}"
-                style="width: 36px; height: 36px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));"
-                alt="Gas Station"
-                onerror="this.onerror=null; this.src='/lovable-uploads/8bb583f1-3cc3-48b8-9f8b-904bfcfe84ef.png';"
-              />
+            <div style="
+              width: 40px;
+              height: 40px;
+              position: relative;
+              transform: translateY(-20px);
+              transition: all 0.3s ease;
+            ">
+              <div style="
+                width: 40px;
+                height: 40px;
+                position: relative;
+                filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3));
+                transform-origin: bottom center;
+                animation: marker-bounce 0.5s ease-out;
+              ">
+                <!-- SVG Gas Station Icon -->
+                <svg viewBox="0 0 24 24" width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <!-- Base -->
+                  <path d="M4 22V7a2 2 0 012-2h12a2 2 0 012 2v15" fill="#FF6B35" stroke="#333" stroke-width="1.5"/>
+                  <!-- Roof -->
+                  <path d="M2 7h20" stroke="#333" stroke-width="1.5"/>
+                  <path d="M3 5h18L19 2H5L3 5z" fill="#FF6B35" stroke="#333" stroke-width="1.5"/>
+                  <!-- Pump -->
+                  <rect x="7" y="10" width="10" height="8" rx="1" fill="#FFFFFF" stroke="#333" stroke-width="1"/>
+                  <!-- Display -->
+                  <rect x="8" y="11" width="8" height="3" rx="0.5" fill="#333"/>
+                  <!-- Nozzle -->
+                  <path d="M12 18v2" stroke="#333" stroke-width="1.5" stroke-linecap="round"/>
+                  <path d="M10 20h4" stroke="#333" stroke-width="1.5" stroke-linecap="round"/>
+                  <!-- Glow effect for interactivity -->
+                  <circle cx="12" cy="12" r="11" fill="rgba(255, 107, 53, 0.15)" stroke="none"/>
+                </svg>
+              </div>
+
               ${marker.label ?
                 `<div style="
                   position: absolute;
@@ -555,7 +629,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
                   bottom: -20px;
                   left: 50%;
                   transform: translateX(-50%);
-                  background-color: rgba(0,0,0,0.75);
+                  background-color: rgba(255, 107, 53, 0.9);
                   color: white;
                   padding: 3px 8px;
                   border-radius: 12px;
@@ -563,12 +637,32 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
                   font-weight: bold;
                   font-family: Arial, sans-serif;
                   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-                  border: 1px solid rgba(255,255,255,0.2);
+                  border: 1px solid rgba(255,255,255,0.3);
+                  animation: fade-in 0.3s ease-out;
                 ">${marker.label}</div>` :
                 ''
               }
             </div>
           `;
+
+          // Add keyframes for marker animations if not already added
+          if (!document.querySelector('#marker-animations')) {
+            const style = document.createElement('style');
+            style.id = 'marker-animations';
+            style.innerHTML = `
+              @keyframes marker-bounce {
+                0% { transform: translateY(-10px) scale(0.8); opacity: 0; }
+                50% { transform: translateY(5px) scale(1.1); }
+                75% { transform: translateY(-3px) scale(0.95); }
+                100% { transform: translateY(0) scale(1); opacity: 1; }
+              }
+              @keyframes fade-in {
+                0% { opacity: 0; transform: translateY(5px) translateX(-50%); }
+                100% { opacity: 1; transform: translateY(0) translateX(-50%); }
+              }
+            `;
+            document.head.appendChild(style);
+          }
         }
 
         // Add tooltip
@@ -861,20 +955,52 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
           }}
         />
 
-        {/* Info popup for markers */}
+        {/* Enhanced info popup for markers */}
         {showPopup && popupInfo && mapLoaded && (
           <div
-            className="absolute z-20 bg-black/80 backdrop-blur-md text-white p-3 rounded-lg shadow-lg border border-white/20 max-w-[200px]"
+            className="absolute z-20 backdrop-blur-md text-white p-3 rounded-lg shadow-lg max-w-[250px]"
             style={{
               left: '50%',
               bottom: '100px',
               transform: 'translateX(-50%)',
-              animation: 'fade-in 0.3s ease-out'
+              animation: 'popup-fade-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+              background: 'linear-gradient(135deg, rgba(255,107,53,0.9) 0%, rgba(0,0,0,0.85) 100%)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
             }}
           >
-            <h3 className="font-bold text-sm">{popupInfo.title}</h3>
-            <p className="text-xs mt-1">{popupInfo.content}</p>
+            <div className="flex items-center">
+              <div className="mr-2 bg-white/20 p-1 rounded-full">
+                {popupInfo.title.includes("Gas Station") ? (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 22V7a2 2 0 012-2h12a2 2 0 012 2v15" fill="#FF6B35" stroke="white" strokeWidth="1.5"/>
+                    <path d="M2 7h20" stroke="white" strokeWidth="1.5"/>
+                    <path d="M3 5h18L19 2H5L3 5z" fill="#FF6B35" stroke="white" strokeWidth="1.5"/>
+                  </svg>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="1.5" fill="#3B82F6"/>
+                    <path d="M8 12l3 3 5-5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+              </div>
+              <h3 className="font-bold text-sm">{popupInfo.title}</h3>
+            </div>
+            <p className="text-xs mt-2 leading-relaxed">{popupInfo.content}</p>
+            <div className="absolute w-4 h-4 bg-gradient-to-br from-[#FF6B35] to-[rgba(0,0,0,0.85)] transform rotate-45 left-1/2 -ml-2 -bottom-2"></div>
           </div>
+        )}
+
+        {/* Add keyframes for popup animation if not already added */}
+        {showPopup && !document.querySelector('#popup-animations') && (
+          <style id="popup-animations">
+            {`
+              @keyframes popup-fade-in {
+                0% { opacity: 0; transform: translateY(10px) translateX(-50%) scale(0.9); }
+                100% { opacity: 1; transform: translateY(0) translateX(-50%) scale(1); }
+              }
+            `}
+          </style>
         )}
 
         {/* Custom attribution */}
