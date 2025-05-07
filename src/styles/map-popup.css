@@ -1,0 +1,185 @@
+/* Enhanced Map Popup Styles */
+.enhanced-map-popup {
+  max-width: 300px !important;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+.enhanced-map-popup .mapboxgl-popup-content {
+  padding: 0 !important;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.enhanced-map-popup .mapboxgl-popup-close-button {
+  font-size: 18px;
+  color: #6b7280;
+  top: 8px;
+  right: 8px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+  z-index: 10;
+}
+
+.enhanced-map-popup .mapboxgl-popup-close-button:hover {
+  background: rgba(255, 255, 255, 1);
+  color: #111827;
+}
+
+/* Animation for popup */
+.enhanced-map-popup.mapboxgl-popup {
+  animation: popup-appear 0.3s ease-out;
+}
+
+@keyframes popup-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Button hover effects */
+.enhanced-map-popup button {
+  transition: all 0.2s ease;
+}
+
+.enhanced-map-popup button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.enhanced-map-popup button:active {
+  transform: translateY(0);
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .enhanced-map-popup .mapboxgl-popup-content {
+    background-color: #1f2937;
+    color: #f3f4f6;
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .enhanced-map-popup .mapboxgl-popup-close-button {
+    background: rgba(31, 41, 55, 0.8);
+    color: #d1d5db;
+  }
+  
+  .enhanced-map-popup .mapboxgl-popup-close-button:hover {
+    background: rgba(31, 41, 55, 1);
+    color: #f3f4f6;
+  }
+  
+  .enhanced-map-popup .mapboxgl-popup-tip {
+    border-top-color: #1f2937;
+    border-bottom-color: #1f2937;
+  }
+}
+
+/* Marker animations */
+.mapboxgl-marker {
+  transition: all 0.3s ease;
+}
+
+.mapboxgl-marker:hover {
+  transform: scale(1.2);
+}
+
+/* Pulse animation for markers */
+.mapboxgl-marker.pulse::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 30px;
+  height: 30px;
+  margin: -15px 0 0 -15px;
+  border-radius: 50%;
+  background: rgba(66, 153, 225, 0.6);
+  animation: pulse 1.5s infinite;
+  z-index: -1;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.5);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* Custom marker styles */
+.fuel-agent-marker {
+  background-color: #22c55e;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  border: 2px solid white;
+  color: white;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.fuel-agent-marker:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.gas-station-marker {
+  background-color: #ef4444;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  border: 2px solid white;
+  color: white;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.gas-station-marker:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.ev-charging-marker {
+  background-color: #3b82f6;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  border: 2px solid white;
+  color: white;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.ev-charging-marker:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}

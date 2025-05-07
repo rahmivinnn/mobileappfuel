@@ -538,7 +538,7 @@ const Index = () => {
           {/* Key added to force re-render when style or 3D buildings change */}
           <Map
             key={`map-${currentMapStyle}-3d-${enable3DBuildings ? 'on' : 'off'}`}
-            className="h-56 w-full rounded-2xl overflow-hidden"
+            className="h-72 w-full rounded-2xl overflow-hidden" // Increased height from h-56 to h-72
             interactive={true}
             showTraffic={showTraffic}
             center={mapCenter}
@@ -558,6 +558,30 @@ const Index = () => {
             }}
             hideStyleControls={true} // Hide the style controls in the Map component
           />
+
+          {/* Floating action buttons for map */}
+          <div className="absolute bottom-4 right-4 flex flex-col gap-2 z-10">
+            <button
+              className="bg-white dark:bg-gray-800 rounded-full w-10 h-10 flex items-center justify-center shadow-lg border border-gray-200 dark:border-gray-700"
+              onClick={() => {
+                // Animate map refresh
+                const map = document.querySelector('.mapboxgl-map') as HTMLElement;
+                if (map) {
+                  map.style.transform = 'scale(1.01)';
+                  setTimeout(() => {
+                    map.style.transform = 'scale(1)';
+                  }, 200);
+                }
+                handleRefreshLocation();
+              }}
+            >
+              <div className="h-5 w-5 text-blue-500">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                  <path fillRule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+                </svg>
+              </div>
+            </button>
+          </div>
         </div>
       </div>
 

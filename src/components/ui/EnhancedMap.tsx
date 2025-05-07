@@ -1,8 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ReactDOMServer from 'react-dom/server';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import '@/styles/map-popup.css'; // Import custom popup styles
 import { MAPBOX_TOKEN, MAP_STYLES } from '@/config/mapbox';
 import { toast } from '@/hooks/use-toast';
+import FuelAgentIcon from './FuelAgentIcon';
+import GasStationIcon from './GasStationIcon';
+import EVChargingIcon from './EVChargingIcon';
 
 // Set Mapbox token
 mapboxgl.accessToken = MAPBOX_TOKEN;
@@ -68,13 +73,19 @@ const EnhancedMap: React.FC<EnhancedMapProps> = ({
   const [currentMapStyle, setCurrentMapStyle] = useState(mapStyle);
   const [is3DEnabled, setIs3DEnabled] = useState(enable3DBuildings);
 
-  // Icon URLs - using existing icons from the project
+  // Create SVG icons as data URLs
+  const createSVGDataURL = (component: React.ReactElement) => {
+    const svgString = ReactDOMServer.renderToString(component);
+    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`;
+  };
+
+  // Generate icon URLs using SVG components
   const iconUrls = {
-    [IconType.FUEL_AGENT]: '/lovable-uploads/57aff490-f08a-4205-9ae9-496a32e810e6.png', // FUELFRIENDLY logo
-    [IconType.GAS_STATION]: '/lovable-uploads/aafa9060-dd0c-4f89-9725-afe221ab74ba.png', // Existing gas station icon
-    [IconType.EV_CHARGING]: '/lovable-uploads/b5fa7932-1a2e-4d11-bb77-3553f76ae527.png', // Another existing icon
-    [IconType.CAR_REPAIR]: '/lovable-uploads/c123a960-63f7-48ab-b0a0-6f29584106f7.png', // Another existing icon
-    [IconType.COFFEE_SHOP]: '/lovable-uploads/ba008608-8960-40b9-8a96-e5b173a48e08.png' // Another existing icon
+    [IconType.FUEL_AGENT]: createSVGDataURL(<FuelAgentIcon size={48} />),
+    [IconType.GAS_STATION]: createSVGDataURL(<GasStationIcon size={48} />),
+    [IconType.EV_CHARGING]: createSVGDataURL(<EVChargingIcon size={48} />),
+    [IconType.CAR_REPAIR]: '/lovable-uploads/c123a960-63f7-48ab-b0a0-6f29584106f7.png', // Existing icon
+    [IconType.COFFEE_SHOP]: '/lovable-uploads/ba008608-8960-40b9-8a96-e5b173a48e08.png' // Existing icon
   };
 
   // Initialize map
@@ -311,7 +322,7 @@ const EnhancedMap: React.FC<EnhancedMapProps> = ({
         });
       }
 
-      // Add symbol layer for individual markers
+      // Add symbol layer for individual markers with enhanced interactivity
       map.addLayer({
         id: layerId,
         type: 'symbol',
@@ -319,19 +330,28 @@ const EnhancedMap: React.FC<EnhancedMapProps> = ({
         filter: enableClustering && geojson.features.length > 100 ? ['!', ['has', 'point_count']] : ['all'],
         layout: {
           'icon-image': type,
-          'icon-size': 0.75,
+          'icon-size': ['interpolate', ['linear'], ['zoom'], 10, 0.5, 15, 0.75, 20, 1],
           'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+          'icon-padding': 0,
           'text-field': ['get', 'title'],
           'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
           'text-offset': [0, 1.5],
           'text-anchor': 'top',
-          'text-size': 12,
-          'text-optional': true
+          'text-size': ['interpolate', ['linear'], ['zoom'], 10, 10, 15, 12, 20, 14],
+          'text-optional': true,
+          'text-variable-anchor': ['top', 'bottom', 'left', 'right'],
+          'text-radial-offset': 1.5,
+          'text-justify': 'auto',
+          'icon-pitch-alignment': 'auto',
+          'icon-rotation-alignment': 'auto'
         },
         paint: {
           'text-color': '#333',
           'text-halo-color': '#fff',
-          'text-halo-width': 1
+          'text-halo-width': 1.5,
+          'text-opacity': ['interpolate', ['linear'], ['zoom'], 10, 0, 11, 1],
+          'icon-opacity': ['interpolate', ['linear'], ['zoom'], 5, 0.5, 10, 1]
         }
       });
     });
@@ -368,15 +388,83 @@ const EnhancedMap: React.FC<EnhancedMapProps> = ({
                 // Show popup
                 if (popupRef.current) popupRef.current.remove();
 
-                popupRef.current = new mapboxgl.Popup()
+                // Create enhanced interactive popup
+                popupRef.current = new mapboxgl.Popup({
+                  closeButton: true,
+                  closeOnClick: false,
+                  maxWidth: '300px',
+                  className: 'enhanced-map-popup'
+                })
                   .setLngLat(e.lngLat)
                   .setHTML(`
-                    <div style="padding: 10px;">
-                      <h3 style="margin: 0 0 5px 0; font-weight: bold;">${props.title}</h3>
-                      <p style="margin: 0;">${props.description || 'No description available'}</p>
+                    <div style="padding: 12px; font-family: system-ui, -apple-system, sans-serif;">
+                      <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                        <div style="width: 24px; height: 24px; margin-right: 8px; display: flex; align-items: center; justify-content: center; background-color: ${
+                          type === IconType.FUEL_AGENT ? '#22c55e' :
+                          type === IconType.GAS_STATION ? '#ef4444' :
+                          type === IconType.EV_CHARGING ? '#3b82f6' :
+                          '#6b7280'
+                        }; border-radius: 50%;">
+                          ${
+                            type === IconType.FUEL_AGENT ? '<svg viewBox="0 0 24 24" width="16" height="16" fill="white"><path d="M12 2a5 5 0 0 1 5 5c0 2.76-2.24 5-5 5s-5-2.24-5-5a5 5 0 0 1 5-5zm0 13c5.52 0 10 2.24 10 5v2H2v-2c0-2.76 4.48-5 10-5z"/></svg>' :
+                            type === IconType.GAS_STATION ? '<svg viewBox="0 0 24 24" width="16" height="16" fill="white"><path d="M19.77 7.23l.01-.01-3.72-3.72L15 4.56l2.11 2.11c-.94.36-1.61 1.26-1.61 2.33 0 1.38 1.12 2.5 2.5 2.5.36 0 .69-.08 1-.21v7.21c0 .55-.45 1-1 1s-1-.45-1-1V14c0-1.1-.9-2-2-2h-1V5c0-1.1-.9-2-2-2H6c-1.1 0-2 .9-2 2v16h10v-7.5h1.5v5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V9c0-.69-.28-1.32-.73-1.77zM12 10H6V5h6v5zm6 0c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/></svg>' :
+                            type === IconType.EV_CHARGING ? '<svg viewBox="0 0 24 24" width="16" height="16" fill="white"><path d="M14.69 10H10l-.61 2h3.3l-.3 1h-3.3l-.61 2h4.61L12.48 17h2l2.52-7h-2.31z"/><path d="M7 7H3.69L3 9h4l-.31 1H3l-.69 2h4l-.31 1H3l-.69 2h4.69L6.48 17h2l.52-2h4l.52 2h2l-.48-2h1.17L17 13h-4.31L13 12h4l.69-2H14l.31-1H18l.69-2H15.3L16 5h-2l-.31 2H9.69z"/></svg>' :
+                            '<svg viewBox="0 0 24 24" width="16" height="16" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>'
+                          }
+                        </div>
+                        <h3 style="margin: 0; font-weight: bold; font-size: 16px;">${props.title}</h3>
+                      </div>
+
+                      <p style="margin: 0 0 8px 0; color: #4b5563; font-size: 14px;">${props.description || 'No description available'}</p>
+
+                      ${Object.entries(props)
+                        .filter(([key]) => !['id', 'title', 'description'].includes(key))
+                        .map(([key, value]) => {
+                          // Format the key for display
+                          const formattedKey = key.replace(/([A-Z])/g, ' $1')
+                            .replace(/^./, str => str.toUpperCase());
+
+                          // Format the value based on its type
+                          let formattedValue = value;
+                          if (Array.isArray(value)) {
+                            formattedValue = value.join(', ');
+                          } else if (typeof value === 'boolean') {
+                            formattedValue = value ? '✓' : '✗';
+                          }
+
+                          return `<div style="display: flex; justify-content: space-between; margin-top: 4px; font-size: 13px;">
+                            <span style="color: #6b7280; font-weight: 500;">${formattedKey}:</span>
+                            <span style="color: #111827;">${formattedValue}</span>
+                          </div>`;
+                        }).join('')
+                      }
+
+                      <div style="margin-top: 12px; display: flex; justify-content: space-between;">
+                        <button onclick="window.mapMarkerAction('directions', '${props.id}')"
+                          style="background-color: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 13px; cursor: pointer;">
+                          Directions
+                        </button>
+                        <button onclick="window.mapMarkerAction('details', '${props.id}')"
+                          style="background-color: #22c55e; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 13px; cursor: pointer;">
+                          Details
+                        </button>
+                      </div>
                     </div>
                   `)
                   .addTo(map);
+
+                // Add marker action handler to window
+                window.mapMarkerAction = (action, id) => {
+                  if (action === 'directions') {
+                    // Open directions in Google Maps
+                    const position = marker.position;
+                    window.open(`https://www.google.com/maps/dir/?api=1&destination=${position.lat},${position.lng}`, '_blank');
+                  } else if (action === 'details') {
+                    // Close popup and call marker click handler
+                    if (popupRef.current) popupRef.current.remove();
+                    onMarkerClick(marker);
+                  }
+                };
 
                 // Call marker click handler
                 onMarkerClick(marker);
