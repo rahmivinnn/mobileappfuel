@@ -512,7 +512,7 @@ const Index = () => {
       </div>
 
       {/* Map Section */}
-      <div className="px-4 py-2 relative">
+      <div className="px-4 py-2 relative map-section">
         {isLoadingLocation && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/20 rounded-2xl">
             <div className="bg-white dark:bg-gray-800 px-6 py-4 rounded-xl flex items-center space-x-3 shadow-lg">
@@ -611,6 +611,16 @@ const Index = () => {
                   currentHour >= station.hours.open && currentHour < station.hours.close :
                   true;
 
+                // Calculate estimated time (assuming average speed of 30 km/h in city)
+                const distanceInKm = parseFloat(station.distance);
+                const estimatedMinutes = Math.round(distanceInKm / 30 * 60);
+                const estimatedTime = estimatedMinutes < 60
+                  ? `${estimatedMinutes} min`
+                  : `${Math.floor(estimatedMinutes / 60)}h ${estimatedMinutes % 60}m`;
+
+                // Extract brand from name (e.g., "Shell Beverly Hills" -> "Shell")
+                const brand = station.name.split(' ')[0];
+
                 return (
                   <StationListItem
                     key={station.id}
@@ -620,13 +630,27 @@ const Index = () => {
                     distance={station.distance}
                     price={cheapestFuel ? cheapestFuel.price : "3.29"}
                     rating={station.rating}
-                    reviewCount={24}
-                    imageUrl={station.imageUrl}
+                    reviewCount={station.reviewCount || 24}
                     delay={index}
                     isOpen={isOpen}
                     openStatus={station.hours && station.hours.is24Hours ?
                       "Open 24/7" :
                       (station.hours ? `${station.hours.open}:00 - ${station.hours.close}:00` : undefined)}
+                    estimatedTime={estimatedTime}
+                    brand={brand}
+                    onViewMap={() => {
+                      // Center map on this station
+                      setMapCenter({
+                        lat: station.position.lat,
+                        lng: station.position.lng
+                      });
+
+                      // Scroll to map section
+                      const mapSection = document.querySelector('.map-section');
+                      if (mapSection) {
+                        mapSection.scrollIntoView({ behavior: 'smooth' });
+                      }
+                    }}
                   />
                 );
               })

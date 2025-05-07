@@ -32,8 +32,8 @@ const StationCard: React.FC<StationCardProps> = ({
 }) => {
   const navigate = useNavigate();
 
-  // Use the provided image or default to the Shell Beverly Hills style gas station image
-  const displayImage = imageUrl || image || "/lovable-uploads/64ee380c-0fd5-4d42-a7f3-04aea8d9c56c.png";
+  // Always use the consistent Shell Beverly Hills style icon
+  const displayImage = stationIcon;
   const displayStatus = openStatus || (isOpen ? "Open" : "Closed");
 
   // Get the lowest price from the first fuel type if price is not provided
@@ -46,9 +46,12 @@ const StationCard: React.FC<StationCardProps> = ({
     navigate(`/station/${id}`);
   };
 
+  // Always use the consistent Shell Beverly Hills style icon
+  const stationIcon = "/lovable-uploads/64ee380c-0fd5-4d42-a7f3-04aea8d9c56c.png";
+
   // Handle image error
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    e.currentTarget.src = "/lovable-uploads/64ee380c-0fd5-4d42-a7f3-04aea8d9c56c.png";
+    e.currentTarget.src = stationIcon;
   };
 
   // Determine language based on country for labels
@@ -105,16 +108,21 @@ const StationCard: React.FC<StationCardProps> = ({
           </div>
         </div>
 
-        {displayImage && (
-          <div className="mt-3 h-24 rounded-lg overflow-hidden bg-gray-100">
+        <div className="mt-3 h-24 rounded-lg overflow-hidden bg-green-50 dark:bg-green-900/20 flex items-center justify-center">
+          <div className="flex items-center justify-center w-full h-full relative">
             <img
               src={displayImage}
               alt={name}
-              className="w-full h-full object-cover"
-              onError={handleImageError}
+              className="w-full h-full object-contain p-2"
             />
+            {/* Brand badge if available */}
+            {name && (
+              <div className="absolute bottom-1 right-1 bg-white dark:bg-gray-800 rounded-full px-2 py-0.5 text-xs font-bold shadow-sm">
+                {name.split(' ')[0]}
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
       <button
