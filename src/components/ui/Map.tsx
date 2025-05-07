@@ -573,22 +573,29 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
                 transform-origin: bottom center;
                 animation: agent-appear 0.5s ease-out;
               ">
-                <!-- SVG Agent Icon -->
+                <!-- SVG Agent Icon - Green Person with Hat -->
                 <svg viewBox="0 0 24 24" width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <!-- Background circle -->
-                  <circle cx="12" cy="12" r="11" fill="#3B82F6" stroke="#1E40AF" stroke-width="1"/>
+                  <circle cx="12" cy="12" r="11" fill="#4CAF50" stroke="#2E7D32" stroke-width="1"/>
+
+                  <!-- Hat -->
+                  <path d="M7 8.5C7 8.5 7 6 12 6C17 6 17 8.5 17 8.5V9.5H7V8.5Z" fill="#2E7D32" stroke="white" stroke-width="0.5"/>
+                  <path d="M9 6C9 6 10 4 12 4C14 4 15 6 15 6" fill="#2E7D32" stroke="white" stroke-width="0.5"/>
 
                   <!-- Person icon -->
-                  <path d="M12 12C13.6569 12 15 10.6569 15 9C15 7.34315 13.6569 6 12 6C10.3431 6 9 7.34315 9 9C9 10.6569 10.3431 12 12 12Z" fill="white"/>
+                  <path d="M12 12C13.6569 12 15 10.6569 15 9.5C15 8.5 14 8 12 8C10 8 9 8.5 9 9.5C9 10.6569 10.3431 12 12 12Z" fill="white"/>
                   <path d="M17 18C17 14.6863 14.7614 13 12 13C9.23858 13 7 14.6863 7 18" stroke="white" stroke-width="2" stroke-linecap="round"/>
 
                   <!-- Fuel can -->
-                  <path d="M16 10.5V14.5C16 15.0523 16.4477 15.5 17 15.5H18C18.5523 15.5 19 15.0523 19 14.5V10.5C19 9.94772 18.5523 9.5 18 9.5H17C16.4477 9.5 16 9.94772 16 10.5Z" fill="#FF6B35" stroke="white" stroke-width="0.5"/>
-                  <path d="M16.5 11.5H18.5" stroke="white" stroke-width="0.5"/>
-                  <path d="M16.5 13.5H18.5" stroke="white" stroke-width="0.5"/>
+                  <path d="M16 11.5V15.5C16 16.0523 16.4477 16.5 17 16.5H18C18.5523 16.5 19 16.0523 19 15.5V11.5C19 10.9477 18.5523 10.5 18 10.5H17C16.4477 10.5 16 10.9477 16 11.5Z" fill="#FF6B35" stroke="white" stroke-width="0.5"/>
+                  <path d="M16.5 12.5H18.5" stroke="white" stroke-width="0.5"/>
+                  <path d="M16.5 14.5H18.5" stroke="white" stroke-width="0.5"/>
+
+                  <!-- FuelFriendly text -->
+                  <path d="M8 19.5C8 19.5 10 20 12 20C14 20 16 19.5 16 19.5" stroke="white" stroke-width="0.5" stroke-linecap="round"/>
 
                   <!-- Glow effect -->
-                  <circle cx="12" cy="12" r="10" stroke="white" stroke-width="0.5" stroke-dasharray="1 2" opacity="0.6">
+                  <circle cx="12" cy="12" r="10" stroke="#8BC34A" stroke-width="0.5" stroke-dasharray="1 2" opacity="0.6">
                     <animate attributeName="opacity" values="0.6;0.2;0.6" dur="2s" repeatCount="indefinite" />
                   </circle>
                 </svg>
@@ -601,7 +608,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
                   bottom: -20px;
                   left: 50%;
                   transform: translateX(-50%);
-                  background-color: rgba(59,130,246,0.9);
+                  background-color: rgba(76,175,80,0.9);
                   color: white;
                   padding: 3px 8px;
                   border-radius: 12px;

@@ -41,15 +41,15 @@ const StationListItem: React.FC<StationListItemProps> = ({
   // Improved image handling
   const [imageError, setImageError] = React.useState(false);
 
-  // Use gas station image if the provided URL fails to load
+  // Use Shell Beverly Hills style gas station image if the provided URL fails to load
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     setImageError(true);
-    e.currentTarget.src = "/lovable-uploads/8bb583f1-3cc3-48b8-9f8b-904bfcfe84ef.png"; // Updated to the new gas station icon
+    e.currentTarget.src = "/lovable-uploads/64ee380c-0fd5-4d42-a7f3-04aea8d9c56c.png"; // Shell Beverly Hills style icon
   };
-  
+
   // Always use US currency format
   const userCountry = 'US';
-  
+
   // Get translated labels based on the user's country/language
   // For now, using English universally, but could be expanded for localization
   const getLabels = () => {
@@ -60,10 +60,10 @@ const StationListItem: React.FC<StationListItemProps> = ({
       status: "Status",
       select: "Select"
     };
-    
+
     return labels;
   };
-  
+
   const labels = getLabels();
   const displayStatus = openStatus || (isOpen ? "Open" : "Closed");
 
@@ -79,16 +79,16 @@ const StationListItem: React.FC<StationListItemProps> = ({
       <div className="flex p-2 gap-3">
         <div className="w-24 h-24 rounded-xl overflow-hidden bg-gray-200 flex items-center justify-center">
           {!imageError && imageUrl ? (
-            <img 
-              src={imageUrl} 
-              alt={name} 
+            <img
+              src={imageUrl}
+              alt={name}
               className="w-full h-full object-cover"
               onError={handleImageError}
             />
           ) : (
             <div className="flex items-center justify-center w-full h-full bg-green-100">
-              <img 
-                src="/lovable-uploads/8bb583f1-3cc3-48b8-9f8b-904bfcfe84ef.png" 
+              <img
+                src="/lovable-uploads/64ee380c-0fd5-4d42-a7f3-04aea8d9c56c.png"
                 alt="Gas Station"
                 className="w-full h-full object-cover"
               />
@@ -97,19 +97,19 @@ const StationListItem: React.FC<StationListItemProps> = ({
         </div>
         <div className="flex-1">
           <h3 className="font-semibold text-gray-900 dark:text-white">{name}</h3>
-          
+
           <div className="flex items-center text-green-500 mt-2 gap-2">
             <Banknote className="h-4 w-4" />
             <p className="text-sm">{labels.fuelPrice}</p>
             <p className="text-right flex-1 font-bold">{formatToCurrency(price, userCountry)}</p>
           </div>
-          
+
           <div className="flex items-center text-orange-500 mt-1 gap-2">
             <MapPin className="h-4 w-4" />
             <p className="text-sm">{labels.distance}</p>
             <p className="text-right flex-1">{distance} km</p>
           </div>
-          
+
           <div className="flex items-center text-blue-500 mt-1 gap-2">
             <Clock className="h-4 w-4" />
             <p className="text-sm">{labels.status}</p>
@@ -117,7 +117,7 @@ const StationListItem: React.FC<StationListItemProps> = ({
               {displayStatus}
             </p>
           </div>
-          
+
           <div className="flex items-center text-yellow-500 mt-1 gap-2">
             <Star className="h-4 w-4" />
             <p className="text-sm">{labels.reviews}</p>
@@ -125,8 +125,8 @@ const StationListItem: React.FC<StationListItemProps> = ({
           </div>
         </div>
       </div>
-      
-      <button 
+
+      <button
         onClick={handleClick}
         className="w-full bg-green-500 text-white py-3 font-medium hover:bg-green-600 transition-colors"
       >

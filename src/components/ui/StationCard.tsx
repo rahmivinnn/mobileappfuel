@@ -31,14 +31,14 @@ const StationCard: React.FC<StationCardProps> = ({
   isOpen = true
 }) => {
   const navigate = useNavigate();
-  
-  // Use the provided image or default to the proper gas station image
-  const displayImage = imageUrl || image || "/lovable-uploads/8bb583f1-3cc3-48b8-9f8b-904bfcfe84ef.png";
+
+  // Use the provided image or default to the Shell Beverly Hills style gas station image
+  const displayImage = imageUrl || image || "/lovable-uploads/64ee380c-0fd5-4d42-a7f3-04aea8d9c56c.png";
   const displayStatus = openStatus || (isOpen ? "Open" : "Closed");
 
   // Get the lowest price from the first fuel type if price is not provided
   const displayPrice = price || "3.50";  // Default price in USD if not provided
-  
+
   // Always use US country for currency display
   const userCountry = 'US';
 
@@ -48,7 +48,7 @@ const StationCard: React.FC<StationCardProps> = ({
 
   // Handle image error
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    e.currentTarget.src = "/lovable-uploads/8bb583f1-3cc3-48b8-9f8b-904bfcfe84ef.png";
+    e.currentTarget.src = "/lovable-uploads/64ee380c-0fd5-4d42-a7f3-04aea8d9c56c.png";
   };
 
   // Determine language based on country for labels
@@ -58,10 +58,10 @@ const StationCard: React.FC<StationCardProps> = ({
       distance: "Distance",
       select: "Select Station"
     };
-    
+
     return labels;
   };
-  
+
   const labels = getLabels();
 
   return (
@@ -95,7 +95,7 @@ const StationCard: React.FC<StationCardProps> = ({
             <span className="text-sm text-gray-600 dark:text-gray-400">{labels.distance}</span>
             <span className="ml-auto text-gray-700 dark:text-gray-300">{distance} km</span>
           </div>
-          
+
           <div className="flex items-center">
             <Clock className="h-4 w-4 text-blue-500 mr-2" />
             <span className="text-sm text-gray-600 dark:text-gray-400">Status</span>
@@ -104,12 +104,12 @@ const StationCard: React.FC<StationCardProps> = ({
             </span>
           </div>
         </div>
-        
+
         {displayImage && (
           <div className="mt-3 h-24 rounded-lg overflow-hidden bg-gray-100">
-            <img 
-              src={displayImage} 
-              alt={name} 
+            <img
+              src={displayImage}
+              alt={name}
               className="w-full h-full object-cover"
               onError={handleImageError}
             />
