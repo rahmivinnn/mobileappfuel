@@ -17,6 +17,7 @@ interface MapProps extends React.HTMLAttributes<HTMLDivElement> {
     icon?: string;
     label?: string;
     isAgent?: boolean;
+    poiType?: string; // Added for different types of POIs
   }>;
   interactive?: boolean;
   directions?: boolean;
@@ -553,17 +554,46 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
           setShowPopup(false);
         };
 
-        // Create marker HTML with simpler icon-based approach
+        // Create marker HTML with enhanced SVG icons
         if (marker.isAgent) {
-          // FuelFriendly Agent marker as simple icon
-          const agentIconUrl = "/lovable-uploads/1bc06a60-0463-4f47-abde-502bc408852e.png";
+          // Enhanced FuelFriendly Agent marker with SVG
           el.innerHTML = `
-            <div style="width: 32px; height: 32px; position: relative; transform: translateY(-16px);">
-              <img
-                src="${agentIconUrl}"
-                style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));"
-                alt="Agent"
-              />
+            <div style="
+              width: 40px;
+              height: 40px;
+              position: relative;
+              transform: translateY(-20px);
+              transition: all 0.3s ease;
+            ">
+              <div style="
+                width: 40px;
+                height: 40px;
+                position: relative;
+                filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3));
+                transform-origin: bottom center;
+                animation: agent-appear 0.5s ease-out;
+              ">
+                <!-- SVG Agent Icon -->
+                <svg viewBox="0 0 24 24" width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <!-- Background circle -->
+                  <circle cx="12" cy="12" r="11" fill="#3B82F6" stroke="#1E40AF" stroke-width="1"/>
+
+                  <!-- Person icon -->
+                  <path d="M12 12C13.6569 12 15 10.6569 15 9C15 7.34315 13.6569 6 12 6C10.3431 6 9 7.34315 9 9C9 10.6569 10.3431 12 12 12Z" fill="white"/>
+                  <path d="M17 18C17 14.6863 14.7614 13 12 13C9.23858 13 7 14.6863 7 18" stroke="white" stroke-width="2" stroke-linecap="round"/>
+
+                  <!-- Fuel can -->
+                  <path d="M16 10.5V14.5C16 15.0523 16.4477 15.5 17 15.5H18C18.5523 15.5 19 15.0523 19 14.5V10.5C19 9.94772 18.5523 9.5 18 9.5H17C16.4477 9.5 16 9.94772 16 10.5Z" fill="#FF6B35" stroke="white" stroke-width="0.5"/>
+                  <path d="M16.5 11.5H18.5" stroke="white" stroke-width="0.5"/>
+                  <path d="M16.5 13.5H18.5" stroke="white" stroke-width="0.5"/>
+
+                  <!-- Glow effect -->
+                  <circle cx="12" cy="12" r="10" stroke="white" stroke-width="0.5" stroke-dasharray="1 2" opacity="0.6">
+                    <animate attributeName="opacity" values="0.6;0.2;0.6" dur="2s" repeatCount="indefinite" />
+                  </circle>
+                </svg>
+              </div>
+
               ${marker.label ?
                 `<div style="
                   position: absolute;
@@ -580,11 +610,153 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
                   font-family: Arial, sans-serif;
                   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
                   border: 1px solid rgba(255,255,255,0.3);
+                  animation: fade-in 0.3s ease-out;
                 ">${marker.label}</div>` :
                 ''
               }
             </div>
           `;
+
+          // Add keyframes for agent animations if not already added
+          if (!document.querySelector('#agent-animations')) {
+            const style = document.createElement('style');
+            style.id = 'agent-animations';
+            style.innerHTML = `
+              @keyframes agent-appear {
+                0% { transform: translateY(-10px) scale(0.8); opacity: 0; }
+                50% { transform: translateY(5px) scale(1.1); }
+                75% { transform: translateY(-3px) scale(0.95); }
+                100% { transform: translateY(0) scale(1); opacity: 1; }
+              }
+            `;
+            document.head.appendChild(style);
+          }
+        } else if (marker.poiType) {
+          // Different POI types with custom SVG icons
+          let poiSvg = '';
+          let poiColor = '#4CAF50'; // Default color
+
+          // Choose SVG based on POI type
+          switch(marker.poiType) {
+            case 'restaurant':
+              poiColor = '#FF9800'; // Orange
+              poiSvg = `
+                <!-- Restaurant icon -->
+                <circle cx="12" cy="12" r="11" fill="${poiColor}" stroke="#333" stroke-width="1"/>
+                <path d="M7 7V17M7 9H10M7 12H10M10 9V12" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M13 7C13 7 13 9 15 9C17 9 17 7 17 7V17M13 7V17M17 7V17" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              `;
+              break;
+            case 'shop':
+              poiColor = '#9C27B0'; // Purple
+              poiSvg = `
+                <!-- Shop icon -->
+                <circle cx="12" cy="12" r="11" fill="${poiColor}" stroke="#333" stroke-width="1"/>
+                <path d="M6 9H18L17 17H7L6 9Z" fill="${poiColor}" stroke="white" stroke-width="1.5"/>
+                <path d="M9 9V7C9 5.34315 10.3431 4 12 4C13.6569 4 15 5.34315 15 7V9" stroke="white" stroke-width="1.5"/>
+                <path d="M9 13H15" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+              `;
+              break;
+            case 'parking':
+              poiColor = '#2196F3'; // Blue
+              poiSvg = `
+                <!-- Parking icon -->
+                <circle cx="12" cy="12" r="11" fill="${poiColor}" stroke="#333" stroke-width="1"/>
+                <path d="M10 6H14C16.2091 6 18 7.79086 18 10C18 12.2091 16.2091 14 14 14H10V6Z" fill="${poiColor}" stroke="white" stroke-width="1.5"/>
+                <path d="M10 10H14" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M10 6V18" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+              `;
+              break;
+            case 'atm':
+              poiColor = '#4CAF50'; // Green
+              poiSvg = `
+                <!-- ATM icon -->
+                <circle cx="12" cy="12" r="11" fill="${poiColor}" stroke="#333" stroke-width="1"/>
+                <rect x="7" y="7" width="10" height="10" rx="1" fill="${poiColor}" stroke="white" stroke-width="1.5"/>
+                <path d="M12 9V15" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M9 12H15" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+              `;
+              break;
+            case 'carwash':
+              poiColor = '#03A9F4'; // Light Blue
+              poiSvg = `
+                <!-- Car Wash icon -->
+                <circle cx="12" cy="12" r="11" fill="${poiColor}" stroke="#333" stroke-width="1"/>
+                <path d="M6 10L7 7H17L18 10" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M6 10H18V13H6V10Z" fill="${poiColor}" stroke="white" stroke-width="1.5"/>
+                <circle cx="8.5" cy="14.5" r="1.5" fill="${poiColor}" stroke="white"/>
+                <circle cx="15.5" cy="14.5" r="1.5" fill="${poiColor}" stroke="white"/>
+                <path d="M7 6C7 6 9 4 12 4C15 4 17 6 17 6" stroke="white" stroke-width="1" stroke-linecap="round" stroke-dasharray="1 1"/>
+              `;
+              break;
+            default:
+              poiSvg = `
+                <!-- Default POI icon -->
+                <circle cx="12" cy="12" r="11" fill="${poiColor}" stroke="#333" stroke-width="1"/>
+                <circle cx="12" cy="12" r="3" fill="white"/>
+                <path d="M12 5V7M12 17V19M5 12H7M17 12H19" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+              `;
+          }
+
+          // Create POI marker HTML
+          el.innerHTML = `
+            <div style="
+              width: 36px;
+              height: 36px;
+              position: relative;
+              transform: translateY(-18px);
+              transition: all 0.3s ease;
+            ">
+              <div style="
+                width: 36px;
+                height: 36px;
+                position: relative;
+                filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3));
+                transform-origin: bottom center;
+                animation: poi-appear 0.5s ease-out;
+              ">
+                <!-- SVG POI Icon -->
+                <svg viewBox="0 0 24 24" width="36" height="36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  ${poiSvg}
+                </svg>
+              </div>
+
+              ${marker.label ?
+                `<div style="
+                  position: absolute;
+                  white-space: nowrap;
+                  bottom: -20px;
+                  left: 50%;
+                  transform: translateX(-50%);
+                  background-color: ${poiColor};
+                  color: white;
+                  padding: 3px 8px;
+                  border-radius: 12px;
+                  font-size: 10px;
+                  font-weight: bold;
+                  font-family: Arial, sans-serif;
+                  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                  border: 1px solid rgba(255,255,255,0.3);
+                  animation: fade-in 0.3s ease-out;
+                ">${marker.label}</div>` :
+                ''
+              }
+            </div>
+          `;
+
+          // Add keyframes for POI animations if not already added
+          if (!document.querySelector('#poi-animations')) {
+            const style = document.createElement('style');
+            style.id = 'poi-animations';
+            style.innerHTML = `
+              @keyframes poi-appear {
+                0% { transform: scale(0); opacity: 0; }
+                60% { transform: scale(1.2); }
+                100% { transform: scale(1); opacity: 1; }
+              }
+            `;
+            document.head.appendChild(style);
+          }
         } else {
           // Enhanced interactive gas station marker with SVG
           el.innerHTML = `

@@ -215,8 +215,68 @@ const Index = () => {
     isAgent: true
   }));
 
-  // Combine regular markers with agent markers
-  const allMarkers = [...markers, ...agentMarkers];
+  // Add various points of interest to make the map more interactive
+  const pointsOfInterest = mapCenter ? [
+    // Restaurants
+    {
+      lat: mapCenter.lat + 0.003,
+      lng: mapCenter.lng - 0.004,
+      name: "Cafe Deluxe",
+      type: "restaurant"
+    },
+    {
+      lat: mapCenter.lat - 0.006,
+      lng: mapCenter.lng - 0.003,
+      name: "Burger Express",
+      type: "restaurant"
+    },
+    // Shops
+    {
+      lat: mapCenter.lat + 0.007,
+      lng: mapCenter.lng + 0.002,
+      name: "Mini Market",
+      type: "shop"
+    },
+    // Parking
+    {
+      lat: mapCenter.lat - 0.002,
+      lng: mapCenter.lng + 0.006,
+      name: "Public Parking",
+      type: "parking"
+    },
+    // ATM
+    {
+      lat: mapCenter.lat + 0.001,
+      lng: mapCenter.lng - 0.007,
+      name: "ATM Center",
+      type: "atm"
+    },
+    // Car Wash
+    {
+      lat: mapCenter.lat - 0.004,
+      lng: mapCenter.lng - 0.005,
+      name: "Quick Car Wash",
+      type: "carwash"
+    }
+  ] : [];
+
+  // Convert POIs to markers
+  const poiMarkers = pointsOfInterest.map(poi => ({
+    position: {
+      lat: poi.lat,
+      lng: poi.lng
+    },
+    title: poi.name,
+    label: poi.type === "restaurant" ? "Restaurant" :
+           poi.type === "shop" ? "Shop" :
+           poi.type === "parking" ? "Parking" :
+           poi.type === "atm" ? "ATM" :
+           poi.type === "carwash" ? "Car Wash" : "POI",
+    poiType: poi.type
+  }));
+
+  // Combine all markers
+  const allMarkers = [...markers, ...agentMarkers, ...poiMarkers];
 
   // Location label from user's registration or device
   const locationLabel = userLocation ?
