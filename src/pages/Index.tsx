@@ -381,12 +381,12 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-      {/* Fixed Header - Android 14 Style */}
-      <div className="bg-white dark:bg-gray-900 shadow-sm sticky top-0 z-40">
-        <div className="flex justify-between items-center px-3 py-2 h-14">
-          <Avatar className="w-8 h-8 bg-green-500 border-2 border-green-300">
+      {/* Fixed Header - Android 14 Style - Optimized for portrait */}
+      <div className="bg-white dark:bg-gray-900 shadow-sm sticky top-0 z-40 w-full">
+        <div className="flex justify-between items-center px-2 py-1.5 h-12">
+          <Avatar className="w-7 h-7 bg-green-500 border-2 border-green-300">
             <AvatarFallback className="bg-gradient-to-br from-green-400 to-green-600">
-              <User className="h-4 w-4 text-white" />
+              <User className="h-3.5 w-3.5 text-white" />
             </AvatarFallback>
           </Avatar>
 
@@ -394,41 +394,41 @@ const Index = () => {
             <img
               src="/lovable-uploads/57aff490-f08a-4205-9ae9-496a32e810e6.png"
               alt="FUELFRIENDLY"
-              className="h-6"
+              className="h-5"
             />
           </div>
 
-          <div className="flex items-center gap-1">
-            <div className="rounded-full w-8 h-8 flex items-center justify-center bg-gray-100 dark:bg-gray-800">
-              <ThemeToggle />
+          <div className="flex items-center gap-0.5">
+            <div className="rounded-full w-7 h-7 flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+              <ThemeToggle className="h-3.5 w-3.5" />
             </div>
-            <button className="rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800">
-              <Bell className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+            <button className="rounded-full w-7 h-7 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800">
+              <Bell className="h-4 w-4 text-gray-700 dark:text-gray-300" />
             </button>
           </div>
         </div>
 
-        {/* Search - Compact Android 14 Style */}
-        <div className="px-3 py-2 flex items-center gap-2 pb-3">
+        {/* Search - Even More Compact Android 14 Style */}
+        <div className="px-2 py-1 flex items-center gap-1.5 pb-2">
           <div className="relative flex-1">
-            <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-              <Search className="h-3.5 w-3.5 text-gray-500" />
+            <div className="absolute inset-y-0 left-2.5 flex items-center pointer-events-none">
+              <Search className="h-3 w-3 text-gray-500" />
             </div>
             <input
               type="text"
               placeholder="Search for nearest gas stations..."
-              className="h-10 w-full rounded-full bg-gray-100 dark:bg-gray-800 pl-9 pr-3 text-xs focus:outline-none focus:ring-1 focus:ring-green-500"
+              className="h-8 w-full rounded-full bg-gray-100 dark:bg-gray-800 pl-7 pr-2.5 text-[10px] focus:outline-none focus:ring-1 focus:ring-green-500"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
           <button
-            className="h-10 w-10 flex items-center justify-center rounded-full bg-green-100 dark:bg-green-900"
+            className="h-8 w-8 flex items-center justify-center rounded-full bg-green-100 dark:bg-green-900"
             onClick={handleRefreshLocation}
           >
             {isLoadingLocation ?
-              <div className="h-4 w-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin" /> :
-              <Filter className="h-4 w-4 text-green-500" />
+              <div className="h-3 w-3 border-1.5 border-green-500 border-t-transparent rounded-full animate-spin" /> :
+              <Filter className="h-3 w-3 text-green-500" />
             }
           </button>
         </div>
@@ -725,31 +725,31 @@ const Index = () => {
 
       </div> {/* End of content-area */}
 
-      {/* Bottom Nav - Android 14 Style - Fixed Position */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 h-14 flex items-center justify-around px-2 z-50">
-        <div className="flex flex-col items-center text-green-500">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center bg-green-50 dark:bg-green-900/20">
-            <Home className="h-5 w-5" />
+      {/* Bottom Nav - Android 14 Style - Fixed Position - Optimized for portrait */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 h-12 flex items-center justify-around px-0 z-50 w-full max-w-[100vw] overflow-x-hidden">
+        <div className="flex flex-col items-center text-green-500 w-1/4">
+          <div className="w-8 h-8 rounded-full flex items-center justify-center bg-green-50 dark:bg-green-900/20">
+            <Home className="h-4 w-4" />
           </div>
-          <span className="text-[10px] mt-0.5">Home</span>
+          <span className="text-[9px] mt-0.5">Home</span>
         </div>
-        <div className="flex flex-col items-center text-gray-400">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800/50">
-            <ShoppingBag className="h-5 w-5" />
+        <div className="flex flex-col items-center text-gray-400 w-1/4">
+          <div className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800/50">
+            <ShoppingBag className="h-4 w-4" />
           </div>
-          <span className="text-[10px] mt-0.5">Orders</span>
+          <span className="text-[9px] mt-0.5">Orders</span>
         </div>
-        <div className="flex flex-col items-center text-gray-400">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800/50">
-            <MapPin className="h-5 w-5" />
+        <div className="flex flex-col items-center text-gray-400 w-1/4">
+          <div className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800/50">
+            <MapPin className="h-4 w-4" />
           </div>
-          <span className="text-[10px] mt-0.5">Track</span>
+          <span className="text-[9px] mt-0.5">Track</span>
         </div>
-        <div className="flex flex-col items-center text-gray-400">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800/50">
-            <Settings className="h-5 w-5" />
+        <div className="flex flex-col items-center text-gray-400 w-1/4">
+          <div className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800/50">
+            <Settings className="h-4 w-4" />
           </div>
-          <span className="text-[10px] mt-0.5">Settings</span>
+          <span className="text-[9px] mt-0.5">Settings</span>
         </div>
       </div>
     </div>

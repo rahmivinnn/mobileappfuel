@@ -10,41 +10,54 @@
   display: none;  /* Chrome, Safari, Opera */
 }
 
-/* Ensure content fits within viewport */
+/* Ensure content fits within viewport and prevent horizontal scroll */
 html, body {
   height: 100%;
   width: 100%;
-  overflow-x: hidden;
+  max-width: 100vw;
+  overflow-x: hidden !important;
   position: relative;
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
+  touch-action: pan-y;
 }
 
 /* Ensure app container fits viewport */
 #root {
   min-height: 100vh;
   height: 100%;
+  width: 100%;
+  max-width: 100vw;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow-x: hidden !important;
+  box-sizing: border-box;
 }
 
 /* Ensure main content area expands but doesn't overflow */
 .min-h-screen {
   min-height: 100vh;
   height: 100%;
+  width: 100%;
+  max-width: 100vw;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow-x: hidden !important;
+  box-sizing: border-box;
 }
 
 /* Create a scrollable content area that respects the fixed header and footer */
 .content-area {
   flex: 1;
   overflow-y: auto;
-  overflow-x: hidden;
-  padding-bottom: 3.5rem; /* Height of bottom nav */
+  overflow-x: hidden !important;
+  padding-bottom: 3rem; /* Height of bottom nav */
   -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  width: 100%;
+  max-width: 100vw;
+  box-sizing: border-box;
+  position: relative;
 }
 
 /* Ensure content area expands to fill available space */
@@ -60,8 +73,11 @@ html, body {
   right: 0;
   z-index: 50;
   width: 100%;
+  max-width: 100vw;
   background-color: white;
   border-top: 1px solid #e5e7eb;
+  box-sizing: border-box;
+  overflow-x: hidden !important;
 }
 
 .dark .fixed.bottom-0 {
@@ -106,26 +122,60 @@ input, select, textarea {
 /* Ensure proper spacing in portrait mode */
 @media (orientation: portrait) {
   .h-64 {
-    height: 16rem;
+    height: 14rem;
   }
 
   .h-72 {
-    height: 18rem;
+    height: 16rem;
+  }
+
+  .h-56 {
+    height: 12rem;
   }
 
   .h-14 {
     height: 3.5rem;
+  }
+
+  /* Reduce font sizes in portrait mode */
+  .text-lg {
+    font-size: 1rem;
+  }
+
+  .text-base {
+    font-size: 0.875rem;
+  }
+
+  .text-sm {
+    font-size: 0.75rem;
+  }
+
+  .text-xs {
+    font-size: 0.7rem;
+  }
+
+  /* Ensure all containers fit within viewport width */
+  .container, .px-3, .px-4, .mx-3, .mx-4 {
+    width: 100%;
+    max-width: 100vw;
+    box-sizing: border-box;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
   }
 }
 
 /* Ensure proper spacing in landscape mode */
 @media (orientation: landscape) {
   .h-64 {
-    height: 12rem;
+    height: 10rem;
   }
 
   .h-72 {
-    height: 14rem;
+    height: 12rem;
+  }
+
+  .h-56 {
+    height: 9rem;
   }
 }
 
@@ -146,21 +196,75 @@ input, select, textarea {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
-/* Android 14 specific font sizes */
+/* Android 14 specific font sizes - Smaller for better fit */
 .text-[10px] {
-  font-size: 10px;
+  font-size: 9px;
+}
+
+.text-[9px] {
+  font-size: 8px;
 }
 
 .text-xs {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
 }
 
 .text-sm {
-  font-size: 0.875rem;
+  font-size: 0.8rem;
+}
+
+.text-base {
+  font-size: 0.9rem;
 }
 
 .text-lg {
-  font-size: 1.125rem;
+  font-size: 1rem;
+}
+
+/* Additional styles for better fit */
+.w-full {
+  width: 100%;
+  max-width: 100vw;
+  box-sizing: border-box;
+}
+
+/* Fix header and bottom nav to fit screen width */
+.fixed, .sticky {
+  width: 100%;
+  max-width: 100vw;
+  left: 0;
+  right: 0;
+  box-sizing: border-box;
+  overflow-x: hidden !important;
+}
+
+/* Additional fixes for horizontal scroll issues */
+body * {
+  max-width: 100vw;
+  box-sizing: border-box;
+}
+
+/* Prevent horizontal scroll on all divs */
+div {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Fix for bottom nav */
+.fixed.bottom-0 {
+  width: 100vw;
+  max-width: 100%;
+  left: 0;
+  right: 0;
+  padding: 0;
+  margin: 0;
+}
+
+/* Fix for ThemeToggle position */
+.ThemeToggle {
+  position: absolute;
+  right: 0;
+  top: 0;
 }
 
 /* Android 14 specific animations */
