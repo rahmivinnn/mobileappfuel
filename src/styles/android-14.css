@@ -531,6 +531,83 @@ div {
   box-sizing: border-box !important;
 }
 
+/* Hardware acceleration for smoother animations and scrolling */
+body, .map-section, .mapboxgl-map, .fixed, .absolute, button, .custom-marker,
+.gas-station-card, .motion-div, .animate-pulse, .animate-bounce, .animate-spin,
+.transition-all, .transition-colors, .transition-transform {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  will-change: transform, opacity;
+}
+
+/* Optimize animations for native-like performance */
+@keyframes optimized-fade-in {
+  from { opacity: 0; transform: translateY(10px) translateZ(0); }
+  to { opacity: 1; transform: translateY(0) translateZ(0); }
+}
+
+@keyframes optimized-pulse {
+  0% { transform: scale(1) translateZ(0); }
+  50% { transform: scale(1.05) translateZ(0); }
+  100% { transform: scale(1) translateZ(0); }
+}
+
+@keyframes optimized-bounce {
+  0%, 100% { transform: translateY(0) translateZ(0); }
+  50% { transform: translateY(-5px) translateZ(0); }
+}
+
+/* Apply optimized animations */
+.animate-fade-in {
+  animation: optimized-fade-in 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-pulse {
+  animation: optimized-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-bounce {
+  animation: optimized-bounce 1s cubic-bezier(0.8, 0, 0.2, 1) infinite;
+}
+
+/* Optimize transitions */
+.transition-all {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Optimize scrolling */
+.smooth-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Optimize touch interactions for native-like feel */
+button, a, .clickable, .interactive, .custom-marker, .gas-station-card {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Optimize image rendering */
+img {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
 /* Fix for gas station cards */
 .gas-station-card {
   width: 100% !important;

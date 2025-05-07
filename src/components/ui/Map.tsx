@@ -1,9 +1,27 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { MAPBOX_TOKEN, MAP_STYLES } from '@/config/mapbox';
 import { Map as MapIcon, Layers, Car, Target, User, Info, Locate } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+
+// Preload map resources for faster rendering
+const preloadMapResources = () => {
+  const link = document.createElement('link');
+  link.rel = 'preload';
+  link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js';
+  link.as = 'script';
+  document.head.appendChild(link);
+
+  const styleLink = document.createElement('link');
+  styleLink.rel = 'preload';
+  styleLink.href = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css';
+  styleLink.as = 'style';
+  document.head.appendChild(styleLink);
+};
+
+// Call preload function
+preloadMapResources();
 
 // Set Mapbox token
 mapboxgl.accessToken = MAPBOX_TOKEN;
@@ -75,8 +93,8 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
     const [mapRotation, setMapRotation] = useState(initialBearing);
     const [is3DEnabled, setIs3DEnabled] = useState(enable3DBuildings);
 
-    // Gas station icon URL - using the Shell Beverly Hills style icon
-    const gasStationIconUrl = "/lovable-uploads/64ee380c-0fd5-4d42-a7f3-04aea8d9c56c.png";
+    // Gas station icon URL - using the Shell Beverly Hills style icon - Optimized with useMemo
+    const gasStationIconUrl = useMemo(() => "/lovable-uploads/64ee380c-0fd5-4d42-a7f3-04aea8d9c56c.png", []);
 
     // Initialize map
     useEffect(() => {
@@ -204,8 +222,8 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
       };
     }, []);
 
-    // Helper function to add 3D building layers
-    const add3DBuildings = (map: mapboxgl.Map) => {
+    // Helper function to add 3D building layers - Optimized with useCallback
+    const add3DBuildings = useCallback((map: mapboxgl.Map) => {
       try {
         console.log("Adding 3D buildings...");
 
@@ -352,10 +370,10 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
       } catch (error) {
         console.error("Error adding 3D buildings:", error);
       }
-    };
+    }, []);
 
-    // Toggle 3D buildings function with enhanced animation
-    const toggle3DBuildings = () => {
+    // Toggle 3D buildings function with enhanced animation - Optimized with useCallback
+    const toggle3DBuildings = useCallback(() => {
       if (!mapInstanceRef.current || !mapInstanceRef.current.loaded()) return;
 
       const map = mapInstanceRef.current;
@@ -422,7 +440,7 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
           duration: 2000
         });
       }
-    };
+    }, [is3DEnabled, mapRotation, add3DBuildings]);
 
     // Update map center and zoom when props change
     useEffect(() => {

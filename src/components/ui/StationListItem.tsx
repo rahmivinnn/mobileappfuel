@@ -163,4 +163,5 @@ const StationListItem: React.FC<StationListItemProps> = ({
   );
 };
 
-export default StationListItem;
+// Menggunakan React.memo untuk mencegah re-render yang tidak perlu
+export default React.memo(StationListItem);
