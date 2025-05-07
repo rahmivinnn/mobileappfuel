@@ -100,17 +100,13 @@ const StationCard: React.FC<StationCardProps> = ({
           </div>
         </div>
 
-        <div className="mt-3 h-24 rounded-lg overflow-hidden bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 flex items-center justify-center shadow-md">
-          <div className="flex flex-col items-center justify-center w-full h-full relative">
-            {/* Gas Station Icon */}
-            <div className="w-14 h-14 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center shadow-lg mb-1">
-              <GasPump className="w-8 h-8 text-green-500" />
-            </div>
+        <div className="mt-3 h-24 rounded-lg overflow-hidden bg-green-100 dark:bg-green-900/30 flex flex-col items-center justify-center shadow-md">
+          {/* Emoji Fallback */}
+          <div className="text-4xl mb-1">⛽</div>
 
-            {/* Brand Name */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg px-2 py-1 text-xs font-bold shadow-sm border border-gray-200 dark:border-gray-700 text-center">
-              {name.split(' ')[0]}
-            </div>
+          {/* Brand Name */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg px-2 py-1 text-xs font-bold shadow-sm text-center">
+            {name.split(' ')[0]}
           </div>
         </div>
       </div>

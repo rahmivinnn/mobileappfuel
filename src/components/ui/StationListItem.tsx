@@ -86,18 +86,14 @@ const StationListItem: React.FC<StationListItemProps> = ({
       whileTap={{ scale: 0.98 }}
     >
       <div className="flex p-2 gap-3">
-        {/* Gas Station Brand Icon */}
-        <div className="w-24 h-24 rounded-xl overflow-hidden bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 flex items-center justify-center shadow-md">
-          <div className="flex flex-col items-center justify-center w-full h-full relative">
-            {/* Gas Station Icon */}
-            <div className="w-14 h-14 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center shadow-lg mb-1">
-              <GasPump className="w-8 h-8 text-green-500" />
-            </div>
+        {/* Gas Station Brand Icon - Simplified */}
+        <div className="w-24 h-24 rounded-xl overflow-hidden bg-green-100 dark:bg-green-900/30 flex flex-col items-center justify-center shadow-md">
+          {/* Emoji Fallback */}
+          <div className="text-4xl mb-1">⛽</div>
 
-            {/* Brand Name */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg px-2 py-1 text-xs font-bold shadow-sm border border-gray-200 dark:border-gray-700 text-center">
-              {brand || name.split(' ')[0]}
-            </div>
+          {/* Brand Name */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg px-2 py-1 text-xs font-bold shadow-sm text-center">
+            {brand || name.split(' ')[0]}
           </div>
         </div>
 
