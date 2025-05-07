@@ -87,16 +87,19 @@ const StationListItem: React.FC<StationListItemProps> = ({
     >
       <div className="flex p-2 gap-3">
         {/* Consistent 3D Gas Station Icon for all stations */}
-        <div className="w-24 h-24 rounded-xl overflow-hidden bg-green-50 dark:bg-green-900/20 flex items-center justify-center">
+        <div className="w-24 h-24 rounded-xl overflow-hidden bg-white dark:bg-gray-800 flex items-center justify-center shadow-inner">
           <div className="flex items-center justify-center w-full h-full relative">
             <img
               src="/lovable-uploads/64ee380c-0fd5-4d42-a7f3-04aea8d9c56c.png"
               alt={name}
-              className="w-full h-full object-contain p-1"
+              className="w-20 h-20 object-contain"
+              style={{
+                filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))'
+              }}
             />
             {/* Brand badge if available */}
             {brand && (
-              <div className="absolute bottom-1 right-1 bg-white dark:bg-gray-800 rounded-full px-2 py-0.5 text-xs font-bold shadow-sm">
+              <div className="absolute bottom-1 right-1 bg-white dark:bg-gray-800 rounded-full px-2 py-0.5 text-xs font-bold shadow-sm border border-gray-200 dark:border-gray-700">
                 {brand}
               </div>
             )}

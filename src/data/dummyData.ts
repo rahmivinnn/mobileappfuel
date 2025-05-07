@@ -7,16 +7,16 @@ function generateRandomCoordinates(baseLat: number, baseLng: number, radiusInKm:
   const degreesToRadians = Math.PI / 180;
   const radiansToDegreesLat = 180 / Math.PI;
   const radiansToDegreesLng = 180 / Math.PI / Math.cos(baseLat * degreesToRadians);
-  
+
   const randomDistance = Math.random() * radiusInKm;
   const randomAngle = Math.random() * 2 * Math.PI;
-  
+
   const latOffset = randomDistance / earthRadius * radiansToDegreesLat;
   const lngOffset = randomDistance / earthRadius * radiansToDegreesLng;
-  
+
   const lat = baseLat + latOffset * Math.sin(randomAngle);
   const lng = baseLng + lngOffset * Math.cos(randomAngle);
-  
+
   return { lat, lng };
 }
 
@@ -26,9 +26,9 @@ const losAngelesLng = -118.2437;
 
 // Gas station brand names in the US
 const stationBrands = [
-  'Shell', 
-  'Chevron', 
-  'Exxon', 
+  'Shell',
+  'Chevron',
+  'Exxon',
   'Mobil',
   'BP',
   'Texaco',
@@ -100,16 +100,8 @@ export const fuelTypes = [
   { id: 'e85', name: 'E85', price: 3.49 }
 ];
 
-// Generate station images
-const stationImages = [
-  '/lovable-uploads/00333baa-ca73-4e51-8f20-49acab199b5b.png',
-  '/lovable-uploads/049ef9d2-46de-4e78-bee2-10fa706d9425.png',
-  '/lovable-uploads/8c6a633e-ae68-4424-b2b3-4458a96b7d3b.png',
-  '/lovable-uploads/aafa9060-dd0c-4f89-9725-afe221ab74ba.png',
-  '/lovable-uploads/ba008608-8960-40b9-8a96-e5b173a48e08.png',
-  '/lovable-uploads/c123a960-63f7-48ab-b0a0-6f29584106f7.png',
-  '/lovable-uploads/b5fa7932-1a2e-4d11-bb77-3553f76ae527.png'
-];
+// Use consistent Shell Beverly Hills style gas station icon
+const stationIcon = '/lovable-uploads/64ee380c-0fd5-4d42-a7f3-04aea8d9c56c.png';
 
 // Generate 100 random gas stations
 export const allStations = Array.from({ length: 100 }, (_, i) => {
@@ -122,19 +114,19 @@ export const allStations = Array.from({ length: 100 }, (_, i) => {
   const rating = (3 + Math.random() * 2).toFixed(1);
   const reviewCount = Math.floor(Math.random() * 100) + 5;
   const isOpen = Math.random() > 0.2; // 80% chance of being open
-  const imageUrl = stationImages[Math.floor(Math.random() * stationImages.length)];
-  
+  const imageUrl = stationIcon; // Use consistent Shell Beverly Hills style icon
+
   // Generate random hours
   const openHour = Math.floor(Math.random() * 6) + 5; // 5 AM to 10 AM
   const closeHour = Math.floor(Math.random() * 6) + 18; // 6 PM to 11 PM
   const is24Hours = Math.random() > 0.7; // 30% chance of being 24 hours
-  
+
   // Generate random available fuel types and prices
   const availableFuels = fuelTypes.filter(() => Math.random() > 0.3).map(fuel => ({
     ...fuel,
     price: (fuel.price + (Math.random() * 0.6 - 0.3)).toFixed(2) // Add random price variation in USD
   }));
-  
+
   return {
     id: (i + 1).toString(),
     name: `${brandName} ${area}`,
@@ -171,7 +163,7 @@ export const orderHistory = Array.from({ length: 100 }, (_, i) => {
   const orderDate = new Date();
   orderDate.setDate(orderDate.getDate() - Math.floor(Math.random() * 30)); // Random date in the last 30 days
   const status = orderStatuses[Math.floor(Math.random() * orderStatuses.length)];
-  
+
   return {
     id: `ORD-${100000 + i}`,
     stationId: station.id,
