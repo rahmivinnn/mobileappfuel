@@ -55,12 +55,12 @@ const MapView: React.FC = () => {
       setIsLoadingStations(false);
     }
   }, []);
-  
+
   // Handle location selection from LocationSelector
   const handleLocationSelected = useCallback(async (city: string, country: string, coordinates: {lat: number, lng: number}) => {
     setMapCenter(coordinates);
     await updateStationsForCoordinates(coordinates);
-    
+
     toast({
       title: "Map Updated",
       description: `Showing gas stations near ${city}, ${country}`,
@@ -71,36 +71,36 @@ const MapView: React.FC = () => {
   useEffect(() => {
     const initializeLocation = async () => {
       setIsLoadingLocation(true);
-      
+
       // Check if we have user location from registration first
       if (userLocation && !userLocation.isLoading && userLocation.coordinates) {
         console.log("MapView: Using user's registered location:", userLocation);
         setMapCenter(userLocation.coordinates);
         await updateStationsForCoordinates(userLocation.coordinates);
         setIsLoadingLocation(false);
-      } 
+      }
       // Fallback to device geolocation if available
       else if (location && location.coordinates) {
         console.log("MapView: Using device geolocation:", location);
         setMapCenter(location.coordinates);
         await updateStationsForCoordinates(location.coordinates);
         setIsLoadingLocation(false);
-      } 
+      }
       // Otherwise, use default location (Jakarta)
       else {
         console.log("MapView: Using default location (Jakarta)");
         setMapCenter(DEFAULT_COORDINATES);
         await updateStationsForCoordinates(DEFAULT_COORDINATES);
-        
+
         toast({
           title: "Using default location",
           description: "We couldn't determine your location. Showing Jakarta, Indonesia.",
         });
-        
+
         setIsLoadingLocation(false);
       }
     };
-    
+
     initializeLocation();
   }, [userLocation, location, updateStationsForCoordinates]);
 
@@ -108,7 +108,7 @@ const MapView: React.FC = () => {
   const handleRefreshLocation = async () => {
     setIsLoadingLocation(true);
     setIsLoadingStations(true);
-    
+
     try {
       // Try to refresh user's registered location first
       if (userLocation) {
@@ -129,7 +129,7 @@ const MapView: React.FC = () => {
           await updateStationsForCoordinates(DEFAULT_COORDINATES);
         }
       }
-      
+
       toast({
         title: "Location refreshed",
         description: "Showing updated nearby stations",
@@ -148,12 +148,12 @@ const MapView: React.FC = () => {
   };
 
   // Sort stations by distance
-  const sortedStations = [...stationsWithDistance].sort((a, b) => 
+  const sortedStations = [...stationsWithDistance].sort((a, b) =>
     parseFloat(a.distance) - parseFloat(b.distance)
   );
 
-  // Gas station image URL - updated to use the new 3D gas station image
-  const gasStationIconUrl = "/lovable-uploads/8bb583f1-3cc3-48b8-9f8b-904bfcfe84ef.png";
+  // Gas station image URL - updated to use the Shell Beverly Hills style icon
+  const gasStationIconUrl = "/lovable-uploads/64ee380c-0fd5-4d42-a7f3-04aea8d9c56c.png";
 
   // Convert stations to map markers
   const markers = sortedStations.slice(0, 10).map(station => ({
@@ -166,35 +166,44 @@ const MapView: React.FC = () => {
     label: "Gas Station"
   }));
 
-  // Add FuelFriendly agents as markers - based on current location
+  // Add FuelFriendly agents as markers - based on current location with more agents
   const fuelAgents = mapCenter ? [
-    { 
-      lat: mapCenter.lat + 0.005, 
-      lng: mapCenter.lng + 0.005, 
-      name: "Agent John" 
+    {
+      lat: mapCenter.lat + 0.005,
+      lng: mapCenter.lng + 0.005,
+      name: "Agent John"
     },
-    { 
-      lat: mapCenter.lat - 0.008, 
-      lng: mapCenter.lng + 0.007, 
-      name: "Agent Sarah" 
+    {
+      lat: mapCenter.lat - 0.008,
+      lng: mapCenter.lng + 0.007,
+      name: "Agent Sarah"
     },
-    { 
-      lat: mapCenter.lat + 0.007, 
-      lng: mapCenter.lng - 0.009, 
-      name: "Agent Mike" 
+    {
+      lat: mapCenter.lat + 0.007,
+      lng: mapCenter.lng - 0.009,
+      name: "Agent Mike"
+    },
+    {
+      lat: mapCenter.lat - 0.004,
+      lng: mapCenter.lng - 0.006,
+      name: "Agent Lisa"
+    },
+    {
+      lat: mapCenter.lat + 0.009,
+      lng: mapCenter.lng + 0.003,
+      name: "Agent David"
     }
   ] : [];
 
-  // Add FuelFriendly agents as markers
+  // Add FuelFriendly agents as markers with explicit isAgent flag
   const agentMarkers = fuelAgents.map(agent => ({
     position: {
       lat: agent.lat,
       lng: agent.lng
     },
     title: agent.name,
-    icon: "/lovable-uploads/1bc06a60-0463-4f47-abde-502bc408852e.png",
-    label: "FuelFriendly Agent",
-    isAgent: true
+    label: "Fuel Agent",
+    isAgent: true // This flag is critical for the marker to be rendered as an agent
   }));
 
   // Combine regular markers with agent markers
@@ -232,8 +241,8 @@ const MapView: React.FC = () => {
   };
 
   // Location label from user's registration or device
-  const locationLabel = userLocation ? 
-    `${userLocation.city}, ${userLocation.country}` : 
+  const locationLabel = userLocation ?
+    `${userLocation.city}, ${userLocation.country}` :
     (location ? `${location.city}, ${location.country}` : 'Unknown Location');
 
   return (
@@ -243,7 +252,7 @@ const MapView: React.FC = () => {
       {/* Map Style and 3D Controls */}
       <div className="mx-4 my-2 flex flex-wrap justify-between items-center gap-2">
         <div className="flex flex-wrap gap-2">
-          <Button 
+          <Button
             size="sm"
             variant={currentMapStyle === MAP_STYLES.STREETS ? "default" : "outline"}
             className={currentMapStyle === MAP_STYLES.STREETS ? "bg-green-500 hover:bg-green-600" : ""}
@@ -252,7 +261,7 @@ const MapView: React.FC = () => {
             <Globe className="h-3 w-3 mr-1" />
             Streets
           </Button>
-          <Button 
+          <Button
             size="sm"
             variant={currentMapStyle === MAP_STYLES.SATELLITE ? "default" : "outline"}
             className={currentMapStyle === MAP_STYLES.SATELLITE ? "bg-green-500 hover:bg-green-600" : ""}
@@ -261,7 +270,7 @@ const MapView: React.FC = () => {
             <Globe className="h-3 w-3 mr-1" />
             Satellite
           </Button>
-          <Button 
+          <Button
             size="sm"
             variant={currentMapStyle === MAP_STYLES.DARK ? "default" : "outline"}
             className={currentMapStyle === MAP_STYLES.DARK ? "bg-green-500 hover:bg-green-600" : ""}
@@ -270,9 +279,9 @@ const MapView: React.FC = () => {
             <Globe className="h-3 w-3 mr-1" />
             Dark
           </Button>
-          
+
           {/* 3D Buildings Toggle */}
-          <Button 
+          <Button
             size="sm"
             variant={enable3DBuildings ? "default" : "outline"}
             className={enable3DBuildings ? "bg-purple-500 hover:bg-purple-600" : ""}
@@ -284,11 +293,11 @@ const MapView: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          <LocationSelector 
-            compact={true} 
-            onLocationSelected={handleLocationSelected} 
+          <LocationSelector
+            compact={true}
+            onLocationSelected={handleLocationSelected}
           />
-          <Button 
+          <Button
             size="sm"
             variant="outline"
             onClick={handleRefreshLocation}
@@ -333,9 +342,9 @@ const MapView: React.FC = () => {
           <div className="flex-1">
             <p className="text-sm">Location permission denied. Please enable location services for better results.</p>
           </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             className="border-red-500 text-red-500 hover:bg-red-500/20"
             onClick={handleRefreshLocation}
           >

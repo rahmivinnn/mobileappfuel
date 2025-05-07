@@ -75,8 +75,8 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
     const [mapRotation, setMapRotation] = useState(initialBearing);
     const [is3DEnabled, setIs3DEnabled] = useState(enable3DBuildings);
 
-    // Gas station icon URL - using the orange gas station image
-    const gasStationIconUrl = "/lovable-uploads/8bb583f1-3cc3-48b8-9f8b-904bfcfe84ef.png";
+    // Gas station icon URL - using the Shell Beverly Hills style icon
+    const gasStationIconUrl = "/lovable-uploads/64ee380c-0fd5-4d42-a7f3-04aea8d9c56c.png";
 
     // Initialize map
     useEffect(() => {
@@ -689,6 +689,36 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
                 <path d="M7 6C7 6 9 4 12 4C15 4 17 6 17 6" stroke="white" stroke-width="1" stroke-linecap="round" stroke-dasharray="1 1"/>
               `;
               break;
+            case 'hotel':
+              poiColor = '#E91E63'; // Pink
+              poiSvg = `
+                <!-- Hotel icon -->
+                <circle cx="12" cy="12" r="11" fill="${poiColor}" stroke="#333" stroke-width="1"/>
+                <rect x="6" y="8" width="12" height="10" rx="1" fill="${poiColor}" stroke="white" stroke-width="1.5"/>
+                <rect x="9" y="11" width="6" height="4" rx="1" fill="white"/>
+                <path d="M6 8V6H18V8" stroke="white" stroke-width="1.5"/>
+              `;
+              break;
+            case 'hospital':
+              poiColor = '#F44336'; // Red
+              poiSvg = `
+                <!-- Hospital icon -->
+                <circle cx="12" cy="12" r="11" fill="${poiColor}" stroke="#333" stroke-width="1"/>
+                <rect x="7" y="7" width="10" height="10" rx="1" fill="${poiColor}" stroke="white" stroke-width="1.5"/>
+                <path d="M12 7V17" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                <path d="M7 12H17" stroke="white" stroke-width="2" stroke-linecap="round"/>
+              `;
+              break;
+            case 'charging':
+              poiColor = '#8BC34A'; // Light Green
+              poiSvg = `
+                <!-- EV Charging icon -->
+                <circle cx="12" cy="12" r="11" fill="${poiColor}" stroke="#333" stroke-width="1"/>
+                <path d="M12 5V12M12 12L9 9M12 12L15 9" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <rect x="8" y="12" width="8" height="6" rx="1" fill="${poiColor}" stroke="white" stroke-width="1.5"/>
+                <path d="M10 15H14" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+              `;
+              break;
             default:
               poiSvg = `
                 <!-- Default POI icon -->
@@ -758,40 +788,45 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
             document.head.appendChild(style);
           }
         } else {
-          // Enhanced interactive gas station marker with SVG
+          // Enhanced interactive gas station marker with Shell Beverly Hills style
+          const markerImageUrl = gasStationIconUrl;
+
           el.innerHTML = `
             <div style="
-              width: 40px;
-              height: 40px;
+              width: 44px;
+              height: 44px;
               position: relative;
-              transform: translateY(-20px);
+              transform: translateY(-22px);
               transition: all 0.3s ease;
             ">
               <div style="
-                width: 40px;
-                height: 40px;
+                width: 44px;
+                height: 44px;
                 position: relative;
                 filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3));
                 transform-origin: bottom center;
                 animation: marker-bounce 0.5s ease-out;
               ">
-                <!-- SVG Gas Station Icon -->
-                <svg viewBox="0 0 24 24" width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <!-- Base -->
-                  <path d="M4 22V7a2 2 0 012-2h12a2 2 0 012 2v15" fill="#FF6B35" stroke="#333" stroke-width="1.5"/>
-                  <!-- Roof -->
-                  <path d="M2 7h20" stroke="#333" stroke-width="1.5"/>
-                  <path d="M3 5h18L19 2H5L3 5z" fill="#FF6B35" stroke="#333" stroke-width="1.5"/>
-                  <!-- Pump -->
-                  <rect x="7" y="10" width="10" height="8" rx="1" fill="#FFFFFF" stroke="#333" stroke-width="1"/>
-                  <!-- Display -->
-                  <rect x="8" y="11" width="8" height="3" rx="0.5" fill="#333"/>
-                  <!-- Nozzle -->
-                  <path d="M12 18v2" stroke="#333" stroke-width="1.5" stroke-linecap="round"/>
-                  <path d="M10 20h4" stroke="#333" stroke-width="1.5" stroke-linecap="round"/>
-                  <!-- Glow effect for interactivity -->
-                  <circle cx="12" cy="12" r="11" fill="rgba(255, 107, 53, 0.15)" stroke="none"/>
-                </svg>
+                <!-- Shell Beverly Hills Gas Station Image -->
+                <img
+                  src="${markerImageUrl}"
+                  style="width: 44px; height: 44px; object-fit: contain;"
+                  alt="Gas Station"
+                  onerror="this.onerror=null; this.src='/lovable-uploads/8bb583f1-3cc3-48b8-9f8b-904bfcfe84ef.png';"
+                />
+
+                <!-- Glow effect for interactivity -->
+                <div style="
+                  position: absolute;
+                  top: 0;
+                  left: 0;
+                  width: 44px;
+                  height: 44px;
+                  border-radius: 50%;
+                  background: rgba(255, 215, 0, 0.15);
+                  animation: pulse-station 2s ease-out infinite;
+                  z-index: -1;
+                "></div>
               </div>
 
               ${marker.label ?
@@ -831,6 +866,11 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
               @keyframes fade-in {
                 0% { opacity: 0; transform: translateY(5px) translateX(-50%); }
                 100% { opacity: 1; transform: translateY(0) translateX(-50%); }
+              }
+              @keyframes pulse-station {
+                0% { transform: scale(1); opacity: 0.3; }
+                50% { transform: scale(1.2); opacity: 0.2; }
+                100% { transform: scale(1.4); opacity: 0; }
               }
             `;
             document.head.appendChild(style);

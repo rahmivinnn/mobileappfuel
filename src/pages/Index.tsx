@@ -158,8 +158,8 @@ const Index = () => {
     }
   };
 
-  // Gas station image URL - updated to use the new 3D gas station image
-  const gasStationIconUrl = "/lovable-uploads/8bb583f1-3cc3-48b8-9f8b-904bfcfe84ef.png";
+  // Gas station image URL - updated to use the Shell Beverly Hills style icon
+  const gasStationIconUrl = "/lovable-uploads/64ee380c-0fd5-4d42-a7f3-04aea8d9c56c.png";
 
   // Toggle 3D buildings with enhanced feedback
   const toggle3DBuildings = () => {
@@ -189,7 +189,7 @@ const Index = () => {
     label: "Gas Station"
   }));
 
-  // Add FuelFriendly agents as markers - adjusted based on current location
+  // Add FuelFriendly agents as markers - adjusted based on current location and increased count
   const fuelAgents = mapCenter ? [
     {
       lat: mapCenter.lat + 0.005,
@@ -200,19 +200,28 @@ const Index = () => {
       lat: mapCenter.lat - 0.008,
       lng: mapCenter.lng + 0.007,
       name: "Agent Sarah"
+    },
+    {
+      lat: mapCenter.lat - 0.003,
+      lng: mapCenter.lng - 0.006,
+      name: "Agent Mike"
+    },
+    {
+      lat: mapCenter.lat + 0.009,
+      lng: mapCenter.lng - 0.004,
+      name: "Agent Lisa"
     }
   ] : [];
 
-  // Add FuelFriendly agents as markers
+  // Add FuelFriendly agents as markers with explicit isAgent flag
   const agentMarkers = fuelAgents.map(agent => ({
     position: {
       lat: agent.lat,
       lng: agent.lng
     },
     title: agent.name,
-    icon: "/lovable-uploads/1bc06a60-0463-4f47-abde-502bc408852e.png",
-    label: "FuelFriendly Agent",
-    isAgent: true
+    label: "Fuel Agent",
+    isAgent: true // This flag is critical for the marker to be rendered as an agent
   }));
 
   // Add various points of interest to make the map more interactive
@@ -230,11 +239,23 @@ const Index = () => {
       name: "Burger Express",
       type: "restaurant"
     },
+    {
+      lat: mapCenter.lat + 0.006,
+      lng: mapCenter.lng + 0.008,
+      name: "Pizza Palace",
+      type: "restaurant"
+    },
     // Shops
     {
       lat: mapCenter.lat + 0.007,
       lng: mapCenter.lng + 0.002,
       name: "Mini Market",
+      type: "shop"
+    },
+    {
+      lat: mapCenter.lat - 0.005,
+      lng: mapCenter.lng + 0.004,
+      name: "Convenience Store",
       type: "shop"
     },
     // Parking
@@ -244,11 +265,23 @@ const Index = () => {
       name: "Public Parking",
       type: "parking"
     },
+    {
+      lat: mapCenter.lat + 0.004,
+      lng: mapCenter.lng - 0.008,
+      name: "Garage Parking",
+      type: "parking"
+    },
     // ATM
     {
       lat: mapCenter.lat + 0.001,
       lng: mapCenter.lng - 0.007,
       name: "ATM Center",
+      type: "atm"
+    },
+    {
+      lat: mapCenter.lat - 0.007,
+      lng: mapCenter.lng + 0.001,
+      name: "Bank ATM",
       type: "atm"
     },
     // Car Wash
@@ -257,6 +290,27 @@ const Index = () => {
       lng: mapCenter.lng - 0.005,
       name: "Quick Car Wash",
       type: "carwash"
+    },
+    // Hotels
+    {
+      lat: mapCenter.lat + 0.008,
+      lng: mapCenter.lng - 0.002,
+      name: "Grand Hotel",
+      type: "hotel"
+    },
+    // Hospitals
+    {
+      lat: mapCenter.lat - 0.009,
+      lng: mapCenter.lng - 0.001,
+      name: "City Hospital",
+      type: "hospital"
+    },
+    // EV Charging
+    {
+      lat: mapCenter.lat + 0.002,
+      lng: mapCenter.lng + 0.009,
+      name: "EV Charging Station",
+      type: "charging"
     }
   ] : [];
 
@@ -271,7 +325,10 @@ const Index = () => {
            poi.type === "shop" ? "Shop" :
            poi.type === "parking" ? "Parking" :
            poi.type === "atm" ? "ATM" :
-           poi.type === "carwash" ? "Car Wash" : "POI",
+           poi.type === "carwash" ? "Car Wash" :
+           poi.type === "hotel" ? "Hotel" :
+           poi.type === "hospital" ? "Hospital" :
+           poi.type === "charging" ? "EV Charging" : "POI",
     poiType: poi.type
   }));
 
