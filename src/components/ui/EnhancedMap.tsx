@@ -62,19 +62,19 @@ const EnhancedMap: React.FC<EnhancedMapProps> = ({
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
   const popupRef = useRef<mapboxgl.Popup | null>(null);
-  
+
   // State
   const [mapLoaded, setMapLoaded] = useState(false);
   const [currentMapStyle, setCurrentMapStyle] = useState(mapStyle);
   const [is3DEnabled, setIs3DEnabled] = useState(enable3DBuildings);
 
-  // Icon URLs
+  // Icon URLs - using existing icons from the project
   const iconUrls = {
-    [IconType.FUEL_AGENT]: '/lovable-uploads/fuel-agent.png',
-    [IconType.GAS_STATION]: '/lovable-uploads/64ee380c-0fd5-4d42-a7f3-04aea8d9c56c.png',
-    [IconType.EV_CHARGING]: '/lovable-uploads/ev-charging.png',
-    [IconType.CAR_REPAIR]: '/lovable-uploads/car-repair.png',
-    [IconType.COFFEE_SHOP]: '/lovable-uploads/coffee-shop.png'
+    [IconType.FUEL_AGENT]: '/lovable-uploads/57aff490-f08a-4205-9ae9-496a32e810e6.png', // FUELFRIENDLY logo
+    [IconType.GAS_STATION]: '/lovable-uploads/aafa9060-dd0c-4f89-9725-afe221ab74ba.png', // Existing gas station icon
+    [IconType.EV_CHARGING]: '/lovable-uploads/b5fa7932-1a2e-4d11-bb77-3553f76ae527.png', // Another existing icon
+    [IconType.CAR_REPAIR]: '/lovable-uploads/c123a960-63f7-48ab-b0a0-6f29584106f7.png', // Another existing icon
+    [IconType.COFFEE_SHOP]: '/lovable-uploads/ba008608-8960-40b9-8a96-e5b173a48e08.png' // Another existing icon
   };
 
   // Initialize map
@@ -197,32 +197,32 @@ const EnhancedMap: React.FC<EnhancedMapProps> = ({
   // Update map style when it changes
   useEffect(() => {
     if (!mapInstanceRef.current || !mapLoaded || currentMapStyle === mapStyle) return;
-    
+
     setCurrentMapStyle(mapStyle);
-    
+
     const map = mapInstanceRef.current;
     map.setStyle(mapStyle);
-    
+
     // Re-add 3D buildings after style change if enabled
     map.once('style.load', () => {
       if (is3DEnabled) {
         add3DBuildings(map);
       }
-      
+
       if (showTraffic) {
         addTrafficLayer(map);
       }
     });
-    
+
     if (onStyleChange) onStyleChange(mapStyle);
   }, [mapStyle, mapLoaded]);
 
   // Add markers as symbol layers
   useEffect(() => {
     if (!mapInstanceRef.current || !mapLoaded || markers.length === 0) return;
-    
+
     const map = mapInstanceRef.current;
-    
+
     // Create GeoJSON data for each marker type
     const markersByType = markers.reduce((acc, marker) => {
       if (!acc[marker.type]) {
@@ -231,7 +231,7 @@ const EnhancedMap: React.FC<EnhancedMapProps> = ({
           features: []
         };
       }
-      
+
       acc[marker.type].features.push({
         type: 'Feature',
         geometry: {
@@ -245,23 +245,23 @@ const EnhancedMap: React.FC<EnhancedMapProps> = ({
           ...marker.properties
         }
       });
-      
+
       return acc;
     }, {} as Record<string, GeoJSON.FeatureCollection>);
-    
+
     // Add each marker type as a separate source and layer
     Object.entries(markersByType).forEach(([type, geojson]) => {
       const sourceId = `source-${type}`;
       const layerId = `layer-${type}`;
       const clusterId = `cluster-${type}`;
       const clusterCountId = `cluster-count-${type}`;
-      
+
       // Remove existing layers and sources if they exist
       if (map.getLayer(clusterCountId)) map.removeLayer(clusterCountId);
       if (map.getLayer(clusterId)) map.removeLayer(clusterId);
       if (map.getLayer(layerId)) map.removeLayer(layerId);
       if (map.getSource(sourceId)) map.removeSource(sourceId);
-      
+
       // Add source
       map.addSource(sourceId, {
         type: 'geojson',
@@ -270,7 +270,7 @@ const EnhancedMap: React.FC<EnhancedMapProps> = ({
         clusterMaxZoom: 14,
         clusterRadius: 50
       });
-      
+
       // Add clustering layers if enabled and needed
       if (enableClustering && geojson.features.length > 100) {
         // Add clusters
@@ -296,7 +296,7 @@ const EnhancedMap: React.FC<EnhancedMapProps> = ({
             ]
           }
         });
-        
+
         // Add cluster count
         map.addLayer({
           id: clusterCountId,
@@ -310,7 +310,7 @@ const EnhancedMap: React.FC<EnhancedMapProps> = ({
           }
         });
       }
-      
+
       // Add symbol layer for individual markers
       map.addLayer({
         id: layerId,
@@ -335,7 +335,7 @@ const EnhancedMap: React.FC<EnhancedMapProps> = ({
         }
       });
     });
-    
+
     // Load images for each icon type
     Object.entries(iconUrls).forEach(([type, url]) => {
       if (!map.hasImage(type)) {
@@ -344,30 +344,30 @@ const EnhancedMap: React.FC<EnhancedMapProps> = ({
             console.error(`Error loading image for ${type}:`, error);
             return;
           }
-          
+
           if (image && !map.hasImage(type)) {
             map.addImage(type, image);
           }
         });
       }
     });
-    
+
     // Add click event for markers
     if (onMarkerClick) {
       Object.keys(markersByType).forEach(type => {
         const layerId = `layer-${type}`;
-        
+
         map.on('click', layerId, (e) => {
           if (e.features && e.features.length > 0) {
             const feature = e.features[0];
             const props = feature.properties;
-            
+
             if (props) {
               const marker = markers.find(m => m.id === props.id);
               if (marker) {
                 // Show popup
                 if (popupRef.current) popupRef.current.remove();
-                
+
                 popupRef.current = new mapboxgl.Popup()
                   .setLngLat(e.lngLat)
                   .setHTML(`
@@ -377,19 +377,19 @@ const EnhancedMap: React.FC<EnhancedMapProps> = ({
                     </div>
                   `)
                   .addTo(map);
-                
+
                 // Call marker click handler
                 onMarkerClick(marker);
               }
             }
           }
         });
-        
+
         // Change cursor to pointer when hovering over markers
         map.on('mouseenter', layerId, () => {
           map.getCanvas().style.cursor = 'pointer';
         });
-        
+
         map.on('mouseleave', layerId, () => {
           map.getCanvas().style.cursor = '';
         });
