@@ -138,10 +138,10 @@ const StationListItem: React.FC<StationListItemProps> = ({
       </div>
 
       {/* Action buttons - Ultra compact */}
-      <div className="flex w-full">
+      <div className="flex w-full overflow-hidden rounded-b-lg">
         <button
           onClick={handleClick}
-          className="flex-1 bg-green-500 text-white py-1 text-[7px] font-medium hover:bg-green-600 transition-colors"
+          className="flex-1 bg-green-500 text-white py-2 text-xs font-medium hover:bg-green-600 transition-colors"
         >
           Select {brand || name.split(' ')[0]}
         </button>
@@ -152,9 +152,9 @@ const StationListItem: React.FC<StationListItemProps> = ({
               e.stopPropagation();
               onViewMap();
             }}
-            className="bg-blue-500 text-white py-1 px-1.5 text-[7px] font-medium hover:bg-blue-600 transition-colors flex items-center justify-center"
+            className="bg-blue-500 text-white py-2 px-3 text-xs font-medium hover:bg-blue-600 transition-colors flex items-center justify-center"
           >
-            <Map className="h-2 w-2 mr-0.5" />
+            <Map className="h-3 w-3 mr-1" />
             View Map
           </button>
         )}

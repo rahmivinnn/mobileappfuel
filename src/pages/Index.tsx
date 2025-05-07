@@ -575,9 +575,9 @@ const Index = () => {
           />
 
           {/* Floating action buttons for map - Ultra compact */}
-          <div className="absolute bottom-1.5 right-1.5 flex flex-col gap-0.5 z-10">
+          <div className="absolute bottom-10 right-4 flex flex-col gap-1 z-10">
             <button
-              className="bg-white dark:bg-gray-800 rounded-full w-5 h-5 flex items-center justify-center shadow-sm border border-gray-200 dark:border-gray-700"
+              className="bg-white dark:bg-gray-800 rounded-full w-8 h-8 flex items-center justify-center shadow-md border border-gray-200 dark:border-gray-700"
               onClick={() => {
                 // Animate map refresh
                 const map = document.querySelector('.mapboxgl-map') as HTMLElement;
@@ -726,7 +726,7 @@ const Index = () => {
       </div> {/* End of content-area */}
 
       {/* Bottom Nav - Android 14 Style - Fixed Position - Optimized for portrait */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 h-12 flex items-center justify-around px-0 z-50 w-full max-w-[100vw] overflow-x-hidden">
+      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 h-14 flex items-center justify-around px-0 z-50 w-full max-w-[100vw] overflow-hidden">
         <div className="flex flex-col items-center text-green-500 w-1/4">
           <div className="w-8 h-8 rounded-full flex items-center justify-center bg-green-50 dark:bg-green-900/20">
             <Home className="h-4 w-4" />
