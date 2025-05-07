@@ -10,7 +10,7 @@
   display: none;  /* Chrome, Safari, Opera */
 }
 
-/* Ensure content fits within viewport and prevent horizontal scroll */
+/* Ensure content fits within viewport and prevent horizontal scroll - Optimized for 720x1600 */
 html, body {
   height: 100%;
   width: 100%;
@@ -21,6 +21,8 @@ html, body {
   padding: 0;
   box-sizing: border-box;
   touch-action: pan-y;
+  max-width: 720px;
+  margin: 0 auto;
 }
 
 /* Ensure app container fits viewport */
@@ -28,11 +30,12 @@ html, body {
   min-height: 100vh;
   height: 100%;
   width: 100%;
-  max-width: 100vw;
+  max-width: 720px;
   display: flex;
   flex-direction: column;
   overflow-x: hidden !important;
   box-sizing: border-box;
+  margin: 0 auto;
 }
 
 /* Ensure main content area expands but doesn't overflow */
@@ -40,11 +43,12 @@ html, body {
   min-height: 100vh;
   height: 100%;
   width: 100%;
-  max-width: 100vw;
+  max-width: 720px;
   display: flex;
   flex-direction: column;
   overflow-x: hidden !important;
   box-sizing: border-box;
+  margin: 0 auto;
 }
 
 /* Create a scrollable content area that respects the fixed header and footer */
@@ -55,9 +59,10 @@ html, body {
   padding-bottom: 3rem; /* Height of bottom nav */
   -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
   width: 100%;
-  max-width: 100vw;
+  max-width: 720px;
   box-sizing: border-box;
   position: relative;
+  margin: 0 auto;
 }
 
 /* Ensure content area expands to fill available space */
@@ -69,15 +74,16 @@ html, body {
 .fixed.bottom-0 {
   position: fixed;
   bottom: 0;
-  left: 0;
-  right: 0;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 50;
   width: 100%;
-  max-width: 100vw;
+  max-width: 720px;
   background-color: white;
   border-top: 1px solid #e5e7eb;
   box-sizing: border-box;
   overflow-x: hidden !important;
+  margin: 0 auto;
 }
 
 .dark .fixed.bottom-0 {
@@ -231,33 +237,47 @@ input, select, textarea {
 /* Fix header and bottom nav to fit screen width */
 .fixed, .sticky {
   width: 100%;
-  max-width: 100vw;
-  left: 0;
-  right: 0;
+  max-width: 720px;
+  left: 50%;
+  transform: translateX(-50%);
   box-sizing: border-box;
   overflow-x: hidden !important;
+  margin: 0 auto;
 }
 
 /* Additional fixes for horizontal scroll issues */
 body * {
-  max-width: 100vw;
+  max-width: 720px;
   box-sizing: border-box;
 }
 
 /* Prevent horizontal scroll on all divs */
 div {
-  max-width: 100vw;
+  max-width: 720px;
   overflow-x: hidden;
+}
+
+/* Fix for map container */
+.map-section {
+  width: 100%;
+  max-width: 720px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Fix for map buttons */
+.map-section button {
+  transform: scale(0.9);
 }
 
 /* Fix for bottom nav */
 .fixed.bottom-0 {
-  width: 100vw;
-  max-width: 100%;
-  left: 0;
-  right: 0;
+  width: 100%;
+  max-width: 720px;
+  left: 50%;
+  transform: translateX(-50%);
   padding: 0;
-  margin: 0;
+  margin: 0 auto;
 }
 
 /* Fix for ThemeToggle position */

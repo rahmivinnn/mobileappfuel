@@ -78,70 +78,70 @@ const StationListItem: React.FC<StationListItemProps> = ({
 
   return (
     <motion.div
-      className="w-full bg-white dark:bg-gray-900 rounded-lg overflow-hidden mb-2 shadow-sm border border-gray-100 dark:border-gray-800"
-      initial={{ opacity: 0, y: 5 }}
+      className="w-full bg-white dark:bg-gray-900 rounded-lg overflow-hidden mb-1.5 shadow-sm border border-gray-100 dark:border-gray-800"
+      initial={{ opacity: 0, y: 3 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: delay, duration: 0.15 }}
-      whileHover={{ scale: 1.005 }}
-      whileTap={{ scale: 0.995 }}
+      transition={{ delay: delay, duration: 0.1 }}
+      whileHover={{ scale: 1.002 }}
+      whileTap={{ scale: 0.998 }}
     >
-      <div className="flex p-2 gap-2">
-        {/* Gas Station Brand Icon - More compact */}
-        <div className="w-14 h-14 rounded-lg overflow-hidden bg-green-100 dark:bg-green-900/30 flex flex-col items-center justify-center shadow-sm">
+      <div className="flex p-1.5 gap-1.5">
+        {/* Gas Station Brand Icon - Ultra compact */}
+        <div className="w-10 h-10 rounded-md overflow-hidden bg-green-100 dark:bg-green-900/30 flex flex-col items-center justify-center shadow-sm">
           {/* Emoji Fallback */}
-          <div className="text-xl mb-0.5">⛽</div>
+          <div className="text-sm mb-0.5">⛽</div>
 
           {/* Brand Name */}
-          <div className="bg-white dark:bg-gray-800 rounded-md px-1.5 py-0.5 text-[9px] font-bold shadow-sm text-center w-11 truncate">
+          <div className="bg-white dark:bg-gray-800 rounded-sm px-1 py-0.5 text-[7px] font-bold shadow-sm text-center w-8 truncate">
             {brand || name.split(' ')[0]}
           </div>
         </div>
 
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-gray-900 dark:text-white text-xs truncate pr-1">{name}</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-white text-[9px] truncate pr-1">{name}</h3>
 
-          <div className="flex items-center text-green-500 mt-0.5 gap-1">
-            <Banknote className="h-3 w-3 flex-shrink-0" />
-            <p className="text-[10px] truncate w-16">Fuel Price</p>
-            <p className="text-right flex-1 font-bold text-xs">{formatToCurrency(price, userCountry)}</p>
+          <div className="flex items-center text-green-500 mt-0.5 gap-0.5">
+            <Banknote className="h-2 w-2 flex-shrink-0" />
+            <p className="text-[7px] truncate w-12">Fuel Price</p>
+            <p className="text-right flex-1 font-bold text-[8px]">{formatToCurrency(price, userCountry)}</p>
           </div>
 
-          <div className="flex items-center text-orange-500 mt-0.5 gap-1">
-            <MapPin className="h-3 w-3 flex-shrink-0" />
-            <p className="text-[10px] truncate w-16">Distance</p>
-            <p className="text-right flex-1 text-[10px]">{distance} km</p>
+          <div className="flex items-center text-orange-500 mt-0.5 gap-0.5">
+            <MapPin className="h-2 w-2 flex-shrink-0" />
+            <p className="text-[7px] truncate w-12">Distance</p>
+            <p className="text-right flex-1 text-[7px]">{distance} km</p>
           </div>
 
           {/* Show estimated time if available */}
           {estimatedTime && (
-            <div className="flex items-center text-purple-500 mt-0.5 gap-1">
-              <Timer className="h-3 w-3 flex-shrink-0" />
-              <p className="text-[10px] truncate w-16">Est. Time</p>
-              <p className="text-right flex-1 text-[10px]">{estimatedTime}</p>
+            <div className="flex items-center text-purple-500 mt-0.5 gap-0.5">
+              <Timer className="h-2 w-2 flex-shrink-0" />
+              <p className="text-[7px] truncate w-12">Est. Time</p>
+              <p className="text-right flex-1 text-[7px]">{estimatedTime}</p>
             </div>
           )}
 
-          <div className="flex items-center text-blue-500 mt-0.5 gap-1">
-            <Clock className="h-3 w-3 flex-shrink-0" />
-            <p className="text-[10px] truncate w-16">Status</p>
-            <p className={`text-right flex-1 text-[10px] ${isOpen ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+          <div className="flex items-center text-blue-500 mt-0.5 gap-0.5">
+            <Clock className="h-2 w-2 flex-shrink-0" />
+            <p className="text-[7px] truncate w-12">Status</p>
+            <p className={`text-right flex-1 text-[7px] ${isOpen ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
               {displayStatus}
             </p>
           </div>
 
-          <div className="flex items-center text-yellow-500 mt-0.5 gap-1">
-            <Star className="h-3 w-3 flex-shrink-0" />
-            <p className="text-[10px] truncate w-16">Reviews</p>
-            <p className="text-right flex-1 text-[10px]">{rating} ({reviewCount})</p>
+          <div className="flex items-center text-yellow-500 mt-0.5 gap-0.5">
+            <Star className="h-2 w-2 flex-shrink-0" />
+            <p className="text-[7px] truncate w-12">Reviews</p>
+            <p className="text-right flex-1 text-[7px]">{rating} ({reviewCount})</p>
           </div>
         </div>
       </div>
 
-      {/* Action buttons - More compact */}
+      {/* Action buttons - Ultra compact */}
       <div className="flex w-full">
         <button
           onClick={handleClick}
-          className="flex-1 bg-green-500 text-white py-1.5 text-[10px] font-medium hover:bg-green-600 transition-colors"
+          className="flex-1 bg-green-500 text-white py-1 text-[7px] font-medium hover:bg-green-600 transition-colors"
         >
           Select {brand || name.split(' ')[0]}
         </button>
@@ -152,10 +152,10 @@ const StationListItem: React.FC<StationListItemProps> = ({
               e.stopPropagation();
               onViewMap();
             }}
-            className="bg-blue-500 text-white py-1.5 px-2 text-[10px] font-medium hover:bg-blue-600 transition-colors flex items-center justify-center"
+            className="bg-blue-500 text-white py-1 px-1.5 text-[7px] font-medium hover:bg-blue-600 transition-colors flex items-center justify-center"
           >
-            <Map className="h-2.5 w-2.5 mr-0.5" />
-            View on Map
+            <Map className="h-2 w-2 mr-0.5" />
+            View Map
           </button>
         )}
       </div>
