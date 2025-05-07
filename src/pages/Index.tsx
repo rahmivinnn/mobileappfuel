@@ -210,6 +210,26 @@ const Index = () => {
       lat: mapCenter.lat + 0.009,
       lng: mapCenter.lng - 0.004,
       name: "Agent Lisa"
+    },
+    {
+      lat: mapCenter.lat + 0.002,
+      lng: mapCenter.lng + 0.003,
+      name: "Agent David"
+    },
+    {
+      lat: mapCenter.lat - 0.006,
+      lng: mapCenter.lng - 0.002,
+      name: "Agent Emma"
+    },
+    {
+      lat: mapCenter.lat + 0.007,
+      lng: mapCenter.lng - 0.007,
+      name: "Agent James"
+    },
+    {
+      lat: mapCenter.lat - 0.004,
+      lng: mapCenter.lng + 0.009,
+      name: "Agent Olivia"
     }
   ] : [];
 

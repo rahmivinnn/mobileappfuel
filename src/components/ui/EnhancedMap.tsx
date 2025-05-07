@@ -79,9 +79,34 @@ const EnhancedMap: React.FC<EnhancedMapProps> = ({
     return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`;
   };
 
+  // Create custom SVG for FuelFriendly Agent
+  const fuelAgentSVG = `
+    <svg viewBox="0 0 24 24" width="48" height="48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Background circle -->
+      <circle cx="12" cy="12" r="11" fill="#22c55e" stroke="#15803d" stroke-width="1.5"/>
+
+      <!-- Hat -->
+      <path d="M6 9C6 9 7 6 12 6C17 6 18 9 18 9" stroke="#15803d" stroke-width="2" stroke-linecap="round"/>
+      <path d="M8 9H16V11C16 11 14 12 12 12C10 12 8 11 8 11V9Z" fill="#15803d" stroke="#15803d" stroke-width="1"/>
+
+      <!-- Person icon -->
+      <circle cx="12" cy="14" r="2.5" fill="white" stroke="white"/>
+      <path d="M12 16.5V20" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      <path d="M12 18L9 20" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      <path d="M12 18L15 20" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      <path d="M12 20L10 23" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      <path d="M12 20L14 23" stroke="white" stroke-width="2" stroke-linecap="round"/>
+
+      <!-- Glow effect -->
+      <circle cx="12" cy="12" r="10" stroke="white" stroke-width="0.5" stroke-dasharray="1 2" opacity="0.6">
+        <animate attributeName="opacity" values="0.6;0.2;0.6" dur="2s" repeatCount="indefinite" />
+      </circle>
+    </svg>
+  `;
+
   // Generate icon URLs using SVG components
   const iconUrls = {
-    [IconType.FUEL_AGENT]: createSVGDataURL(<FuelAgentIcon size={48} />),
+    [IconType.FUEL_AGENT]: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(fuelAgentSVG)}`,
     [IconType.GAS_STATION]: createSVGDataURL(<GasStationIcon size={48} />),
     [IconType.EV_CHARGING]: createSVGDataURL(<EVChargingIcon size={48} />),
     [IconType.CAR_REPAIR]: '/lovable-uploads/c123a960-63f7-48ab-b0a0-6f29584106f7.png', // Existing icon

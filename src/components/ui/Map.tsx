@@ -557,42 +557,44 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
         // Create marker HTML with enhanced SVG icons
         if (marker.isAgent) {
           // Enhanced FuelFriendly Agent marker with SVG
+          el.className = 'fuel-agent-marker';
           el.innerHTML = `
             <div style="
-              width: 40px;
-              height: 40px;
+              width: 48px;
+              height: 48px;
               position: relative;
-              transform: translateY(-20px);
+              transform: translateY(-24px);
               transition: all 0.3s ease;
             ">
               <div style="
-                width: 40px;
-                height: 40px;
+                width: 48px;
+                height: 48px;
                 position: relative;
                 filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3));
                 transform-origin: bottom center;
-                animation: agent-appear 0.5s ease-out;
+                animation: agent-appear 0.5s ease-out, agent-bounce 2s ease-in-out infinite;
               ">
                 <!-- SVG Agent Icon - Green Person with Hat -->
-                <svg viewBox="0 0 24 24" width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg viewBox="0 0 24 24" width="48" height="48" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <!-- Background circle -->
-                  <circle cx="12" cy="12" r="11" fill="#4CAF50" stroke="#2E7D32" stroke-width="1"/>
+                  <circle cx="12" cy="12" r="11" fill="#22c55e" stroke="#15803d" stroke-width="1.5"/>
 
                   <!-- Hat -->
-                  <path d="M7 8.5C7 8.5 7 6 12 6C17 6 17 8.5 17 8.5V9.5H7V8.5Z" fill="#2E7D32" stroke="white" stroke-width="0.5"/>
-                  <path d="M9 6C9 6 10 4 12 4C14 4 15 6 15 6" fill="#2E7D32" stroke="white" stroke-width="0.5"/>
+                  <path d="M6 9C6 9 7 6 12 6C17 6 18 9 18 9" stroke="#15803d" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M8 9H16V11C16 11 14 12 12 12C10 12 8 11 8 11V9Z" fill="#15803d" stroke="#15803d" stroke-width="1"/>
 
                   <!-- Person icon -->
-                  <path d="M12 12C13.6569 12 15 10.6569 15 9.5C15 8.5 14 8 12 8C10 8 9 8.5 9 9.5C9 10.6569 10.3431 12 12 12Z" fill="white"/>
-                  <path d="M17 18C17 14.6863 14.7614 13 12 13C9.23858 13 7 14.6863 7 18" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                  <circle cx="12" cy="14" r="2.5" fill="white" stroke="white"/>
+                  <path d="M12 16.5V20" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M12 18L9 20" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M12 18L15 20" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M12 20L10 23" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M12 20L14 23" stroke="white" stroke-width="2" stroke-linecap="round"/>
 
                   <!-- Fuel can -->
-                  <path d="M16 11.5V15.5C16 16.0523 16.4477 16.5 17 16.5H18C18.5523 16.5 19 16.0523 19 15.5V11.5C19 10.9477 18.5523 10.5 18 10.5H17C16.4477 10.5 16 10.9477 16 11.5Z" fill="#FF6B35" stroke="white" stroke-width="0.5"/>
-                  <path d="M16.5 12.5H18.5" stroke="white" stroke-width="0.5"/>
-                  <path d="M16.5 14.5H18.5" stroke="white" stroke-width="0.5"/>
-
-                  <!-- FuelFriendly text -->
-                  <path d="M8 19.5C8 19.5 10 20 12 20C14 20 16 19.5 16 19.5" stroke="white" stroke-width="0.5" stroke-linecap="round"/>
+                  <path d="M18 11V16C18 16.5523 18.4477 17 19 17H20C20.5523 17 21 16.5523 21 16V11C21 10.4477 20.5523 10 20 10H19C18.4477 10 18 10.4477 18 11Z" fill="#FF6B35" stroke="white" stroke-width="0.5"/>
+                  <path d="M18.5 12H20.5" stroke="white" stroke-width="0.5"/>
+                  <path d="M18.5 14H20.5" stroke="white" stroke-width="0.5"/>
 
                   <!-- Glow effect -->
                   <circle cx="12" cy="12" r="10" stroke="#8BC34A" stroke-width="0.5" stroke-dasharray="1 2" opacity="0.6">
@@ -608,11 +610,11 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
                   bottom: -20px;
                   left: 50%;
                   transform: translateX(-50%);
-                  background-color: rgba(76,175,80,0.9);
+                  background-color: rgba(34, 197, 94, 0.9);
                   color: white;
-                  padding: 3px 8px;
+                  padding: 4px 10px;
                   border-radius: 12px;
-                  font-size: 10px;
+                  font-size: 12px;
                   font-weight: bold;
                   font-family: Arial, sans-serif;
                   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
@@ -634,6 +636,15 @@ const Map = React.forwardRef<HTMLDivElement, MapProps>(
                 50% { transform: translateY(5px) scale(1.1); }
                 75% { transform: translateY(-3px) scale(0.95); }
                 100% { transform: translateY(0) scale(1); opacity: 1; }
+              }
+              @keyframes agent-bounce {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-5px); }
+              }
+              @keyframes agent-pulse {
+                0% { transform: scale(1); opacity: 0.8; }
+                50% { transform: scale(1.1); opacity: 0.5; }
+                100% { transform: scale(1); opacity: 0.8; }
               }
             `;
             document.head.appendChild(style);
