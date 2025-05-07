@@ -513,6 +513,18 @@ const Index = () => {
 
       {/* Map Section */}
       <div className="px-4 py-2 relative map-section">
+        {/* Enhanced Map Demo Link */}
+        <div className="absolute top-2 right-2 z-10">
+          <Button
+            size="sm"
+            variant="outline"
+            className="bg-white/80 dark:bg-gray-800/80 border-green-500 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-full shadow-md"
+            onClick={() => navigate('/enhanced-map')}
+          >
+            <Layers className="h-3.5 w-3.5 mr-1" />
+            <span className="text-xs">Enhanced Map</span>
+          </Button>
+        </div>
         {isLoadingLocation && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/20 rounded-2xl">
             <div className="bg-white dark:bg-gray-800 px-6 py-4 rounded-xl flex items-center space-x-3 shadow-lg">

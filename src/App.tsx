@@ -26,6 +26,7 @@ import ChatScreen from './pages/ChatScreen';
 import CallScreen from './pages/CallScreen';
 import NotFound from './pages/NotFound';
 import MapView from './pages/MapView';
+import EnhancedMapDemo from './pages/EnhancedMapDemo';
 
 // Auth pages
 import Welcome from './pages/auth/Welcome';
@@ -39,7 +40,7 @@ import ResetPassword from './pages/auth/ResetPassword';
 function AppRoutes() {
   const location = useLocation();
   const navigate = useNavigate();
-  
+
   // Mock authentication handlers
   const handleLogin = (token: string) => {
     console.log("User logged in with token:", token);
@@ -63,6 +64,7 @@ function AppRoutes() {
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<PageTransition><Index /></PageTransition>} />
         <Route path="/map" element={<PageTransition><MapView /></PageTransition>} />
+        <Route path="/enhanced-map" element={<PageTransition><EnhancedMapDemo /></PageTransition>} />
         <Route path="/settings" element={<PageTransition><Settings onLogout={handleLogout} /></PageTransition>} />
         <Route path="/station/:id" element={<PageTransition><StationDetails /></PageTransition>} />
         <Route path="/station/:id/fuel" element={<PageTransition><FuelSelection /></PageTransition>} />
@@ -110,7 +112,7 @@ function App() {
 
   const handleSplashScreenFinish = useCallback(() => {
     setIsLoading(false);
-    
+
     // Perbaikan alur aplikasi: selalu arahkan ke welcome screen
     // jika ada token, baru cek apakah perlu face verification
     navigate('/welcome');
