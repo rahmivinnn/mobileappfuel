@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import ReactDOMServer from 'react-dom/server';
 import mapboxgl from 'mapbox-gl';
@@ -8,6 +9,13 @@ import { toast } from '@/hooks/use-toast';
 import FuelAgentIcon from './FuelAgentIcon';
 import GasStationIcon from './GasStationIcon';
 import EVChargingIcon from './EVChargingIcon';
+
+// Declare mapMarkerAction on window object
+declare global {
+  interface Window {
+    mapMarkerAction: (action: string, id: string) => void;
+  }
+}
 
 // Set Mapbox token
 mapboxgl.accessToken = MAPBOX_TOKEN;

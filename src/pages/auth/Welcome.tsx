@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -150,7 +149,7 @@ const Welcome = () => {
 
       {/* Sync Data Dialog */}
       <Dialog open={showSyncDialog} onOpenChange={setShowSyncDialog}>
-        <DialogContent className="sm:max-w-md" showClose={false}>
+        <DialogContent className="sm:max-w-md">
           <div className="flex flex-col items-center justify-center py-5">
             <div className="mb-5">
               <motion.div

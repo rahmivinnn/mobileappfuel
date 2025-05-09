@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import EnhancedMap, { MarkerData, IconType } from '@/components/ui/EnhancedMap';
@@ -6,7 +7,7 @@ import BottomNav from '@/components/layout/BottomNav';
 import { motion } from 'framer-motion';
 import { MAP_STYLES } from '@/config/mapbox';
 import { Button } from '@/components/ui/button';
-import { MapPin, Globe, Layers, Box, Zap, Coffee, Tool, Fuel } from 'lucide-react';
+import { MapPin, Globe, Layers, Box, Zap, Coffee, Wrench, Fuel } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { generateAllSampleMarkers } from '@/utils/mapUtils';
 
@@ -67,7 +68,7 @@ const EnhancedMapDemo: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col">
-      <Header title="Enhanced Map" showBackButton onBackClick={() => navigate('/')} />
+      <Header title="Enhanced Map" backButton onBackClick={() => navigate('/')} />
 
       {/* Map Controls */}
       <div className="px-4 pt-2 bg-white dark:bg-gray-900 shadow-sm z-10">
@@ -131,7 +132,7 @@ const EnhancedMapDemo: React.FC = () => {
             <span>EV Charging</span>
           </div>
           <div className="flex items-center gap-1 text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full">
-            <Tool className="h-3 w-3 text-gray-500" />
+            <Wrench className="h-3 w-3 text-gray-500" />
             <span>Car Repair</span>
           </div>
           <div className="flex items-center gap-1 text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full">
