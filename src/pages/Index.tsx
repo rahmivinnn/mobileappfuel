@@ -400,7 +400,7 @@ const Index = () => {
 
           <div className="flex items-center gap-0.5">
             <div className="rounded-full w-7 h-7 flex items-center justify-center bg-gray-100 dark:bg-gray-800">
-              <ThemeToggle className="h-3.5 w-3.5" />
+              <ThemeToggle />
             </div>
             <button className="rounded-full w-7 h-7 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800">
               <Bell className="h-4 w-4 text-gray-700 dark:text-gray-300" />

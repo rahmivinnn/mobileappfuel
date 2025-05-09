@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Star, MapPin, Banknote, Fuel, Clock, GasPump } from 'lucide-react';
+import { Star, MapPin, Banknote, Fuel, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { formatToCurrency } from '@/utils/currencyUtils';
 

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import EnhancedMap, { MarkerData, IconType } from '@/components/ui/EnhancedMap';
@@ -68,7 +67,7 @@ const EnhancedMapDemo: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col">
-      <Header title="Enhanced Map" backButton onBackClick={() => navigate('/')} />
+      <Header title="Enhanced Map" showBack onBackClick={() => navigate('/')} />
 
       {/* Map Controls */}
       <div className="px-4 pt-2 bg-white dark:bg-gray-900 shadow-sm z-10">
