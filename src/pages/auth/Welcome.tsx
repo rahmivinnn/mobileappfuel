@@ -71,7 +71,16 @@ const Welcome = () => {
   
   return (
     <>
-      <div className={`min-h-screen ${isDarkMode ? 'bg-black' : 'bg-white'} flex flex-col overflow-hidden max-w-md mx-auto`}>
+      <div className={`min-h-screen ${isDarkMode ? 'bg-black' : 'bg-white'} flex flex-col overflow-hidden max-w-md mx-auto`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <style jsx global>{`
+          body {
+            overflow: hidden;
+          }
+          ::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
+        
         {/* Top wave - adjusted for portrait mode */}
         <div className="absolute top-0 left-0 w-full h-[15%] bg-green-500 rounded-b-[50%] z-0" />
         
