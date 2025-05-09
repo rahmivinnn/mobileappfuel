@@ -5,11 +5,23 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { useTheme } from '@/components/ui/theme-provider';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
 import { Loader } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
+
+// Add global style to disable scrolling
+const globalStyle = document.createElement('style');
+globalStyle.innerHTML = `
+  body {
+    overflow: hidden;
+  }
+  ::-webkit-scrollbar {
+    display: none;
+  }
+`;
+document.head.appendChild(globalStyle);
 
 const Welcome = () => {
   const navigate = useNavigate();
@@ -71,16 +83,10 @@ const Welcome = () => {
   
   return (
     <>
-      <div className={`min-h-screen ${isDarkMode ? 'bg-black' : 'bg-white'} flex flex-col overflow-hidden max-w-md mx-auto`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-        <style jsx global>{`
-          body {
-            overflow: hidden;
-          }
-          ::-webkit-scrollbar {
-            display: none;
-          }
-        `}</style>
-        
+      <div 
+        className={`min-h-screen ${isDarkMode ? 'bg-black' : 'bg-white'} flex flex-col overflow-hidden max-w-md mx-auto`} 
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
         {/* Top wave - adjusted for portrait mode */}
         <div className="absolute top-0 left-0 w-full h-[15%] bg-green-500 rounded-b-[50%] z-0" />
         
@@ -191,6 +197,7 @@ const Welcome = () => {
         onOpenChange={handleDialogChange}
       >
         <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()}>
+          <DialogTitle className="sr-only">System Process Running</DialogTitle>
           <div className="flex flex-col items-center justify-center py-5">
             <div className="mb-3 flex items-center">
               <motion.div
