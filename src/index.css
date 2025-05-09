@@ -74,6 +74,22 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Portrait mode enforcement */
+  .portrait-mode {
+    @apply overflow-x-hidden overflow-y-auto;
+  }
+  
+  html, body {
+    @apply max-w-full overflow-x-hidden;
+    height: 100%;
+    position: relative;
+  }
+  
+  /* Prevent horizontal scrolling */
+  body {
+    overflow-x: hidden !important;
+  }
 }
 
 @layer utilities {
@@ -96,6 +112,11 @@
 
   .page-container {
     @apply max-w-md mx-auto px-4 py-2 pb-24;
+  }
+
+  /* Mobile portrait container */
+  .mobile-container {
+    @apply max-w-md mx-auto w-full min-h-screen bg-white dark:bg-black overflow-hidden relative;
   }
 
   .animate-dash {
@@ -226,22 +247,5 @@
 
   .active-scale-95:active {
     transform: scale(0.95);
-  }
-
-  /* Prevent flickering during map interactions */
-  .mapboxgl-canvas-container {
-    will-change: transform;
-  }
-
-  .mapboxgl-canvas {
-    outline: none;
-  }
-
-  /* Optimize rendering performance */
-  .mapboxgl-map {
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
   }
 }

@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 
 export interface HeaderProps {
   title?: string;
-  backButton?: boolean;
+  showBack?: boolean;  // Changed from backButton to showBack
   onBackClick?: () => void;
   showSettings?: boolean;
   showNotifications?: boolean;
@@ -18,7 +18,7 @@ export interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({
   title,
-  backButton = false,
+  showBack = false,  // Changed from backButton to showBack
   onBackClick,
   showSettings = false,
   showNotifications = false,
@@ -46,7 +46,7 @@ const Header: React.FC<HeaderProps> = ({
       transition={{ duration: 0.2 }}
     >
       <div className="flex items-center flex-1">
-        {backButton && (
+        {showBack && (
           <Button
             variant="ghost"
             size="icon"

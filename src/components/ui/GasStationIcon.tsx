@@ -3,9 +3,10 @@ import React from 'react';
 
 interface GasStationIconProps {
   size?: number;
+  className?: string; // Added className prop
 }
 
-const GasStationIcon: React.FC<GasStationIconProps> = ({ size = 24 }) => {
+const GasStationIcon: React.FC<GasStationIconProps> = ({ size = 24, className = '' }) => {
   return (
     <svg
       width={size}
@@ -13,6 +14,7 @@ const GasStationIcon: React.FC<GasStationIconProps> = ({ size = 24 }) => {
       viewBox="0 0 48 48"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      className={className}
     >
       <circle cx="24" cy="24" r="22" fill="#ef4444" stroke="#b91c1c" strokeWidth="1.5" />
       <path
