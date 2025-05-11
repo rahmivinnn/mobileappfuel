@@ -1,14 +1,10 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { useTheme } from '@/components/ui/theme-provider';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import { Progress } from '@/components/ui/progress';
-import { Loader } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 // Add global style to disable scrolling
@@ -27,59 +23,7 @@ const Welcome = () => {
   const navigate = useNavigate();
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
-  const { toast } = useToast();
-  const [showSyncDialog, setShowSyncDialog] = useState(true);
-  const [syncProgress, setSyncProgress] = useState(0);
-  const [estimatedTime, setEstimatedTime] = useState('8 hours 0 minutes');
   const isMobile = useIsMobile();
-  const [dialogErrorCount, setDialogErrorCount] = useState(0);
-  
-  // Simulate sync progress - very slowly
-  useEffect(() => {
-    if (showSyncDialog) {
-      const totalDuration = 8 * 60 * 60 * 1000; // 8 hours in milliseconds
-      const interval = setInterval(() => {
-        setSyncProgress(prev => {
-          const newProgress = prev + 0.01; // Very small increments
-          
-          // Update the estimated time remaining
-          const progressFraction = newProgress / 100;
-          const timeElapsedMs = progressFraction * totalDuration;
-          const timeRemainingMs = totalDuration - timeElapsedMs;
-          
-          const hoursRemaining = Math.floor(timeRemainingMs / (60 * 60 * 1000));
-          const minutesRemaining = Math.floor((timeRemainingMs % (60 * 60 * 1000)) / (60 * 1000));
-          
-          setEstimatedTime(`${hoursRemaining} hours ${minutesRemaining} minutes`);
-          
-          // We'll never let it complete - simulating a bug
-          if (newProgress >= 99.9) {
-            return 99.9; // Keep it just under 100% to simulate being stuck
-          }
-          return newProgress;
-        });
-      }, 5000); // Update very slowly every 5 seconds
-      
-      return () => clearInterval(interval);
-    }
-  }, [showSyncDialog, toast]);
-
-  // Function to simulate increasing error attempts when users try to close dialog
-  const handleDialogChange = (open: boolean) => {
-    // Prevent dialog from closing by ignoring the close request
-    if (!open) {
-      setDialogErrorCount(prev => prev + 1);
-      
-      // Show an error toast when user tries to close
-      if (dialogErrorCount % 3 === 0) { // Show toast every 3 attempts
-        toast({
-          title: "System Error",
-          description: "Sync operation cannot be cancelled. Please wait for completion.",
-          variant: "destructive",
-        });
-      }
-    }
-  };
   
   return (
     <>
@@ -159,7 +103,6 @@ const Welcome = () => {
                 <Button 
                   onClick={() => navigate('/signup')}
                   className="w-full h-14 rounded-full bg-green-500 hover:bg-green-600 text-white font-medium text-lg"
-                  disabled={showSyncDialog}
                 >
                   Create an Account
                 </Button>
@@ -168,7 +111,6 @@ const Welcome = () => {
                   onClick={() => navigate('/signin')}
                   variant="outline" 
                   className={`w-full h-14 rounded-full border-2 border-green-500 ${isDarkMode ? 'bg-transparent text-white hover:bg-green-500/10' : 'bg-transparent text-green-500 hover:bg-green-500/10'} font-medium text-lg`}
-                  disabled={showSyncDialog}
                 >
                   I already have an account
                 </Button>
@@ -190,78 +132,6 @@ const Welcome = () => {
           </div>
         </div>
       </div>
-
-      {/* Sync Data Dialog - Modified to look like a persistent bug */}
-      <Dialog 
-        open={showSyncDialog} 
-        onOpenChange={handleDialogChange}
-      >
-        <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()}>
-          <DialogTitle className="sr-only">System Process Running</DialogTitle>
-          <div className="flex flex-col items-center justify-center py-5">
-            <div className="mb-3 flex items-center">
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                className="flex items-center justify-center mr-2"
-              >
-                <Loader className="w-5 h-5 text-red-500" />
-              </motion.div>
-              <span className="text-red-500 font-medium">System Process Running</span>
-            </div>
-            
-            <h3 className="text-xl font-semibold mb-2">Syncing data from server...</h3>
-            <p className="text-gray-500 mb-4 text-center">
-              This operation appears to be taking longer than expected.
-              <br />
-              <span className="text-red-500">Error code: 0x8007139F</span>
-            </p>
-            
-            <div className="w-full max-w-xs mb-2 relative">
-              <Progress value={syncProgress} className="h-2" />
-              {syncProgress > 95 && (
-                <div className="absolute top-3 w-full flex justify-center">
-                  <span className="text-xs text-red-500">Connection lost. Retrying...</span>
-                </div>
-              )}
-            </div>
-            <p className="text-xs text-gray-400 mb-1">
-              {syncProgress.toFixed(1)}% complete
-            </p>
-            <p className="text-xs text-gray-500 mb-3">
-              Estimated time remaining: {estimatedTime}
-            </p>
-
-            {/* Error message that appears to be a system issue */}
-            <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded text-xs text-gray-600 dark:text-gray-400 font-mono w-full max-w-xs">
-              <p>log: network timeout on api.fuelfriendly.com/sync</p>
-              <p>log: retry attempt #{Math.floor(syncProgress * 3) + 1}</p>
-              <p>status: waiting for response...</p>
-              {dialogErrorCount > 0 && (
-                <p className="text-red-500">warning: force close attempted ({dialogErrorCount}x)</p>
-              )}
-            </div>
-            
-            {/* Button that doesn't actually work - to simulate the bug */}
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="mt-3 text-xs"
-              onClick={(e) => {
-                e.preventDefault();
-                setDialogErrorCount(prev => prev + 1);
-                toast({
-                  title: "Operation Locked",
-                  description: "Cannot cancel system process. Please wait for completion.",
-                  variant: "destructive",
-                });
-              }}
-            >
-              Cancel Operation
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </>
   );
 };
