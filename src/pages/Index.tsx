@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { Search, Filter, Bell, User, Home, ShoppingBag, MapPin, Settings, Fuel, RefreshCw, AlertCircle, Layers, Globe, Satellite, Moon, Box } from 'lucide-react';
 import Map from '@/components/ui/Map';
@@ -404,15 +403,16 @@ const Index = () => {
           </Avatar>
 
           <div className="flex-1 flex justify-center">
-            {/* Updated logo with error handling and fallback */}
+            {/* Updated logo with proper TypeScript error handling */}
             <img
               src="/lovable-uploads/57aff490-f08a-4205-9ae9-496a32e810e6.png"
               alt="FUELFRIENDLY"
               className="h-5"
-              onError={(e) => {
+              onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
                 console.error("Failed to load logo image");
-                e.target.onerror = null; // Prevent infinite loop
-                e.target.src = "/lovable-uploads/2b80eff8-6efd-4f15-9213-ed9fe4e0cba9.png"; // Fallback to another logo
+                const imgElement = e.target as HTMLImageElement;
+                imgElement.onerror = null; // Prevent infinite loop
+                imgElement.src = "/lovable-uploads/2b80eff8-6efd-4f15-9213-ed9fe4e0cba9.png"; // Fallback to another logo
               }}
             />
           </div>
