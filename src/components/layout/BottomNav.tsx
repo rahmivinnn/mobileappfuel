@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { Home, ShoppingBag, MapPin, Settings } from 'lucide-react';
@@ -12,7 +11,7 @@ const BottomNav: React.FC = () => {
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5, delay: 0.2 }}
     >
-      <div className="w-full px-2">
+      <div className="w-full px-2 max-w-[100vw]">
         <div className="flex h-14 items-center justify-between">
           <NavLink
             to="/"
@@ -145,4 +144,3 @@ const BottomNav: React.FC = () => {
 };
 
 export default BottomNav;
-
