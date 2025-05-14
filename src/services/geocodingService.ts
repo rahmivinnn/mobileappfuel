@@ -1,4 +1,6 @@
+
 import { MAPBOX_TOKEN } from "@/config/mapbox";
+import { countryCoordinates } from "@/hooks/use-geolocation";
 
 // Default coordinates (center of the world)
 export const DEFAULT_COORDINATES = {

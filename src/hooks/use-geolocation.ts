@@ -13,10 +13,7 @@ interface Location {
 }
 
 // Default coordinates for countries - expanded to include more countries
-const countryCoordinates: Record<string, {city: string, coordinates: {lat: number, lng: number}}> = {
-  // ... keep existing code (countries definitions) 
-  
-  // Additional countries to reach 195
+export const countryCoordinates: Record<string, {city: string, coordinates: {lat: number, lng: number}}> = {
   'AF': { // Afghanistan
     city: 'Kabul',
     coordinates: { lat: 34.5553, lng: 69.2075 }
