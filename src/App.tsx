@@ -32,7 +32,6 @@ import EnhancedMapDemo from './pages/EnhancedMapDemo';
 import Welcome from './pages/auth/Welcome';
 import SignIn from './pages/auth/SignIn';
 import SignUp from './pages/auth/SignUp';
-import FaceVerification from './pages/auth/FaceVerification';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import VerifyOtp from './pages/auth/VerifyOtp';
 import ResetPassword from './pages/auth/ResetPassword';
@@ -45,12 +44,8 @@ function AppRoutes() {
   const handleLogin = (token: string) => {
     console.log("User logged in with token:", token);
     localStorage.setItem("auth-token", token);
-    // Navigate to face verification for new users, or home for returning users
-    if (localStorage.getItem('user-faces-verified') === 'true') {
-      navigate('/');
-    } else {
-      navigate('/face-verification');
-    }
+    // Navigate to home for all users
+    navigate('/');
   };
 
   const handleLogout = () => {
@@ -80,7 +75,6 @@ function AppRoutes() {
         <Route path="/welcome" element={<PageTransition><Welcome /></PageTransition>} />
         <Route path="/signin" element={<PageTransition><SignIn onLogin={handleLogin} /></PageTransition>} />
         <Route path="/signup" element={<PageTransition><SignUp onLogin={handleLogin} /></PageTransition>} />
-        <Route path="/face-verification" element={<PageTransition><FaceVerification /></PageTransition>} />
         <Route path="/forgot-password" element={<PageTransition><ForgotPassword /></PageTransition>} />
         <Route path="/verify-otp" element={<PageTransition><VerifyOtp /></PageTransition>} />
         <Route path="/reset-password" element={<PageTransition><ResetPassword /></PageTransition>} />

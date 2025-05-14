@@ -19,7 +19,6 @@ export interface UserData {
   city?: string;
   country?: string;
   token?: string;
-  needsFaceVerification?: boolean;
 }
 
 // Authentication service
@@ -58,26 +57,6 @@ class AuthService {
       country: localStorage.getItem('userCountryName') || 'Indonesia',
       token
     };
-  }
-  
-  async loginWithFace(faceId: string): Promise<UserData> {
-    // Mock implementation - would validate with backend in real app
-    return {
-      uid: 'face123',
-      email: 'face@example.com',
-      displayName: 'Face User',
-      photoURL: '/lovable-uploads/8a188651-80ec-4a90-8d5c-de0df713b6c7.png',
-      role: 'USER',
-      city: localStorage.getItem('userCity') || 'Jakarta',
-      country: localStorage.getItem('userCountryName') || 'Indonesia',
-      token: 'mock-face-token-123'
-    };
-  }
-
-  async verifyFace(faceId: string, email?: string): Promise<boolean> {
-    // Mock implementation - would validate with backend in real app
-    console.log(`Verifying face ${faceId} for email ${email}`);
-    return true;
   }
 
   async updateUserRole(uid: string, newRole: UserRole): Promise<void> {

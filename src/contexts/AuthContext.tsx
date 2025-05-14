@@ -24,10 +24,8 @@ interface AuthContextType {
   refreshUserLocation: () => Promise<void>;
   login: (token: string) => void;
   loginWithGoogle: (token: string) => Promise<void>;
-  loginWithFace: (faceId: string) => Promise<void>;
   logout: () => void;
   updateUserRole: (role: UserRole) => Promise<void>;
-  verifyFaceLogin: (faceId: string, email?: string) => Promise<boolean>;
   updateLocation: (city: string, country: string) => Promise<void>;
 }
 
@@ -241,17 +239,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       localStorage.setItem('auth-token', token);
       const userData = await authService.loginWithGoogle(token);
       setUser(userData);
+      navigate('/');
       
-      // If this is the user's first login with Google, redirect to face verification
-      if (userData.needsFaceVerification) {
-        navigate('/face-verification');
-      } else {
-        navigate('/');
-        
-        // Fetch location data for the user
-        if (userData.city && userData.country) {
-          fetchUserLocation(userData);
-        }
+      // Fetch location data for the user
+      if (userData.city && userData.country) {
+        fetchUserLocation(userData);
       }
       
       toast({
@@ -265,50 +257,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         description: "Could not log in with Google",
         variant: "destructive"
       });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  const loginWithFace = async (faceId: string) => {
-    setIsLoading(true);
-    try {
-      const userData = await authService.loginWithFace(faceId);
-      if (userData) {
-        localStorage.setItem('auth-token', userData.token || '');
-        setUser(userData);
-        navigate('/');
-        
-        // Fetch location data for the user
-        if (userData.city && userData.country) {
-          fetchUserLocation(userData);
-        }
-        
-        toast({
-          title: "Face login successful",
-          description: "Welcome back!",
-        });
-      }
-    } catch (error) {
-      console.error("Error during face login:", error);
-      toast({
-        title: "Login failed",
-        description: "Face verification failed",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const verifyFaceLogin = async (faceId: string, email?: string): Promise<boolean> => {
-    setIsLoading(true);
-    try {
-      const result = await authService.verifyFace(faceId, email);
-      return result;
-    } catch (error) {
-      console.error("Error during face verification:", error);
-      return false;
     } finally {
       setIsLoading(false);
     }
@@ -344,10 +292,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     refreshUserLocation,
     login,
     loginWithGoogle,
-    loginWithFace,
     logout,
     updateUserRole,
-    verifyFaceLogin,
     updateLocation
   };
 
