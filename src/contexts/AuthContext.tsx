@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authService, UserData, UserRole } from '@/services/authService';
 import { useNavigate } from 'react-router-dom';
