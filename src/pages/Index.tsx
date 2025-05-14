@@ -42,7 +42,7 @@ const Index = () => {
   const navigate = useNavigate();
 
   // Track location changes to update map and stations
-  const [mapCenter, setMapCenter] = useState(US_COORDINATES); // Default to LA
+  const [mapCenter, setMapCenter] = useState(location?.coordinates || DEFAULT_COORDINATES);
   const [stationsWithDistance, setStationsWithDistance] = useState<any[]>([]);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
   const [isLoadingStations, setIsLoadingStations] = useState(true);
@@ -77,51 +77,54 @@ const Index = () => {
     setMapCenter(coordinates);
     await updateStationsForCoordinates(coordinates);
 
-    // If city is Los Angeles, make sure it's associated with United States
-    if (city.toLowerCase() === "los angeles") {
-      updateLocation("Los Angeles", "United States");
-    }
+    // Update user location in Auth context
+    updateLocation(city, country);
   }, [updateStationsForCoordinates, updateLocation]);
 
-  // Use Los Angeles as default location
+  // Use user's actual location instead of defaulting to Los Angeles
   useEffect(() => {
     const initializeLocation = async () => {
       setIsLoadingLocation(true);
 
-      // First try to use Los Angeles as default
-      try {
-        console.log("Setting default location to Los Angeles, United States");
-        setMapCenter(US_COORDINATES);
-        await updateStationsForCoordinates(US_COORDINATES);
-
-        // Update user's location in Auth context to Los Angeles if not already set
-        if (!userLocation || userLocation.city !== "Los Angeles") {
-          updateLocation("Los Angeles", "United States");
+      // First try to use the device location from useGeolocation
+      if (location && location.coordinates) {
+        console.log("Using device geolocation:", location);
+        setMapCenter(location.coordinates);
+        await updateStationsForCoordinates(location.coordinates);
+        
+        // Update user's location in Auth context if not already set
+        if (!userLocation || userLocation.city !== location.city) {
+          updateLocation(location.city, location.country);
         }
-
+        
         setIsLoadingLocation(false);
-      } catch (error) {
-        console.error("Error setting Los Angeles location:", error);
-
-        // Fall back to user's registered location if available
-        if (userLocation && !userLocation.isLoading && userLocation.coordinates) {
-          console.log("Using user's registered location:", userLocation);
-          setMapCenter(userLocation.coordinates);
-          await updateStationsForCoordinates(userLocation.coordinates);
-        }
-        // Otherwise fall back to device geolocation
-        else if (location && location.coordinates) {
-          console.log("Using device geolocation:", location);
-          setMapCenter(location.coordinates);
-          await updateStationsForCoordinates(location.coordinates);
-        }
-
+      }
+      // Otherwise fall back to user's registered location if available
+      else if (userLocation && !userLocation.isLoading && userLocation.coordinates) {
+        console.log("Using user's registered location:", userLocation);
+        setMapCenter(userLocation.coordinates);
+        await updateStationsForCoordinates(userLocation.coordinates);
+        setIsLoadingLocation(false);
+      }
+      // Use default coordinates as last resort
+      else {
+        console.log("Using default location");
+        setMapCenter(DEFAULT_COORDINATES);
+        await updateStationsForCoordinates(DEFAULT_COORDINATES);
         setIsLoadingLocation(false);
       }
     };
 
     initializeLocation();
-  }, []);
+  }, [location]);
+
+  // Update map when location changes
+  useEffect(() => {
+    if (location && location.coordinates) {
+      setMapCenter(location.coordinates);
+      updateStationsForCoordinates(location.coordinates);
+    }
+  }, [location]);
 
   // Filter stations by search query
   const filteredStations = stationsWithDistance
@@ -143,19 +146,25 @@ const Index = () => {
     navigate('/map');
   };
 
-  // Handle refresh button click
+  // Handle refresh button click - use actual location instead of forced LA
   const handleRefreshLocation = async () => {
     setIsLoadingLocation(true);
     setIsLoadingStations(true);
 
     try {
-      // Default to Los Angeles
-      setMapCenter(US_COORDINATES);
-      await updateStationsForCoordinates(US_COORDINATES);
+      // Request a fresh location
+      refreshLocation();
+      
+      // Use latest location or fall back to stored location
+      const currentCoords = location?.coordinates || 
+                          (userLocation?.coordinates || DEFAULT_COORDINATES);
+                          
+      setMapCenter(currentCoords);
+      await updateStationsForCoordinates(currentCoords);
 
       toast({
         title: "Location refreshed",
-        description: "Showing updated nearby stations in Los Angeles",
+        description: `Showing updated nearby stations in ${location?.city || userLocation?.city || 'your area'}`,
       });
     } catch (error) {
       console.error("Error refreshing location:", error);
@@ -370,7 +379,7 @@ const Index = () => {
   // Location label from user's registration or device
   const locationLabel = userLocation ?
     `${userLocation.city}, ${userLocation.country}` :
-    (location ? `${location.city}, ${location.country}` : 'Los Angeles, United States');
+    (location ? `${location.city}, ${location.country}` : 'Select a location');
 
   // Handle map style change with improved logging
   const handleMapStyleChange = (style: string) => {

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Search, MapPin, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,31 +20,220 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/components/ui/theme-provider";
 import { toast } from "@/hooks/use-toast";
-import { geocodeLocation, US_COORDINATES } from "@/services/geocodingService";
+import { geocodeLocation } from "@/services/geocodingService";
+import { useGeolocation } from "@/hooks/use-geolocation";
 
-// Sample countries data - in a real app this would come from an API
-const countries = [
+// Import all countries from the useGeolocation hook
+import { countryCoordinates } from "@/hooks/use-geolocation";
+
+// Define countries data using the country codes from the `useGeolocation` hook
+const COUNTRIES = [
+  { code: "AF", name: "Afghanistan" },
+  { code: "AL", name: "Albania" },
+  { code: "DZ", name: "Algeria" },
+  { code: "AD", name: "Andorra" },
+  { code: "AO", name: "Angola" },
+  { code: "AG", name: "Antigua and Barbuda" },
+  { code: "AR", name: "Argentina" },
+  { code: "AM", name: "Armenia" },
+  { code: "AU", name: "Australia" },
+  { code: "AT", name: "Austria" },
+  { code: "AZ", name: "Azerbaijan" },
+  { code: "BS", name: "Bahamas" },
+  { code: "BH", name: "Bahrain" },
+  { code: "BD", name: "Bangladesh" },
+  { code: "BB", name: "Barbados" },
+  { code: "BY", name: "Belarus" },
+  { code: "BE", name: "Belgium" },
+  { code: "BZ", name: "Belize" },
+  { code: "BJ", name: "Benin" },
+  { code: "BT", name: "Bhutan" },
+  { code: "BO", name: "Bolivia" },
+  { code: "BA", name: "Bosnia and Herzegovina" },
+  { code: "BW", name: "Botswana" },
+  { code: "BR", name: "Brazil" },
+  { code: "BN", name: "Brunei" },
+  { code: "BG", name: "Bulgaria" },
+  { code: "BF", name: "Burkina Faso" },
+  { code: "BI", name: "Burundi" },
+  { code: "CV", name: "Cape Verde" },
+  { code: "KH", name: "Cambodia" },
+  { code: "CM", name: "Cameroon" },
+  { code: "CA", name: "Canada" },
+  { code: "CF", name: "Central African Republic" },
+  { code: "TD", name: "Chad" },
+  { code: "CL", name: "Chile" },
+  { code: "CN", name: "China" },
+  { code: "CO", name: "Colombia" },
+  { code: "KM", name: "Comoros" },
+  { code: "CG", name: "Republic of the Congo" },
+  { code: "CD", name: "Democratic Republic of the Congo" },
+  { code: "CR", name: "Costa Rica" },
+  { code: "CI", name: "Côte d'Ivoire" },
+  { code: "HR", name: "Croatia" },
+  { code: "CU", name: "Cuba" },
+  { code: "CY", name: "Cyprus" },
+  { code: "CZ", name: "Czech Republic" },
+  { code: "DK", name: "Denmark" },
+  { code: "DJ", name: "Djibouti" },
+  { code: "DM", name: "Dominica" },
+  { code: "DO", name: "Dominican Republic" },
+  { code: "EC", name: "Ecuador" },
+  { code: "EG", name: "Egypt" },
+  { code: "SV", name: "El Salvador" },
+  { code: "GQ", name: "Equatorial Guinea" },
+  { code: "ER", name: "Eritrea" },
+  { code: "EE", name: "Estonia" },
+  { code: "SZ", name: "Eswatini" },
+  { code: "ET", name: "Ethiopia" },
+  { code: "FJ", name: "Fiji" },
+  { code: "FI", name: "Finland" },
+  { code: "FR", name: "France" },
+  { code: "GA", name: "Gabon" },
+  { code: "GM", name: "The Gambia" },
+  { code: "GE", name: "Georgia" },
+  { code: "DE", name: "Germany" },
+  { code: "GH", name: "Ghana" },
+  { code: "GR", name: "Greece" },
+  { code: "GD", name: "Grenada" },
+  { code: "GT", name: "Guatemala" },
+  { code: "GN", name: "Guinea" },
+  { code: "GW", name: "Guinea-Bissau" },
+  { code: "GY", name: "Guyana" },
+  { code: "HT", name: "Haiti" },
+  { code: "HN", name: "Honduras" },
+  { code: "HU", name: "Hungary" },
+  { code: "IS", name: "Iceland" },
+  { code: "IN", name: "India" },
   { code: "ID", name: "Indonesia" },
-  { code: "MY", name: "Malaysia" },
-  { code: "SG", name: "Singapore" },
-  { code: "TH", name: "Thailand" },
-  { code: "US", name: "United States" },
-  { code: "GB", name: "United Kingdom" },
+  { code: "IR", name: "Iran" },
+  { code: "IQ", name: "Iraq" },
+  { code: "IE", name: "Ireland" },
+  { code: "IL", name: "Israel" },
+  { code: "IT", name: "Italy" },
+  { code: "JM", name: "Jamaica" },
   { code: "JP", name: "Japan" },
-  { code: "AU", name: "Australia" }
+  { code: "JO", name: "Jordan" },
+  { code: "KZ", name: "Kazakhstan" },
+  { code: "KE", name: "Kenya" },
+  { code: "KI", name: "Kiribati" },
+  { code: "KW", name: "Kuwait" },
+  { code: "KG", name: "Kyrgyzstan" },
+  { code: "LA", name: "Laos" },
+  { code: "LV", name: "Latvia" },
+  { code: "LB", name: "Lebanon" },
+  { code: "LS", name: "Lesotho" },
+  { code: "LR", name: "Liberia" },
+  { code: "LY", name: "Libya" },
+  { code: "LI", name: "Liechtenstein" },
+  { code: "LT", name: "Lithuania" },
+  { code: "LU", name: "Luxembourg" },
+  { code: "MG", name: "Madagascar" },
+  { code: "MW", name: "Malawi" },
+  { code: "MY", name: "Malaysia" },
+  { code: "MV", name: "Maldives" },
+  { code: "ML", name: "Mali" },
+  { code: "MT", name: "Malta" },
+  { code: "MH", name: "Marshall Islands" },
+  { code: "MR", name: "Mauritania" },
+  { code: "MU", name: "Mauritius" },
+  { code: "MX", name: "Mexico" },
+  { code: "MD", name: "Moldova" },
+  { code: "MC", name: "Monaco" },
+  { code: "MN", name: "Mongolia" },
+  { code: "ME", name: "Montenegro" },
+  { code: "MA", name: "Morocco" },
+  { code: "MZ", name: "Mozambique" },
+  { code: "MM", name: "Myanmar" },
+  { code: "NA", name: "Namibia" },
+  { code: "NR", name: "Nauru" },
+  { code: "NP", name: "Nepal" },
+  { code: "NL", name: "Netherlands" },
+  { code: "NZ", name: "New Zealand" },
+  { code: "NI", name: "Nicaragua" },
+  { code: "NE", name: "Niger" },
+  { code: "NG", name: "Nigeria" },
+  { code: "NO", name: "Norway" },
+  { code: "OM", name: "Oman" },
+  { code: "PK", name: "Pakistan" },
+  { code: "PW", name: "Palau" },
+  { code: "PS", name: "Palestine" },
+  { code: "PA", name: "Panama" },
+  { code: "PG", name: "Papua New Guinea" },
+  { code: "PY", name: "Paraguay" },
+  { code: "PE", name: "Peru" },
+  { code: "PH", name: "Philippines" },
+  { code: "PL", name: "Poland" },
+  { code: "PT", name: "Portugal" },
+  { code: "QA", name: "Qatar" },
+  { code: "RO", name: "Romania" },
+  { code: "RU", name: "Russia" },
+  { code: "RW", name: "Rwanda" },
+  { code: "KN", name: "Saint Kitts and Nevis" },
+  { code: "LC", name: "Saint Lucia" },
+  { code: "VC", name: "Saint Vincent and the Grenadines" },
+  { code: "WS", name: "Samoa" },
+  { code: "SM", name: "San Marino" },
+  { code: "ST", name: "Sao Tome and Principe" },
+  { code: "SA", name: "Saudi Arabia" },
+  { code: "SN", name: "Senegal" },
+  { code: "RS", name: "Serbia" },
+  { code: "SC", name: "Seychelles" },
+  { code: "SL", name: "Sierra Leone" },
+  { code: "SG", name: "Singapore" },
+  { code: "SK", name: "Slovakia" },
+  { code: "SI", name: "Slovenia" },
+  { code: "SB", name: "Solomon Islands" },
+  { code: "SO", name: "Somalia" },
+  { code: "ZA", name: "South Africa" },
+  { code: "KR", name: "South Korea" },
+  { code: "SS", name: "South Sudan" },
+  { code: "ES", name: "Spain" },
+  { code: "LK", name: "Sri Lanka" },
+  { code: "SD", name: "Sudan" },
+  { code: "SR", name: "Suriname" },
+  { code: "SE", name: "Sweden" },
+  { code: "CH", name: "Switzerland" },
+  { code: "SY", name: "Syria" },
+  { code: "TJ", name: "Tajikistan" },
+  { code: "TZ", name: "Tanzania" },
+  { code: "TH", name: "Thailand" },
+  { code: "TL", name: "Timor-Leste" },
+  { code: "TG", name: "Togo" },
+  { code: "TO", name: "Tonga" },
+  { code: "TT", name: "Trinidad and Tobago" },
+  { code: "TN", name: "Tunisia" },
+  { code: "TR", name: "Turkey" },
+  { code: "TM", name: "Turkmenistan" },
+  { code: "TV", name: "Tuvalu" },
+  { code: "UG", name: "Uganda" },
+  { code: "UA", name: "Ukraine" },
+  { code: "AE", name: "United Arab Emirates" },
+  { code: "GB", name: "United Kingdom" },
+  { code: "US", name: "United States" },
+  { code: "UY", name: "Uruguay" },
+  { code: "UZ", name: "Uzbekistan" },
+  { code: "VU", name: "Vanuatu" },
+  { code: "VA", name: "Vatican City" },
+  { code: "VE", name: "Venezuela" },
+  { code: "VN", name: "Vietnam" },
+  { code: "YE", name: "Yemen" },
+  { code: "ZM", name: "Zambia" },
+  { code: "ZW", name: "Zimbabwe" }
 ];
 
-// Sample cities by country - in a real app this would come from an API
-const citiesByCountry: Record<string, string[]> = {
-  "ID": ["Jakarta", "Surabaya", "Bandung", "Medan", "Semarang"],
-  "MY": ["Kuala Lumpur", "Penang", "Johor Bahru", "Ipoh"],
-  "SG": ["Singapore"],
-  "TH": ["Bangkok", "Chiang Mai", "Phuket", "Pattaya"],
-  "US": ["Los Angeles", "New York", "Chicago", "Houston", "Phoenix", "San Francisco", "Miami"],
-  "GB": ["London", "Manchester", "Birmingham", "Glasgow", "Liverpool"],
-  "JP": ["Tokyo", "Osaka", "Kyoto", "Yokohama", "Nagoya"],
-  "AU": ["Sydney", "Melbourne", "Brisbane", "Perth", "Adelaide"]
-};
+// Generate sample cities for each country based on their coordinates
+const citiesByCountry: Record<string, string[]> = {};
+
+// Populate cities for each country (in a real app, this would come from an API)
+COUNTRIES.forEach(country => {
+  const countryData = countryCoordinates[country.code];
+  if (countryData) {
+    citiesByCountry[country.code] = [countryData.city];
+  } else {
+    citiesByCountry[country.code] = ["Capital"];
+  }
+});
 
 interface LocationSelectorProps {
   compact?: boolean;
@@ -56,52 +246,55 @@ const LocationSelector = ({
 }: LocationSelectorProps) => {
   const { theme } = useTheme();
   const { userLocation, updateLocation } = useAuth();
+  const { location, setCountry } = useGeolocation();
   const [open, setOpen] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
   const [availableCities, setAvailableCities] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [countrySearchQuery, setCountrySearchQuery] = useState("");
 
   // Set initial values when userLocation changes
   useEffect(() => {
     if (userLocation) {
       // Find country code matching the country name
-      const countryCode = countries.find(c => c.name === userLocation.country)?.code || "ID";
-      setSelectedCountry(countryCode);
-      setSelectedCity(userLocation.city);
-      
-      // Special case for Los Angeles to ensure it's in the US
-      if (userLocation.city === "Los Angeles") {
-        setSelectedCountry("US");
+      const countryCode = COUNTRIES.find(c => c.name === userLocation.country)?.code || "";
+      if (countryCode) {
+        setSelectedCountry(countryCode);
+        setSelectedCity(userLocation.city);
+        setAvailableCities(citiesByCountry[countryCode] || []);
       }
-      
+    } else if (location) {
+      // Use the device location
+      const countryCode = COUNTRIES.find(c => c.name === location.country)?.code || "ID";
+      setSelectedCountry(countryCode);
+      setSelectedCity(location.city);
       setAvailableCities(citiesByCountry[countryCode] || []);
     } else {
-      // Default to Indonesia/Jakarta
-      setSelectedCountry("ID");
-      setAvailableCities(citiesByCountry["ID"] || []);
-      setSelectedCity("Jakarta");
+      // Default to user's stored country or Indonesia
+      const storedCountry = localStorage.getItem('userCountry') || "ID";
+      setSelectedCountry(storedCountry);
+      setAvailableCities(citiesByCountry[storedCountry] || []);
+      setSelectedCity(citiesByCountry[storedCountry]?.[0] || "");
     }
-  }, [userLocation]);
+  }, [userLocation, location]);
 
   // Update available cities when country changes
   useEffect(() => {
     if (selectedCountry) {
       setAvailableCities(citiesByCountry[selectedCountry] || []);
-      if (availableCities.length > 0 && !availableCities.includes(selectedCity)) {
-        setSelectedCity(availableCities[0]);
-      }
-      
-      // Special case: when switching to US and we had selected Los Angeles before
-      if (selectedCountry === "US" && selectedCity === "Los Angeles") {
-        // Keep the selection
-      } else if (selectedCountry === "US" && !citiesByCountry["US"].includes(selectedCity)) {
-        // Default US city is Los Angeles
-        setSelectedCity("Los Angeles");
+      if (citiesByCountry[selectedCountry]?.length > 0) {
+        setSelectedCity(citiesByCountry[selectedCountry][0]);
       }
     }
   }, [selectedCountry]);
+
+  // Filter countries based on search query
+  const filteredCountries = countrySearchQuery
+    ? COUNTRIES.filter(country => 
+        country.name.toLowerCase().includes(countrySearchQuery.toLowerCase()))
+    : COUNTRIES;
 
   // Filter cities based on search query
   const filteredCities = searchQuery
@@ -111,44 +304,35 @@ const LocationSelector = ({
 
   const handleSaveLocation = async () => {
     setIsLoading(true);
-    const countryName = countries.find(c => c.code === selectedCountry)?.name || "Indonesia";
+    const countryName = COUNTRIES.find(c => c.code === selectedCountry)?.name || "Unknown";
     
     try {
-      // Special case for Los Angeles to ensure it's always tied to United States
-      if (selectedCity === "Los Angeles" && selectedCountry !== "US") {
-        toast({
-          title: "Location Adjusted",
-          description: "Los Angeles is in the United States. We've updated your selection.",
-        });
+      // Get coordinates for the selected location
+      const countryData = countryCoordinates[selectedCountry];
+      
+      if (countryData) {
+        // Use the setCountry function from useGeolocation for consistency
+        setCountry(selectedCountry, countryName);
         
-        // Force country to US for Los Angeles
-        await updateLocation(selectedCity, "United States");
+        // Update location in AuthContext
+        await updateLocation(selectedCity || countryData.city, countryName);
         
-        // Callback for immediate map update with correct coordinates
+        // Callback for immediate map update
         if (onLocationSelected) {
-          onLocationSelected(selectedCity, "United States", US_COORDINATES);
+          onLocationSelected(
+            selectedCity || countryData.city, 
+            countryName, 
+            countryData.coordinates
+          );
         }
         
-        setIsLoading(false);
-        setOpen(false);
-        return;
+        toast({
+          title: "Location Updated",
+          description: `Your location has been set to ${selectedCity || countryData.city}, ${countryName}`,
+        });
+      } else {
+        throw new Error("Country data not found");
       }
-      
-      // Get coordinates for the selected location
-      const coordinates = await geocodeLocation(selectedCity, countryName);
-      
-      // Update location in AuthContext
-      await updateLocation(selectedCity, countryName);
-      
-      // Callback for immediate map update
-      if (onLocationSelected) {
-        onLocationSelected(selectedCity, countryName, coordinates);
-      }
-      
-      toast({
-        title: "Location Updated",
-        description: `Your location has been set to ${selectedCity}, ${countryName}`,
-      });
     } catch (error) {
       console.error("Error updating location:", error);
       toast({
@@ -164,17 +348,16 @@ const LocationSelector = ({
 
   // Get country name from code
   const getCountryName = (code: string) => {
-    return countries.find(c => c.code === code)?.name || code;
+    return COUNTRIES.find(c => c.code === code)?.name || code;
   };
 
-  // Special handling for Los Angeles display
+  // Display location
   const displayLocation = () => {
     if (userLocation) {
-      // Special case for Los Angeles to ensure correct display
-      if (userLocation.city === "Los Angeles") {
-        return "Los Angeles, United States";
-      }
       return `${userLocation.city}, ${userLocation.country}`;
+    }
+    if (location) {
+      return `${location.city}, ${location.country}`;
     }
     return "Select Location";
   };
@@ -198,7 +381,7 @@ const LocationSelector = ({
                 {displayLocation()}
               </span>
               <span className="sm:hidden">
-                {userLocation ? userLocation.city : "Location"}
+                {userLocation ? userLocation.city : (location ? location.city : "Location")}
               </span>
             </>
           )}
@@ -213,100 +396,115 @@ const LocationSelector = ({
         </DialogHeader>
         
         <div className="grid gap-4 py-4">
-          {/* Country selection */}
+          {/* Country search */}
           <div className="grid gap-2">
-            <label htmlFor="country" className="text-sm font-medium">
+            <label htmlFor="country-search" className="text-sm font-medium">
               Country
-            </label>
-            <Select
-              value={selectedCountry}
-              onValueChange={(value) => {
-                setSelectedCountry(value);
-                // Special handling for Los Angeles
-                if (value === "US" && selectedCity === "Los Angeles") {
-                  // Keep Los Angeles selected when switching to US
-                } else {
-                  setSearchQuery(""); // Clear search when changing country
-                }
-              }}
-            >
-              <SelectTrigger id="country" className="w-full">
-                <SelectValue placeholder="Select a country" />
-              </SelectTrigger>
-              <SelectContent>
-                {countries.map((country) => (
-                  <SelectItem key={country.code} value={country.code}>
-                    {country.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          {/* Search for city */}
-          <div className="grid gap-2">
-            <label htmlFor="city-search" className="text-sm font-medium">
-              City
             </label>
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                id="city-search"
-                placeholder="Search for a city..."
+                id="country-search"
+                placeholder="Search for a country..."
                 className="pl-10"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={countrySearchQuery}
+                onChange={(e) => setCountrySearchQuery(e.target.value)}
               />
             </div>
           </div>
           
-          {/* City selection */}
+          {/* Country selection */}
           <div className="grid gap-2 max-h-40 overflow-y-auto">
-            {filteredCities.length > 0 ? (
-              filteredCities.map((city) => (
+            {filteredCountries.length > 0 ? (
+              filteredCountries.map((country) => (
                 <div
-                  key={city}
+                  key={country.code}
                   className={`
                     p-2 rounded-md cursor-pointer flex items-center gap-2
                     ${
-                      selectedCity === city
+                      selectedCountry === country.code
                         ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300"
                         : "hover:bg-gray-100 dark:hover:bg-gray-800"
                     }
                   `}
                   onClick={() => {
-                    setSelectedCity(city);
-                    
-                    // Special handling for Los Angeles
-                    if (city === "Los Angeles" && selectedCountry !== "US") {
-                      setSelectedCountry("US");
-                      toast({
-                        title: "Country Updated",
-                        description: "Los Angeles is in the United States. We've updated the country selection.",
-                      });
-                    }
+                    setSelectedCountry(country.code);
+                    setCountrySearchQuery(""); // Clear search after selection
                   }}
                 >
-                  {selectedCity === city && (
+                  {selectedCountry === country.code && (
                     <div className="h-2 w-2 rounded-full bg-green-500"></div>
                   )}
-                  <span className={selectedCity === city ? "ml-0" : "ml-4"}>
-                    {city}
+                  <span className={selectedCountry === country.code ? "ml-0" : "ml-4"}>
+                    {country.name}
                   </span>
                 </div>
               ))
             ) : (
               <div className="text-center py-2 text-muted-foreground">
-                No cities found. Try another search term.
+                No countries found. Try another search term.
               </div>
             )}
           </div>
+          
+          {/* City selection */}
+          {selectedCountry && (
+            <>
+              <div className="grid gap-2">
+                <label htmlFor="city-search" className="text-sm font-medium">
+                  City
+                </label>
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="city-search"
+                    placeholder="Search for a city..."
+                    className="pl-10"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+              </div>
+              
+              <div className="grid gap-2 max-h-40 overflow-y-auto">
+                {filteredCities.length > 0 ? (
+                  filteredCities.map((city) => (
+                    <div
+                      key={city}
+                      className={`
+                        p-2 rounded-md cursor-pointer flex items-center gap-2
+                        ${
+                          selectedCity === city
+                            ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300"
+                            : "hover:bg-gray-100 dark:hover:bg-gray-800"
+                        }
+                      `}
+                      onClick={() => {
+                        setSelectedCity(city);
+                      }}
+                    >
+                      {selectedCity === city && (
+                        <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                      )}
+                      <span className={selectedCity === city ? "ml-0" : "ml-4"}>
+                        {city}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-2 text-muted-foreground">
+                    No cities found. Try another search term or select capital city.
+                  </div>
+                )}
+              </div>
+            </>
+          )}
           
           {/* Current selection summary */}
           <div className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-md mt-2">
             <span className="text-sm font-medium">Current selection: </span>
             <span className="text-green-600 dark:text-green-400">
-              {selectedCity}, {selectedCity === "Los Angeles" ? "United States" : getCountryName(selectedCountry)}
+              {selectedCity || (countryCoordinates[selectedCountry]?.city || "Capital")}, {getCountryName(selectedCountry)}
             </span>
           </div>
         </div>
@@ -322,7 +520,7 @@ const LocationSelector = ({
           <Button
             onClick={handleSaveLocation}
             className="bg-green-500 hover:bg-green-600"
-            disabled={isLoading}
+            disabled={isLoading || !selectedCountry}
           >
             {isLoading ? (
               <>

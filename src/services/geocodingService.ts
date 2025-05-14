@@ -1,10 +1,9 @@
-
 import { MAPBOX_TOKEN } from "@/config/mapbox";
 
-// Default coordinates (Jakarta, Indonesia)
+// Default coordinates (center of the world)
 export const DEFAULT_COORDINATES = {
-  lat: -6.2088,
-  lng: 106.8456
+  lat: 0,
+  lng: 0
 };
 
 // Default US coordinates (Los Angeles)
@@ -18,7 +17,6 @@ export async function geocodeLocation(city: string, country: string): Promise<{l
   try {
     // Handle special cases for well-known cities
     if (city.toLowerCase() === "los angeles") {
-      // Los Angeles is in the US, not in Indonesia
       return US_COORDINATES;
     }
     
@@ -37,35 +35,28 @@ export async function geocodeLocation(city: string, country: string): Promise<{l
     if (data.features && data.features.length > 0) {
       // Mapbox returns coordinates as [lng, lat]
       const [lng, lat] = data.features[0].center;
-      
-      // Verify the country matches - handle common country input variations
-      const featureCountry = data.features[0].context?.find((ctx: any) => 
-        ctx.id.startsWith('country.')
-      )?.text?.toLowerCase() || '';
-      
-      const requestedCountry = country.toLowerCase();
-      
-      // Special case for Los Angeles - ensure it's always in the US
-      if (city.toLowerCase() === 'los angeles' && featureCountry !== 'united states') {
-        return US_COORDINATES;
-      }
-      
-      // For other cases, return the geocoded coordinates
       return { lat, lng };
-    }
-    
-    // Handle special case for Los Angeles if no results found
-    if (city.toLowerCase() === 'los angeles') {
-      return US_COORDINATES;
     }
     
     throw new Error('No location found');
   } catch (error) {
     console.error("Error geocoding location:", error);
     
-    // Return specific defaults for known cities when geocoding fails
-    if (city.toLowerCase() === 'los angeles') {
-      return US_COORDINATES;
+    // Try to get a stored country coordinate from localStorage as a last resort
+    const storedCountryCode = localStorage.getItem('userCountry');
+    if (storedCountryCode) {
+      try {
+        // Import the countryCoordinates dynamically
+        import('@/hooks/use-geolocation').then(module => {
+          const countryCoordinates = module.countryCoordinates;
+          if (countryCoordinates && countryCoordinates[storedCountryCode]) {
+            return countryCoordinates[storedCountryCode].coordinates;
+          }
+          return DEFAULT_COORDINATES;
+        });
+      } catch (err) {
+        console.error("Error importing countryCoordinates:", err);
+      }
     }
     
     // Return default coordinates if geocoding fails
@@ -173,15 +164,12 @@ export function filterStationsByDistance(
     .sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
 }
 
-// Fetch nearby gas stations - enhanced to handle US locations better
+// Fetch nearby gas stations - enhanced to handle global locations
 export async function fetchNearbyStations(
   coords: {lat: number, lng: number},
   radius: number = 5000, // radius in meters
   count: number = 50 // Number of stations to return
 ): Promise<any[]> {
-  // This is a placeholder for a real API call
-  // In a real app, you would use Mapbox/Foursquare/Google Places API
-  
   // Simulate API request delay
   await new Promise(resolve => setTimeout(resolve, 1000));
   
@@ -194,19 +182,51 @@ export async function fetchNearbyStations(
     return generateLosAngelesStations(coords, count);
   }
   
-  // For other locations, return the filtered dummy data
-  const randomStations = generateRandomStations(coords, count);
-  return randomStations;
+  // For other locations, return the filtered dummy data with local branding
+  return generateLocalStations(coords, count);
 }
 
-// Helper function to generate random gas stations around a location
-// This is just for demonstration - in a real app you'd use a proper API
-function generateRandomStations(
+// Helper function to generate random gas stations around a location with local flavor
+function generateLocalStations(
   center: {lat: number, lng: number},
   count: number = 50
 ): any[] {
   const stations = [];
-  const brandNames = ["Pertamina", "Shell", "BP", "Total", "Petronas", "ExxonMobil", "FuelFriendly"];
+  
+  // Determine region and load appropriate brands
+  let brandNames: string[] = [];
+  let currencySymbol = "$"; // Default
+  
+  // Use coordinates to roughly determine region and set appropriate brands
+  if (center.lat > 20 && center.lat < 70 && center.lng > -130 && center.lng < -50) {
+    // North America
+    brandNames = ["Shell", "BP", "Exxon", "Mobil", "Chevron", "Texaco", "ARCO", "76"];
+    currencySymbol = "$";
+  } else if (center.lat > 35 && center.lat < 70 && center.lng > -10 && center.lng < 40) {
+    // Europe
+    brandNames = ["Shell", "BP", "Total", "Esso", "Aral", "OMV", "Repsol", "Cepsa"];
+    currencySymbol = "€";
+  } else if (center.lat > -50 && center.lat < 15 && center.lng > -80 && center.lng < -30) {
+    // South America
+    brandNames = ["Petrobras", "YPF", "COPEC", "Terpel", "Shell", "Texaco", "Axion"];
+    currencySymbol = "$";
+  } else if (center.lat > -45 && center.lat < 30 && center.lng > 10 && center.lng < 60) {
+    // Africa
+    brandNames = ["Total", "Shell", "Engen", "Caltex", "OiLibya", "Puma", "GNPC"];
+    currencySymbol = "$";
+  } else if (center.lat > -10 && center.lat < 60 && center.lng > 60 && center.lng < 150) {
+    // Asia
+    brandNames = ["Pertamina", "Petronas", "Sinopec", "CNPC", "IndianOil", "PTT", "SK"];
+    currencySymbol = "¥";
+  } else if (center.lat > -50 && center.lat < -10 && center.lng > 110 && center.lng < 180) {
+    // Australia/Oceania
+    brandNames = ["BP", "Shell", "Caltex", "Mobil", "United", "Liberty", "Z Energy"];
+    currencySymbol = "$";
+  } else {
+    // Default/Global
+    brandNames = ["Shell", "BP", "Total", "FuelFriendly", "Petronas", "ExxonMobil"];
+    currencySymbol = "$";
+  }
   
   for (let i = 0; i < count; i++) {
     // Generate a random position within approximately 5km
@@ -216,8 +236,8 @@ function generateRandomStations(
     // Calculate actual distance
     const distance = calculateDistance(center.lat, center.lng, randomLat, randomLng).toFixed(1);
     
-    // Random price between $3.00 and $4.50
-    const price = (3 + Math.random() * 1.5).toFixed(2);
+    // Random price based on region (adjust based on local currencies)
+    let price = (3 + Math.random() * 1.5).toFixed(2);
     
     // Random brand
     const brand = brandNames[Math.floor(Math.random() * brandNames.length)];
@@ -225,6 +245,7 @@ function generateRandomStations(
     // Random opening hours
     const openHour = 6 + Math.floor(Math.random() * 4); // Between 6am and 9am
     const closeHour = 20 + Math.floor(Math.random() * 4); // Between 8pm and 11pm
+    const is24Hours = Math.random() > 0.7;
     
     stations.push({
       id: `station-${i}`,
@@ -242,8 +263,9 @@ function generateRandomStations(
         { type: "Diesel", price: (parseFloat(price) + 0.15).toFixed(2) }
       ],
       hours: {
-        open: openHour,
-        close: closeHour
+        open: is24Hours ? 0 : openHour,
+        close: is24Hours ? 24 : closeHour,
+        is24Hours
       },
       imageUrl: "/lovable-uploads/e7264ee5-ed98-4679-91b4-8f12d183784b.png"
     });
