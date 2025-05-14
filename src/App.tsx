@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -106,9 +105,23 @@ function App() {
 
   const handleSplashScreenFinish = useCallback(() => {
     setIsLoading(false);
-    // Always redirect to welcome screen
-    navigate('/welcome');
-  }, [navigate]);
+    
+    // Check if user has visited before
+    const hasVisited = localStorage.getItem('visited');
+    
+    if (hasVisited && location.pathname === '/') {
+      // If they've visited before and they're at the root, keep them there
+      console.log("User has visited before, staying on home page");
+    } else if (hasVisited) {
+      // If they've visited but are on another page, navigate to home
+      console.log("User has visited before, navigating to home");
+      navigate('/');
+    } else {
+      // First time visitors see the welcome screen
+      console.log("First time visitor, showing welcome screen");
+      navigate('/welcome');
+    }
+  }, [navigate, location.pathname]);
 
   return (
     <AuthProvider>

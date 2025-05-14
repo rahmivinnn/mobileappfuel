@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { useTheme } from '@/components/ui/theme-provider';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { toast } from '@/hooks/use-toast';
 
 // Add global style to disable scrolling
 const globalStyle = document.createElement('style');
@@ -24,6 +25,15 @@ const Welcome = () => {
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   const isMobile = useIsMobile();
+  
+  // Function to skip the welcome screen and go directly to home
+  const goToHome = () => {
+    navigate('/');
+    toast({
+      title: "Welcome to FuelFriendly",
+      description: "Find the nearest gas stations and fuel services",
+    });
+  };
   
   return (
     <>
@@ -113,6 +123,14 @@ const Welcome = () => {
                   className={`w-full h-14 rounded-full border-2 border-green-500 ${isDarkMode ? 'bg-transparent text-white hover:bg-green-500/10' : 'bg-transparent text-green-500 hover:bg-green-500/10'} font-medium text-lg`}
                 >
                   I already have an account
+                </Button>
+
+                <Button 
+                  onClick={goToHome}
+                  variant="ghost" 
+                  className={`w-full h-10 ${isDarkMode ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-600 hover:bg-gray-100'} font-medium`}
+                >
+                  Skip and explore the app
                 </Button>
               </div>
               
